@@ -31,7 +31,12 @@ export function liveStatus(timeline: LiveTimeline | null, frame?: LiveFrame): st
   if (frame.availability === 'outside_coverage') return 'Rainfall outside available coverage';
   if (frame.availability !== 'ready') return 'Estimate unavailable';
   if (frame.kind !== 'replay' && (timeline.freshness !== 'fresh' || Date.parse(timeline.expires_at) <= Date.now())) return 'Rainfall update delayed';
-  return frame.kind === 'forecast' ? 'Estimated inundation · forecast rainfall' : 'Estimated inundation · observed rainfall';
+  if (frame.kind === 'forecast') return 'Estimated inundation · forecast rainfall';
+  const sources = frame.rainfall_sources ?? [];
+  const corrected = sources.some(source => source.startsWith('gsmap_now_corrected:'));
+  const fallback = sources.some(source => source.startsWith('uncorrected_fallback:'));
+  if (fallback) return corrected ? 'Estimated inundation · partly corrected rainfall' : 'Estimated inundation · uncorrected rainfall';
+  return corrected ? 'Estimated inundation · corrected rainfall' : 'Estimated inundation · observed rainfall';
 }
 
 export function formatFloodMetric(value: number | null | undefined, digits: number): string {

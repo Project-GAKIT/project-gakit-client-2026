@@ -33,6 +33,7 @@ export interface ScenarioData {
   reference_total_mm?: number | null;
   model_notice?: string;
   scenario_contract?: string;
+  rainfall_forcing?: { schema?: string; model?: { id?: string; name?: string } };
   live?: LiveTimeline;
   is_calibrated: boolean;
   description: string;
@@ -127,11 +128,11 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
     id: 'basyang',
     name: 'Tropical Storm Basyang (Penha, 2026)',
     type: 'historical',
-    badge: '133.9 mm',
-    totalRain: '133.9 mm',
+    badge: '110.61 mm',
+    totalRain: '110.61 mm',
     dates: 'February 5–6, 2026',
     timeWindow: '00:00 – 24:00 PHT',
-    description: 'Illustrative spatial estimates driven by 133.9 mm in the bundled Basyang rainfall sequence. Its separate 144.5 mm reference and flood timing are unverified.',
+    description: 'Spatial estimates driven by 24 hours of JAXA rainfall corrected for Iligan. The corrected rainfall totals 110.61 mm; flood timing and depths require independent validation.',
     dataFile: '/data/scenarios/basyang.json',
   },
   {

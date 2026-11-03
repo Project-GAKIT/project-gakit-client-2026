@@ -37,12 +37,10 @@ export function FloodSimulationTimeline({ frames, selectedIndex, onSelect, statu
   context?: FloodOverviewContext;
   forecastControl?: FloodForecastControl;
   explorer?: boolean;
-  playback?: { playing: boolean; speed: number; toggle: () => void; pause: () => void; cycleSpeed: () => void; reset: () => void };
+  playback?: { playing: boolean; toggle: () => void; pause: () => void; reset: () => void };
 }) {
   const [localPlaying, setPlaying] = useState(false);
-  const [localSpeed, setSpeed] = useState(1);
   const playing = playback?.playing ?? localPlaying;
-  const speed = playback?.speed ?? localSpeed;
   const externalPlayback = Boolean(playback);
   const [scrub, setScrub] = useState<number | null>(null);
   const [pageVisible, setPageVisible] = useState(true);
@@ -63,7 +61,8 @@ export function FloodSimulationTimeline({ frames, selectedIndex, onSelect, statu
   const forecastIndex = frames.findIndex(frame => frame.is_forecast);
   const maxIndex = Math.max(0, frames.length - 1);
   const followingLive = live && (selectedIndex === null || (explorer && index === latestIndex)) && !playing;
-  const routineStatus = status === 'Estimated inundation · observed rainfall' || status === 'Estimated inundation · forecast rainfall';
+  const routineStatus = ['observed', 'forecast', 'corrected', 'partly corrected', 'uncorrected']
+    .some(kind => status === `Estimated inundation · ${kind} rainfall`);
   const message = !routineStatus ? status : null;
   const peakIndex = useMemo(() => frames.reduce((best, frame, next) => typeof frame.inundated_km2 === 'number' && frame.inundated_km2 > (best < 0 ? 0 : frames[best].inundated_km2 ?? 0) ? next : best, -1), [frames]);
   const liveFraction = latestIndex >= 0 ? latestIndex / Math.max(1, maxIndex) * 100 : 100;
@@ -93,9 +92,9 @@ export function FloodSimulationTimeline({ frames, selectedIndex, onSelect, statu
   }, []);
   useEffect(() => {
     if (externalPlayback || !playing || loading || !pageVisible || frames.length < 2) return;
-    const timer = setTimeout(() => onSelect((index + 1) % frames.length), Math.round(800 / speed));
+    const timer = setTimeout(() => onSelect((index + 1) % frames.length), 800);
     return () => clearTimeout(timer);
-  }, [externalPlayback, playing, loading, pageVisible, frames.length, index, speed, onSelect]);
+  }, [externalPlayback, playing, loading, pageVisible, frames.length, index, onSelect]);
 
   const choose = (next: number) => { if (playback) playback.pause(); else setPlaying(false); setScrub(null); onSelect(live && next === latestIndex ? null : next); };
   // Scrubbing previews the time locally; raster selection commits on release.
@@ -104,7 +103,7 @@ export function FloodSimulationTimeline({ frames, selectedIndex, onSelect, statu
     mobile={!desktop} onSelect={choose} onClose={closeOverview} context={context} forecastControl={forecastControl} />;
 
   return <>
-    <section ref={playerRef} aria-label="Flood simulation timeline" className={`pointer-events-auto absolute inset-x-3 z-[1010] md:right-auto ${explorer ? 'md:left-1/2 md:w-[min(640px,calc(100%-2rem))] md:-translate-x-1/2' : 'md:left-[max(340px,calc(50%-320px))] md:w-[min(640px,calc(100%-380px))]'} ${hasBottomNav ? 'bottom-[calc(env(safe-area-inset-bottom,0px)+5rem)]' : 'bottom-[max(1.5rem,env(safe-area-inset-bottom,0px))]'} ${fullScreen ? 'md:bottom-5' : 'md:bottom-3'}`}>
+    <section ref={playerRef} aria-label="Flood simulation timeline" className={`pointer-events-auto absolute inset-x-3 z-[1010] md:right-auto md:-translate-x-1/2 ${explorer ? 'md:left-1/2 md:w-[min(960px,calc(100%-2rem))]' : 'md:left-[calc(50%+170px)] md:w-[min(960px,calc(100%-380px))]'} ${hasBottomNav ? 'bottom-[calc(env(safe-area-inset-bottom,0px)+5rem)]' : 'bottom-[max(1.5rem,env(safe-area-inset-bottom,0px))]'} ${fullScreen ? 'md:bottom-5' : 'md:bottom-3'}`}>
       {!desktop && overviewOpen && overview}
       <div aria-label="Flood simulation depth legend" className="mb-1.5 flex items-center justify-center gap-1 text-[9px] font-bold md:gap-1.5">
         <span className="mr-1 hidden text-slate-600 md:inline">DEPTH</span>
@@ -132,7 +131,7 @@ export function FloodSimulationTimeline({ frames, selectedIndex, onSelect, statu
           <p className="mt-0.5 text-[8px] text-slate-500">{!live ? 'Elapsed time' : displayedFrame && Number.isFinite(Date.parse(displayedFrame.raw_time)) ? `${dateFormat.format(new Date(displayedFrame.raw_time))} · PHT` : 'Flood simulation'}</p>
         </div>
         <div className="min-w-0 flex-1">
-          <div className="relative flex justify-between text-[8px] font-bold leading-3 text-slate-400"><span>{live ? 'Past' : 'Scenario playback'}</span>{live && latestIndex >= 0 && <span className="absolute hidden -translate-x-1/2 text-emerald-700 lg:inline" style={{ left: `${liveFraction}%` }}>Live</span>}{live && forecastIndex >= 0 && <span className="text-amber-700">Forecast</span>}</div>
+          <div data-playback-labels className="flex justify-between gap-2 whitespace-nowrap text-[8px] font-bold leading-3 text-slate-400"><span>{live ? 'Past' : 'Scenario playback'}</span>{live && forecastIndex >= 0 && <span className="text-amber-700">Forecast</span>}</div>
           <div className="relative h-8 rounded has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-gakit-maroon/40">
             <div aria-hidden="true" className="absolute inset-x-1.5 top-2.5 h-0.5 rounded-full" style={{ background: track }} />
             {frames.length > 0 && <span aria-hidden="true" className="pointer-events-none absolute top-[11px] h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-gakit-maroon shadow-sm"
@@ -147,10 +146,10 @@ export function FloodSimulationTimeline({ frames, selectedIndex, onSelect, statu
             style={{ left: `clamp(0px, calc((100% - 12px) * ${peakIndex / Math.max(1, maxIndex)} - 6px), calc(100% - 28px))` }}>Peak</button>}
           </div>
         </div>
-        <button type="button" onClick={() => playback ? playback.cycleSpeed() : setSpeed(value => value === 1 ? 2 : 1)} aria-label={`Playback speed: ${speed}x. Change speed`} className="hidden h-8 shrink-0 rounded-lg px-1 text-[10px] font-bold text-slate-500 hover:bg-slate-100 lg:block">{speed}×</button>
         <button type="button" onClick={() => { setScrub(null); if (playback) playback.reset(); else { setPlaying(false); onSelect(live ? null : 0); } }} aria-label={live ? 'Return to live and follow updates' : 'Restart simulation'} title={live ? followingLive ? 'Following live' : 'Go live' : 'Restart simulation'} disabled={!frames.length}
-          className={`flex h-8 w-7 shrink-0 items-center justify-center rounded-lg hover:bg-slate-100 disabled:opacity-30 ${followingLive ? 'bg-emerald-50 text-emerald-700' : 'text-slate-500'}`}>
+          className={`flex h-8 w-7 shrink-0 items-center justify-center rounded-lg hover:bg-slate-100 disabled:opacity-30 lg:w-auto lg:gap-1 lg:px-2 ${followingLive ? 'bg-emerald-50 text-emerald-700' : 'text-slate-500'}`}>
           {loading ? <Spinner size="xs" label="Loading simulation" /> : live ? <Radio size={15} /> : <RotateCcw size={15} />}
+          {live && <span className="hidden text-[10px] font-bold lg:inline">Live</span>}
         </button>
         <button type="button" aria-label="Toggle flood overview" aria-expanded={overviewOpen} aria-controls={overviewId} onClick={toggleOverview} className={`flex h-8 w-7 shrink-0 items-center justify-center rounded-lg hover:bg-slate-100 lg:w-auto lg:gap-1.5 lg:px-2 ${overviewOpen ? 'bg-slate-100 text-slate-800' : 'text-slate-500'}`}><ChartNoAxesColumnIncreasing size={14} /><span className="hidden text-[10px] lg:inline">Overview</span></button>
         {onClose && <button type="button" aria-label="Close flood simulation" onClick={onClose} className="hidden shrink-0 p-1 text-slate-400 hover:text-slate-700 md:block"><X size={12} /></button>}

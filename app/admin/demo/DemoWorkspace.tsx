@@ -80,7 +80,6 @@ export function DemoWorkspace() {
   const [scenario, setScenario] = useState<{ id: string; data?: ScenarioData; error?: string } | null>(null);
   const [minutes, setMinutes] = useState(0);
   const [playing, setPlaying] = useState(false);
-  const [speed, setSpeed] = useState(1);
   const [approveFixtures, setApproveFixtures] = useState(false);
   const [inspectionMinutes, setInspectionMinutes] = useState<number | null>(null);
   const [observationTime, setObservationTime] = useState<'now' | 'earlier'>('now');
@@ -139,9 +138,9 @@ export function DemoWorkspace() {
   // Wait for each analysis before advancing; no abandoned inference queue during fast playback.
   useEffect(() => {
     if (!isPlaying || analysisPending || assessed?.error) return;
-    const timer = setInterval(() => setMinutes(value => Math.min(maxMinutes, value + 5)), 1000 / speed);
+    const timer = setInterval(() => setMinutes(value => Math.min(maxMinutes, value + 5)), 1000);
     return () => clearInterval(timer);
-  }, [isPlaying, speed, maxMinutes, analysisPending, assessed?.error]);
+  }, [isPlaying, maxMinutes, analysisPending, assessed?.error]);
 
   // Send original events and forcing. Server checkpoints carry numeric water and
   // flow; edits, removals and rewinds replay those inputs rather than PNG colors.
@@ -315,8 +314,8 @@ export function DemoWorkspace() {
         {frames.length > 0 && <TimelinePlayer className="relative w-full" frames={playerFrames} currentIndex={currentIndex}
           onIndexChange={index => { setPlaying(false); setInspectionMinutes(null); setMinutes(index * 60); }} isPlaying={isPlaying}
           onTogglePlay={() => { setInspectionMinutes(null); if (minutes >= maxMinutes) { setMinutes(0); setPlaying(true); } else setPlaying(value => !value); }}
-          playbackSpeed={speed} onToggleSpeed={() => setSpeed(value => value === 4 ? 1 : value * 2)} onReset={reset}
-          status={`${demoClock(minutes)} · ${analysisPending ? 'Updating map' : '1 second = 5 demo minutes at 1×'}`} />}
+          onReset={reset}
+          status={`${demoClock(minutes)} · ${analysisPending ? 'Updating map' : '1 second = 5 demo minutes'}`} />}
         <p className="text-xs text-slate-500">Area counts water at least 20 cm deep. Depth can change without expanding the outline.</p>
         <details className="text-xs leading-5 text-slate-500">
           <summary className="cursor-pointer font-medium">How updates work</summary>

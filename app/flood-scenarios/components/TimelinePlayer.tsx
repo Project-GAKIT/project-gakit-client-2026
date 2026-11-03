@@ -28,8 +28,6 @@ interface TimelinePlayerProps {
   onIndexChange: (index: number) => void;
   isPlaying: boolean;
   onTogglePlay: () => void;
-  playbackSpeed: number;
-  onToggleSpeed: () => void;
   onReset: () => void;
   /** How many nowcast forecast frames the full timeline carries (0 = hide the toggle). */
   forecastCount?: number;
@@ -53,8 +51,6 @@ export function TimelinePlayer({
   onIndexChange,
   isPlaying,
   onTogglePlay,
-  playbackSpeed,
-  onToggleSpeed,
   onReset,
   forecastCount = 0,
   forecastMaxHours = forecastCount,
@@ -162,9 +158,6 @@ export function TimelinePlayer({
           <button type="button" onClick={handleStepForward} disabled={!hasFrames || currentIndex >= maxIndex} title="Next hour" aria-label="Next hour" className={controlClass}>
             <SkipForward className="h-4 w-4" aria-hidden="true" />
           </button>
-          <button type="button" onClick={onToggleSpeed} disabled={frames.length < 2}
-            title={`Playback speed: ${playbackSpeed}x. Change speed`} aria-label={`Playback speed: ${playbackSpeed}x. Change speed`}
-            className={`${controlClass} ml-1 text-[11px] font-semibold tabular-nums`}>{playbackSpeed}×</button>
         </div>
         <div className="flex items-center gap-1" role="group" aria-label="Playback settings">
           {compactDesktop && hasPeak && <button type="button" onClick={() => onIndexChange(peakIndex)}
