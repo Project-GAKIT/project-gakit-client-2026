@@ -26,7 +26,6 @@ export function ScenariosTab({ active }: ScenariosTabProps) {
   const [scenarioData, setScenarioData] = useState<ScenarioData | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
   const [isLoading, setIsLoading] = useState(false);
   const [hasEverBeenActive, setHasEverBeenActive] = useState(Boolean(active));
   const [includeForecast, setIncludeForecast] = useState(true);
@@ -161,16 +160,14 @@ export function ScenariosTab({ active }: ScenariosTabProps) {
   useEffect(() => {
     if (!isPlaying || !active || visibleFrames.length === 0 || rasterState === 'Loading map' || rasterState === 'Loading flood image') return;
 
-    const intervalMs = Math.round(800 / playbackSpeed);
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % visibleFrames.length);
-    }, intervalMs);
+    }, 800);
 
     return () => clearInterval(timer);
-  }, [isPlaying, active, visibleFrames, playbackSpeed, rasterState]);
+  }, [isPlaying, active, visibleFrames, rasterState]);
 
   const handleTogglePlay = () => { followLatest.current = false; setIsPlaying(p => !p); };
-  const handleToggleSpeed = () => setPlaybackSpeed((s) => (s === 1 ? 2 : 1));
   const handleReset = () => {
     setIsPlaying(false);
     followLatest.current = activePreset.type === 'live';
@@ -281,9 +278,10 @@ export function ScenariosTab({ active }: ScenariosTabProps) {
             }}
             telemetry={overviewTelemetry} loading={Boolean(initialLoading || frameLoading || isLoading)}
             status={timelineStatus} onRetry={retryScenario}
-            context={{ title: activePreset.name, presetType: activePreset.type, totalRainfallMm: scenarioData?.total_rainfall_mm ?? null, modelNotice }}
+            context={{ title: activePreset.name, presetType: activePreset.type, totalRainfallMm: scenarioData?.total_rainfall_mm ?? null, modelNotice,
+              rainfallSource: scenarioData?.source_label, rainfallCorrected: scenarioData?.rainfall_forcing?.schema === 'gsmap-hourly-correction-v1' }}
             forecastControl={forecastCount > 0 ? { included: includeForecast, maxHours: Math.max(0, ...(scenarioData?.frames.map(frame => frame.forecast_horizon_hours ?? 0) ?? [])), onChange: handleToggleForecast } : undefined}
-            playback={{ playing: isPlaying, speed: playbackSpeed, toggle: handleTogglePlay, pause: () => setIsPlaying(false), cycleSpeed: handleToggleSpeed, reset: handleReset }}
+            playback={{ playing: isPlaying, toggle: handleTogglePlay, pause: () => setIsPlaying(false), reset: handleReset }}
           />
       </div>
     </div>

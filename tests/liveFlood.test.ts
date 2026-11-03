@@ -20,6 +20,16 @@ function timeline(frames: LiveFrame[]): LiveTimeline {
 afterEach(() => { vi.useRealTimers(); vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
 
 describe('live frame selection', () => {
+  it('retains correction provenance and labels raw fallback explicitly', () => {
+    const corrected = { ...frame(1), rainfall_sources: ['gsmap_now_corrected:123456789abc'] };
+    const parsed = liveTimelineSchema.parse(timeline([corrected]));
+    expect(parsed.frames[0].rainfall_sources).toEqual(corrected.rainfall_sources);
+    expect(liveStatus(parsed, parsed.frames[0])).toBe('Estimated inundation · corrected rainfall');
+    const raw = { ...corrected, rainfall_sources: ['uncorrected_fallback:JAXA GSMaP_NRT v9'] };
+    expect(liveStatus(timeline([raw]), raw)).toBe('Estimated inundation · uncorrected rainfall');
+    const mixed = { ...corrected, rainfall_sources: [...corrected.rainfall_sources, ...raw.rainfall_sources] };
+    expect(liveStatus(timeline([mixed]), mixed)).toBe('Estimated inundation · partly corrected rainfall');
+  });
   it('retains server model capabilities and per-frame limitations through parsing', () => {
     const data = liveTimelineSchema.parse({ ...timeline([{ ...frame(1), rainfall_support: 'below_wet_training',
       dry_output_assumption: 'no_existing_floodwater' }]), capabilities: {

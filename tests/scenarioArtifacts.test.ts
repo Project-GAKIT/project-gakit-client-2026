@@ -2,6 +2,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import type { ScenarioData } from '@/types/scenario';
+import { SCENARIO_PRESETS } from '@/types/scenario';
 
 const directory = path.resolve(process.cwd(), 'public/data/scenarios');
 const names = readdirSync(directory).filter(name => name.endsWith('.json'));
@@ -20,6 +21,25 @@ function hasNumericDepth(uri: string): boolean {
 }
 
 describe('bundled illustrative scenario integrity', () => {
+  it('Basyang uses 24 corrected hours and a zero initial state, with matching picker total', () => {
+    const data = JSON.parse(readFileSync(path.join(directory, 'basyang.json'), 'utf8'));
+    expect(data.rainfall_forcing.model.id).toBe('pooled_tail');
+    expect(data.rainfall_forcing.reference_total_scaling).toBe(false);
+    expect(data.source_label).toBe('Corrected JAXA NOW · Iligan');
+    expect(data.reference_total_mm).toBeNull();
+    expect(data.frames).toHaveLength(25);
+    expect(data.frames[0].hourly_rain_mm).toBe(0);
+    expect(data.frames[0].cum_rain_mm).toBe(0);
+    const start = Date.parse(data.rainfall_forcing.interval_start_utc);
+    data.frames.forEach((frame: ScenarioData['frames'][number], i: number) => {
+      expect(Date.parse(frame.raw_time)).toBe(start + i * 3600000);
+      expect(frame.effective_rainfall_mm).toBe(frame.cum_rain_mm);
+    });
+    expect(data.total_rainfall_mm).toBe(110.61);
+    expect(data.raster_generation.forcing).toBe('corrected_hourly_cumulative');
+    expect(SCENARIO_PRESETS.find(p => p.id === 'basyang')?.totalRain).toBe('110.61 mm');
+    expect(JSON.parse(readFileSync(path.join(directory, 'penha.json'), 'utf8'))).toEqual(data);
+  });
   it.each(names)('%s has consistent rainfall and does not claim hydraulic validation', name => {
     const data = JSON.parse(readFileSync(path.join(directory, name), 'utf8')) as ScenarioData;
     expect(data.scenario_contract).toBe('static-illustration-v1');

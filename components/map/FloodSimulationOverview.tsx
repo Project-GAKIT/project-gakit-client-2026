@@ -8,12 +8,15 @@ import type { SimulatedFloodTelemetry } from '@/lib/map/surrogate';
 import type { ScenarioFrame } from '@/types/scenario';
 import type { ScenarioPresetType } from '@/types/scenario';
 import { FloodSimulationInfoModal } from './FloodSimulationInfoModal';
+import { RainfallSourcePanel } from './RainfallSourcePanel';
 
 export interface FloodOverviewContext {
   title: string;
   presetType: ScenarioPresetType;
   totalRainfallMm: number | null;
   modelNotice?: string;
+  rainfallSource?: string;
+  rainfallCorrected?: boolean;
 }
 export interface FloodForecastControl {
   included: boolean;
@@ -72,6 +75,8 @@ export function FloodSimulationOverview({ id, frames, index, telemetry, loading,
           ].map(({ key, label, value, digits, unit, Icon }) => <div key={key} className="min-w-0 px-2"><p className="mb-1 flex items-center gap-1 whitespace-nowrap text-[9px] font-bold text-slate-500"><Icon size={10} aria-hidden="true" />{label}</p><p data-flood-metric={key} className="whitespace-nowrap text-xs font-bold tabular-nums text-slate-800">{formatFloodMetric(value, digits)} <span className="text-[9px] font-medium text-slate-400">{unit}</span></p></div>)}
         </div>
       </div>
+      <RainfallSourcePanel frame={frame} presetType={context?.presetType ?? 'live'}
+        historicalSource={context?.rainfallSource} historicalCorrected={context?.rainfallCorrected} />
       <section aria-label="Flood area history">
         <div className="mb-2 flex items-center justify-between"><h3 className="text-[10px] font-bold text-slate-700">Flooded area over time</h3><button type="button" disabled={peakIndex < 0} onClick={() => onSelect(peakIndex)} aria-label="Jump to peak estimated flood area" title="Show the largest estimated flooded area" className="rounded px-1 text-[9px] tabular-nums text-slate-500 hover:bg-slate-100 hover:text-gakit-maroon disabled:pointer-events-none">{formatFloodMetric(maxArea, 2)} km² peak</button></div>
         {forecastControl && <button type="button" role="switch" aria-label="Include forecast hours" aria-checked={forecastControl.included} onClick={() => forecastControl.onChange(!forecastControl.included)} className="mb-2 flex w-full items-center justify-between rounded-lg bg-slate-50 px-2 py-1.5 text-[10px] text-slate-600"><span>Forecast rainfall · up to +{forecastControl.maxHours}h</span><span className={`rounded px-1.5 py-0.5 font-bold ${forecastControl.included ? 'bg-amber-100 text-amber-800' : 'bg-slate-200 text-slate-500'}`}>{forecastControl.included ? 'On' : 'Off'}</span></button>}
