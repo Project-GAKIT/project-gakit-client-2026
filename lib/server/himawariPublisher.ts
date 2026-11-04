@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import sharp from 'sharp';
 import { SATELLITE_FRAME_COUNT, SATELLITE_RETENTION_MS, scanEpoch, parseSatelliteManifest,
   type PublishedScan, type SatelliteManifest } from '@/lib/map/himawariPublication';
 
@@ -11,13 +12,13 @@ export interface SatellitePublicationStore {
   removeFrames(stamps: string[]): Promise<void>;
 }
 
-function describe(stamp: string, png: Buffer): PublishedScan {
-  if (png.length < 33 || png.length > 8_000_000
-    || !png.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))
-    || png.readUInt32BE(16) !== 1800 || png.readUInt32BE(20) !== 1180) {
-    throw new Error('Satellite PNG dimensions/content differ from the publication contract');
+async function describe(stamp: string, image: Buffer): Promise<PublishedScan> {
+  if (image.length < 33 || image.length > 8_000_000) throw new Error('Invalid satellite image size');
+  const metadata = await sharp(image).metadata();
+  if (metadata.format !== 'webp' || metadata.width !== 1800 || metadata.height !== 1180) {
+    throw new Error('Satellite WebP dimensions/content differ from the publication contract');
   }
-  return { stamp, bytes: png.length, sha256: createHash('sha256').update(png).digest('hex') };
+  return { stamp, bytes: image.length, sha256: createHash('sha256').update(image).digest('hex') };
 }
 
 /** Upload first, publish last, then delete only old managed objects outside the active manifest.
@@ -46,7 +47,7 @@ export async function publishSatelliteFrames(store: SatellitePublicationStore,
       // Reuse an orphan left by an interrupted publication, without overwriting immutable URLs.
       const saved = existing.has(stamp) ? await store.readFrame(stamp) : null;
       const png = saved ?? await render(stamp);
-      const frame = describe(stamp, png);
+      const frame = await describe(stamp, png);
       if (!saved) { await store.uploadFrame(stamp, png); rendered++; }
       frames.push(frame);
     } catch { failed.push(stamp); }
@@ -54,7 +55,7 @@ export async function publishSatelliteFrames(store: SatellitePublicationStore,
   // An outage never replaces a usable publication with an empty list.
   if (!frames.length && previous) frames.push(...previous.frames.filter(f => existing.has(f.stamp)));
   if (!frames.length) throw new Error('No completed satellite frames could be published');
-  const manifest: SatelliteManifest = { schema: 'himawari-publication-v1',
+  const manifest: SatelliteManifest = { schema: 'himawari-publication-v2',
     generated_at: new Date(now).toISOString(), frames: frames.sort((a, b) => a.stamp.localeCompare(b.stamp)) };
   await store.publish(manifest);
   const protectedStamps = new Set(manifest.frames.map(f => f.stamp));

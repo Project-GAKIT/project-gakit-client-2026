@@ -4,6 +4,7 @@ const {pathToFileURL}=require('node:url');
 const {chromium}=require(process.env.GAKIT_PLAYWRIGHT_MODULE||'playwright');
 const root=path.resolve(__dirname,'../..'),base=process.env.GAKIT_BASE_URL||'http://localhost:3000';
 (async()=>{
+ require('@next/env').loadEnvConfig(root);
  const directory=fs.mkdtempSync(path.join(os.tmpdir(),'gakit-published-satellite-'));
  const entry=path.join(directory,'entry.jsx');
  fs.writeFileSync(entry,`
@@ -16,7 +17,7 @@ const root=path.resolve(__dirname,'../..'),base=process.env.GAKIT_BASE_URL||'htt
  createRoot(document.getElementById('fixture')).render(<Fixture/>);
  `);
  const {build}=await import(pathToFileURL(require.resolve('vite',{paths:[root]})).href);
- const result=await build({configFile:false,root,logLevel:'error',define:{'process.env.NODE_ENV':'"production"'},esbuild:{jsx:'automatic'},resolve:{alias:{'@':root,react:path.join(root,'node_modules/react'),'react-dom':path.join(root,'node_modules/react-dom')}},build:{write:false,lib:{entry,formats:['iife'],name:'PublishedSatellite'}}});
+ const result=await build({configFile:false,root,logLevel:'error',define:{'process.env.NODE_ENV':'"production"','process.env.NEXT_PUBLIC_SUPABASE_URL':JSON.stringify(process.env.NEXT_PUBLIC_SUPABASE_URL)},esbuild:{jsx:'automatic'},resolve:{alias:{'@':root,react:path.join(root,'node_modules/react'),'react-dom':path.join(root,'node_modules/react-dom')}},build:{write:false,lib:{entry,formats:['iife'],name:'PublishedSatellite'}}});
  const bundle=(Array.isArray(result)?result[0]:result).output.find(o=>o.type==='chunk').code;
  const browser=await chromium.launch({channel:process.platform==='win32'?'msedge':undefined,headless:true});
  try{
@@ -29,16 +30,29 @@ const root=path.resolve(__dirname,'../..'),base=process.env.GAKIT_BASE_URL||'htt
   await page.waitForFunction(()=>window.draws.length>0,{},{timeout:30000});
   const firstImageMs=await page.evaluate(t=>Math.round(window.draws[0].at-t),started);
   await page.waitForFunction(()=>window.satellite?.hasFrames&&!window.satellite.loading,{},{timeout:30000});
-  const imageRequests=requests.filter(u=>u.includes('/storage/v1/object/public/satellite-frames/'));
+  const imageRequests=requests.filter(u=>/\/frames\/\d{14}\.webp/.test(u));
   assert(imageRequests.length>0&&imageRequests.length<=6);
-  assert(requests.every(u=>!u.includes('colostate.edu')&&!u.includes('himawari-proxy?time=')));
+  assert(requests.every(u=>!u.includes('colostate.edu')&&!u.includes('himawari-proxy')));
   assert(responses.every(r=>r.status===200));
   assert(await page.evaluate(()=>Boolean(window.satellite.observedAt)));
   const count=imageRequests.length;await page.getByRole('button',{name:'Disable',exact:true}).click();
   await page.getByRole('button',{name:'Enable',exact:true}).click();await page.waitForTimeout(400);
-  assert.equal(requests.filter(u=>u.includes('/storage/v1/object/public/satellite-frames/')).length,count);
+  assert.equal(requests.filter(u=>/\/frames\/\d{14}\.webp/.test(u)).length,count);
+  // A full reload resets module caches. Hold the new manifest request: a saved
+  // valid manifest must still let the first image draw before refresh finishes.
+  let releaseManifest;
+  const manifestGate=new Promise(resolve=>{releaseManifest=resolve});
+  let heldManifest=false;
+  await page.route('**/latest.json?*',async route=>{heldManifest=true;await manifestGate;await route.continue()});
+  await page.reload();await page.addScriptTag({content:bundle});
+  const returnStarted=await page.evaluate(()=>performance.now());
+  await page.getByRole('button',{name:'Enable',exact:true}).click();
+  await page.waitForFunction(()=>window.draws.length>0,{},{timeout:30000});
+  assert(heldManifest,'A background manifest refresh was requested');
+  const returningImageMs=await page.evaluate(t=>Math.round(window.draws[0].at-t),returnStarted);
+  releaseManifest();await page.unroute('**/latest.json?*');
   assert.deepEqual(errors,[]);
-  const proof={passed:true,firstImageMs,completedImageRequests:count,allImagesFromSharedStorage:true,noOnDemandImageRequests:true,noBrowserCIRARequests:true,cachedReenableNoDownloads:true,observedAt:await page.evaluate(()=>window.satellite.observedAt),runtimeErrors:errors};
+  const proof={passed:true,firstImageMs,returningImageMs,savedManifestDrawsBeforeRefresh:true,noNextManifestRequest:true,completedImageRequests:count,allImagesFromSharedStorage:true,noOnDemandImageRequests:true,noBrowserCIRARequests:true,cachedReenableNoDownloads:true,observedAt:await page.evaluate(()=>window.satellite.observedAt),runtimeErrors:errors};
   fs.writeFileSync(path.resolve(root,'../rainfall-calibration/results/live/satellite-browser-publication.json'),JSON.stringify(proof,null,2));console.log(JSON.stringify(proof));
  }finally{await browser.close();fs.rmSync(directory,{recursive:true,force:true})}
 })().catch(e=>{console.error(e);process.exitCode=1});

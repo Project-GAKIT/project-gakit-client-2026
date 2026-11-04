@@ -24,6 +24,8 @@ async function main() {
     himawariPublication: 'lib/map/himawariPublication.ts',
     himawariPublisher: 'lib/server/himawariPublisher.ts',
     himawariPublicationStore: 'lib/server/himawariPublicationStore.ts',
+    himawariLegacyRetention: 'lib/server/himawariLegacyRetention.ts',
+    himawariEncoding: 'lib/server/himawariEncoding.ts',
   };
   for (const [name, file] of Object.entries(modules)) {
     const source = fs.readFileSync(path.join(root, file), 'utf8')
@@ -35,6 +37,8 @@ async function main() {
   }
   const { createSatellitePublicationStore } = require(path.join(directory, 'himawariPublicationStore'));
   const { publishSatelliteFrames } = require(path.join(directory, 'himawariPublisher'));
+  const { encodeSatelliteWebP } = require(path.join(directory, 'himawariEncoding'));
+  const { scanEpoch, SATELLITE_RETENTION_MS } = require(path.join(directory, 'himawariPublication'));
   const { getHimawariAvailableStamps, getHimawariSliderPng } = require(path.join(directory, 'himawariSlider'));
   const store = createSatellitePublicationStore(url, key);
   console.log('Checking satellite bucket');
@@ -46,9 +50,10 @@ async function main() {
       console.log('Rendering scan ' + stamp);
       const frame = await getHimawariSliderPng(stamp);
       if (!frame || String(frame.stamp) !== stamp) throw new Error('Requested satellite scan unavailable');
-      return frame.png;
+      return encodeSatelliteWebP(frame.png);
     });
-  console.log(JSON.stringify(result));
-  if (result.delayed || result.upstreamUnavailable || result.failed.length) process.exitCode = 1;
+  const legacyDeleted = await store.cleanupLegacy();
+  console.log(JSON.stringify({ ...result, legacyDeleted }));
+  if (result.upstreamUnavailable || result.failed.length || Date.now() - scanEpoch(result.latest) > SATELLITE_RETENTION_MS) process.exitCode = 1;
 }
 main().catch(error => { console.error(error.message); process.exitCode = 1; });

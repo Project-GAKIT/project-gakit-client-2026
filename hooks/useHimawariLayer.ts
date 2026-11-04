@@ -48,6 +48,8 @@ export function useHimawariLayer(
   const failureNotifiedRef = useRef(false);
   const requestRef = useRef(0);
   const loadingRef = useRef(false);
+  const manifestUpdatePending = useRef(false);
+  const refreshManifestRef = useRef<() => void>(() => {});
   const [loadProgress, setLoadProgress] = useState({ loaded: 0, total: HIMAWARI_FRAME_COUNT });
   const himawariTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const himawariRefreshTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -116,7 +118,11 @@ export function useHimawariLayer(
       }
     };
     try {
-      const times = await fetchHimawariFrameTimes();
+      const times = await fetchHimawariFrameTimes({ forceFresh: force, onUpdated: () => {
+        if (!isCurrent()) return;
+        if (loadingRef.current) manifestUpdatePending.current = true;
+        else refreshManifestRef.current();
+      } });
       if (!isCurrent()) return;
       const previousFrames = himawariFramesRef.current;
       const keepPrevious = previousFrames.size > 0 && sourceRecent() && Date.now() - lastLoadedAtRef.current < KEEP_LAST_BATCH_MS;
@@ -172,9 +178,15 @@ export function useHimawariLayer(
       if (request === requestRef.current) {
         loadingRef.current = false;
         setIsLoading(false);
+        if (manifestUpdatePending.current && isCurrent()) {
+          manifestUpdatePending.current = false;
+          queueMicrotask(() => refreshManifestRef.current());
+        }
       }
     }
   }, [mapRef, drawCurrentFrame, resumeCachedFrames, sourceRecent]);
+
+  useEffect(() => { refreshManifestRef.current = () => { void preloadHimawariFrames(true); }; }, [preloadHimawariFrames]);
 
   useEffect(() => () => {
     requestRef.current++;
@@ -273,6 +285,7 @@ export function useHimawariLayer(
       showHimawariIRRef.current = next;
       requestRef.current++;
       loadingRef.current = false;
+      manifestUpdatePending.current = false;
       failureNotifiedRef.current = false;
       setFailureOpen(false);
       const reusable = sourceRecent() && Date.now() - lastLoadedAtRef.current < KEEP_LAST_BATCH_MS;

@@ -1,14 +1,14 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
+import sharp from 'sharp';
 import { publishSatelliteFrames, type SatellitePublicationStore } from '@/lib/server/himawariPublisher';
 import { parseSatelliteManifest, recentPublishedScans, satelliteObjectPath, type SatelliteManifest } from '@/lib/map/himawariPublication';
 const now = Date.parse('2026-11-04T07:00:00Z');
 const fresh = '20261104065000', older = '20261104064000', expired = '20261104030000';
-function png() {
-  const data = Buffer.alloc(33);
-  Buffer.from([137,80,78,71,13,10,26,10]).copy(data);
-  data.writeUInt32BE(1800,16); data.writeUInt32BE(1180,20); return data;
-}
-const manifest = (stamps = [older]): SatelliteManifest => ({ schema: 'himawari-publication-v1',
+let image: Buffer;
+beforeAll(async () => { image = await sharp({ create: { width: 1800, height: 1180, channels: 4,
+  background: { r: 100, g: 150, b: 200, alpha: 0.5 } } }).webp({ lossless: true }).toBuffer(); });
+function png() { return image; }
+const manifest = (stamps = [older]): SatelliteManifest => ({ schema: 'himawari-publication-v2',
   generated_at: '2026-11-04T06:55:00Z', frames: stamps.map(stamp => ({ stamp, bytes: 33, sha256: 'a'.repeat(64) })) });
 function fake(previous: SatelliteManifest | null = manifest(), files = [older, expired]) {
   const events: string[] = [];
