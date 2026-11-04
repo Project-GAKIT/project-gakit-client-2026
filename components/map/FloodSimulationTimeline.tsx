@@ -103,7 +103,7 @@ export function FloodSimulationTimeline({ frames, selectedIndex, onSelect, statu
     mobile={!desktop} onSelect={choose} onClose={closeOverview} context={context} forecastControl={forecastControl} />;
 
   return <>
-    <section ref={playerRef} aria-label="Flood simulation timeline" className={`pointer-events-auto absolute inset-x-3 z-[1010] md:right-auto md:-translate-x-1/2 ${explorer ? 'md:left-1/2 md:w-[min(960px,calc(100%-2rem))]' : 'md:left-[calc(50%+170px)] md:w-[min(960px,calc(100%-380px))]'} ${hasBottomNav ? 'bottom-[calc(env(safe-area-inset-bottom,0px)+5rem)]' : 'bottom-[max(1.5rem,env(safe-area-inset-bottom,0px))]'} ${fullScreen ? 'md:bottom-5' : 'md:bottom-3'}`}>
+    <section ref={playerRef} aria-label="Flood simulation timeline" className={`pointer-events-auto absolute inset-x-3 z-[1010] md:left-1/2 md:right-auto md:-translate-x-1/2 ${explorer ? 'md:w-[min(960px,calc(100%-2rem))]' : 'md:w-[min(960px,calc(100%-380px))]'} ${hasBottomNav ? 'bottom-[calc(env(safe-area-inset-bottom,0px)+5rem)]' : 'bottom-[max(1.5rem,env(safe-area-inset-bottom,0px))]'} ${fullScreen ? 'md:bottom-5' : 'md:bottom-3'}`}>
       {!desktop && overviewOpen && overview}
       <div aria-label="Flood simulation depth legend" className="mb-1.5 flex items-center justify-center gap-1 text-[9px] font-bold md:gap-1.5">
         <span className="mr-1 hidden text-slate-600 md:inline">DEPTH</span>
