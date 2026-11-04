@@ -1,5 +1,10 @@
 # Live satellite loading
 
+Production delivery now uses a scheduled publisher and shared Storage/CDN.
+See [satellite-publication.md](satellite-publication.md) for scheduling,
+retention and outage behavior. The renderer timings below describe the
+background preparation work, which no longer runs on visitor requests.
+
 Himawari Band 13 uses the CIRA SLIDER renderer shared with Bakas. The full
 1800 × 1180 Philippines crop needs all 16 native tiles. Projection coordinates
 are reused, upstream tile downloads are limited to eight at once, and the

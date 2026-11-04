@@ -68,6 +68,7 @@ export interface MapSidebarProps {
   showHimawariIR: boolean;
   onShowHimawariIRChange: (checked: boolean) => void;
   isLoadingHimawari?: boolean;
+  himawariObservedAt?: string | null;
   himawariOpacity: number;
   onHimawariOpacityChange: (value: number) => void;
   showTyphoonTrack?: boolean;
@@ -144,6 +145,7 @@ export function MapSidebar({
   showHimawariIR,
   onShowHimawariIRChange,
   isLoadingHimawari = false,
+  himawariObservedAt,
   himawariOpacity,
   onHimawariOpacityChange,
   showTyphoonTrack = false,
@@ -417,6 +419,7 @@ export function MapSidebar({
       showHimawariIR={showHimawariIR}
       onShowHimawariIRChange={onShowHimawariIRChange}
       isLoadingHimawari={isLoadingHimawari}
+      himawariObservedAt={himawariObservedAt}
       himawariOpacity={himawariOpacity}
       onHimawariOpacityChange={onHimawariOpacityChange}
       showTyphoonTrack={showTyphoonTrack}

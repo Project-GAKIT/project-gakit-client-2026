@@ -7,7 +7,9 @@ const { chromium } = require(process.env.GAKIT_PLAYWRIGHT_MODULE || 'playwright'
 const root = path.resolve(__dirname, '../..');
 const base = process.env.GAKIT_BASE_URL || 'http://localhost:3000';
 const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGNgAAIAAAUAAXpeqz8AAAAASUVORK5CYII=', 'base64');
-const frames = ['20261023023000', '20261023022000', '20261023021000', '20261023020000', '20261023015000', '20261023014000'];
+const anchor = Math.floor(Date.now() / 600000) * 600000 - 600000;
+const stamp = offset => new Date(anchor + offset * 600000).toISOString().replace(/\D/g, '').slice(0, 14);
+const frames = Array.from({ length: 6 }, (_, i) => stamp(-i));
 
 (async () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'gakit-satellite-startup-'));

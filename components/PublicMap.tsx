@@ -1438,6 +1438,7 @@ export function PublicMap({
         showHimawariIR={himawari.showHimawariIR}
         onShowHimawariIRChange={checked => updateLayer('Updating satellite imagery…', () => handleShowHimawariIRChange(checked))}
         isLoadingHimawari={himawari.isLoading}
+        himawariObservedAt={himawari.observedAt}
         himawariOpacity={himawari.opacity}
         onHimawariOpacityChange={himawari.setOpacity}
         showTyphoonTrack={typhoon.showTyphoonTrack}
