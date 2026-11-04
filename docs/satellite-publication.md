@@ -2,7 +2,7 @@
 
 Satellite rendering runs in `.github/workflows/satellite-publication.yml`, using
 a standard Linux runner in this public repository. Supabase Cron independently
-dispatches the workflow every two minutes. The previous GitHub schedule produced
+dispatches the workflow every five minutes. The previous GitHub schedule produced
 no scheduled runs and is no longer used. GitHub still executes the rendering job;
 runner queue time and upstream publication lag can add delay. `workflow_dispatch`
 also provides a manual retry. The free Render API is not involved.
@@ -76,7 +76,7 @@ The scheduled renderer owns all upstream fetching and image preparation.
 The UI displays the latest completed scan's actual time in PHT. Scans older
 than two hours are excluded from new public manifests. Generation time is separate from observation time. Local
 cached playback also checks source age before reusing a batch. An open map
-checks for a new manifest every two minutes, matching the publisher timer.
+checks for a new manifest every five minutes, matching the publisher timer.
 
 ## Retention and failure behavior
 

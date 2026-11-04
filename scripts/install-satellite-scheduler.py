@@ -69,14 +69,14 @@ def main():
             else:
                 cursor.execute('SELECT vault.create_secret(%s,%s,%s)', (token,
                     'gakit_satellite_github_dispatch', 'GAKIT account credential for the fixed satellite workflow dispatcher'))
-            cursor.execute("SELECT cron.schedule('gakit-satellite-publication','*/2 * * * *','SELECT satellite_scheduler.dispatch_publication();')")
+            cursor.execute("SELECT cron.schedule('gakit-satellite-publication','*/5 * * * *','SELECT satellite_scheduler.dispatch_publication();')")
             job_id = cursor.fetchone()[0]
             for role in ['anon', 'authenticated', 'service_role']:
                 cursor.execute("SELECT has_schema_privilege(%s,'satellite_scheduler','USAGE'), has_function_privilege(%s,'satellite_scheduler.dispatch_publication()','EXECUTE')", (role, role))
                 if any(cursor.fetchone()):
                     raise RuntimeError('Private dispatcher access is too broad')
         connection.commit()
-    print(json.dumps({'job_id': job_id, 'schedule': '*/2 * * * *', 'dispatch_account': actor,
+    print(json.dumps({'job_id': job_id, 'schedule': '*/5 * * * *', 'dispatch_account': actor,
         'secret_storage': 'Supabase Vault', 'private_dispatcher': True}))
 
 

@@ -19,7 +19,7 @@ import {
  * Animation: the six newest published scans are loaded progressively
  * into an in-memory cache, then the
  * loop just calls `updateImage` with cached images — no network work inside
- * the tick. Frames re-preload every 2 minutes while enabled.
+ * the tick. Frames re-preload every 5 minutes while enabled.
  *
  * Performance guards:
  * - playback pauses while the tab is hidden (`visibilitychange`) and resumes
@@ -31,7 +31,7 @@ const HIMAWARI_FRAME_COUNT = 6;
 // PAGASA PANaHON-style fast loop: the whole hour cycles in ~1 second
 // (1000 ms / 6 frames), so cloud drift reads as a rapid pulse.
 const HIMAWARI_FRAME_MS = Math.round(1000 / HIMAWARI_FRAME_COUNT);
-const HIMAWARI_REFRESH_MS = 2 * 60 * 1000;
+const HIMAWARI_REFRESH_MS = 5 * 60 * 1000;
 const HIMAWARI_RETRY_MS = 30_000;
 const KEEP_LAST_BATCH_MS = 15 * 60_000;
 
