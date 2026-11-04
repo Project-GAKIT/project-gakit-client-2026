@@ -1,10 +1,31 @@
 # Published satellite feed
 
 Satellite rendering runs in `.github/workflows/satellite-publication.yml`, using
-a standard Linux runner in this public repository. The schedule checks every
-five minutes at minutes 2, 7, 12, etc. GitHub can delay runs or disable schedules
-after prolonged repository inactivity; check Actions if observations fall behind.
-`workflow_dispatch` provides a manual retry. The free Render API is not involved.
+a standard Linux runner in this public repository. Supabase Cron independently
+dispatches the workflow every two minutes. The previous GitHub schedule produced
+no scheduled runs and is no longer used. GitHub still executes the rendering job;
+runner queue time and upstream publication lag can add delay. `workflow_dispatch`
+also provides a manual retry. The free Render API is not involved.
+
+The timer is installed by `scripts/install-satellite-scheduler.py` and
+`scripts/sql/satellite-scheduler.sql`. It uses `pg_cron` and `pg_net` and reads
+the GAKIT account dispatch credential from Supabase Vault. The dispatcher and
+seven-day request history live in the private `satellite_scheduler` schema.
+No browser role can execute the dispatcher or read its logs/credential. The job
+command contains only a private function call; credentials are never embedded
+in the job text or committed files. Prefer a dedicated GitHub Actions-write
+credential through `GAKIT_SATELLITE_GITHUB_TOKEN`. An explicitly selected existing
+GAKIT CLI account can be used with `--use-gh-account projectgakit2026`; Vault
+then holds that account's existing OAuth credential and must remain restricted
+to server administrators. Reinstall to rotate the credential if access changes.
+
+Run the installer using the server's Python environment (psycopg and dotenv),
+with `--env-file` pointing to its `.env`. `--status` shows recent dispatch HTTP
+statuses without reading or printing secrets. HTTP 204 confirms GitHub accepted
+the dispatch; the corresponding Actions run confirms publication completion.
+The installer checks that the Database and Storage belong to the same project.
+To stop the timer: `select cron.unschedule('gakit-satellite-publication');`.
+Do not disable pg_cron/pg_net globally, because other jobs may also use them.
 
 The job uses the dedicated `SATELLITE_SUPABASE_URL` repository secret and the
 worker-only `SATELLITE_SUPABASE_SERVICE_KEY` secret. These become `SUPABASE_URL`
