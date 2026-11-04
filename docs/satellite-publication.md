@@ -8,8 +8,9 @@ runner queue time and upstream publication lag can add delay. `workflow_dispatch
 also provides a manual retry. The free Render API is not involved.
 
 The timer is installed by `scripts/install-satellite-scheduler.py` and
-`scripts/sql/satellite-scheduler.sql`. It uses `pg_cron` and `pg_net` and reads
-the GAKIT account dispatch credential from Supabase Vault. The dispatcher and
+`scripts/sql/satellite-scheduler.sql`. It uses `pg_cron` and `http` and reads
+the GAKIT account dispatch credential from Supabase Vault. The private HTTP call has a ten-second timeout and does not store authorization
+headers in an HTTP queue. The dispatcher and
 seven-day request history live in the private `satellite_scheduler` schema.
 No browser role can execute the dispatcher or read its logs/credential. The job
 command contains only a private function call; credentials are never embedded
@@ -25,7 +26,7 @@ statuses without reading or printing secrets. HTTP 204 confirms GitHub accepted
 the dispatch; the corresponding Actions run confirms publication completion.
 The installer checks that the Database and Storage belong to the same project.
 To stop the timer: `select cron.unschedule('gakit-satellite-publication');`.
-Do not disable pg_cron/pg_net globally, because other jobs may also use them.
+Do not disable pg_cron/http globally, because other jobs may also use them.
 
 The job uses the dedicated `SATELLITE_SUPABASE_URL` repository secret and the
 worker-only `SATELLITE_SUPABASE_SERVICE_KEY` secret. These become `SUPABASE_URL`
@@ -74,7 +75,8 @@ The scheduled renderer owns all upstream fetching and image preparation.
 
 The UI displays the latest completed scan's actual time in PHT. Scans older
 than two hours are excluded from new public manifests. Generation time is separate from observation time. Local
-cached playback also checks source age before reusing a batch.
+cached playback also checks source age before reusing a batch. An open map
+checks for a new manifest every two minutes, matching the publisher timer.
 
 ## Retention and failure behavior
 
