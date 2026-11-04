@@ -49,7 +49,7 @@ const frames = Array.from({ length: 6 }, (_, i) => stamp(-i));
   `);
   const { build } = await import(pathToFileURL(require.resolve('vite', { paths: [root] })).href);
   const result = await build({ configFile: false, root, logLevel: 'error',
-    define: { 'process.env.NODE_ENV': '"production"' }, esbuild: { jsx: 'automatic' },
+    define: { 'process.env.NODE_ENV': '"production"', 'process.env.NEXT_PUBLIC_SUPABASE_URL': JSON.stringify('https://storage.test') }, esbuild: { jsx: 'automatic' },
     resolve: { alias: { '@': root, react: path.join(root, 'node_modules/react'), 'react-dom': path.join(root, 'node_modules/react-dom') } },
     build: { write: false, lib: { entry, formats: ['iife'], name: 'SatelliteStartupFixture' } },
   });
@@ -62,10 +62,10 @@ const frames = Array.from({ length: 6 }, (_, i) => stamp(-i));
       page.on('pageerror', error => errors.push(error.message));
       let manifests = 0, requests = 0, hold = true;
       const held = [];
-      await page.route('**/api/himawari-proxy?*', route => {
-        if (new URL(route.request().url()).searchParams.has('manifest')) {
+      await page.route('**/storage/v1/object/public/satellite-frames/**', route => {
+        if (new URL(route.request().url()).pathname.endsWith('/latest.json')) {
           manifests++;
-          return route.fulfill({ json: { frames } });
+          return route.fulfill({ json: { schema: 'himawari-publication-v2', generated_at: new Date().toISOString(), frames: frames.map(stamp => ({stamp,bytes:400000,sha256:'a'.repeat(64)})) } });
         }
         requests++;
         if (hold) { held.push(route); return; }

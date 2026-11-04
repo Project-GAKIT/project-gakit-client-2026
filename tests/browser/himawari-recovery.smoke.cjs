@@ -20,6 +20,7 @@ async function until(predicate) {
     await page.clock.install();
     await page.addInitScript(() => {
       sessionStorage.setItem('gakit:onboarding-auto-located', 'true');
+      localStorage.setItem('gakit:first-visit-seen', 'true');
     });
     let outage = true;
     let published = frames;
@@ -27,13 +28,14 @@ async function until(predicate) {
     let heldRoute = null;
     let manifests = 0;
     const images = [];
-    await page.route('**/api/himawari-proxy?*', route => {
-      const params = new URL(route.request().url()).searchParams;
+    await page.route('**/storage/v1/object/public/satellite-frames/**', route => {
+      const url = new URL(route.request().url());
+      const params = { has: () => url.pathname.endsWith('/latest.json'), get: () => url.pathname.match(/(\d{14})\.webp$/)?.[1] ?? null };
       if (params.has('manifest')) {
         manifests++;
         return route.fulfill(outage
           ? { status: 503, json: { error: 'upstream outage' } }
-          : { json: { frames: published } });
+          : { json: { schema: 'himawari-publication-v2', generated_at: new Date().toISOString(), frames: published.slice(0,6).map(stamp => ({stamp,bytes:400000,sha256:'a'.repeat(64)})) } });
       }
       images.push(params.get('time'));
       if (params.get('time') === heldFrame) {
@@ -43,7 +45,9 @@ async function until(predicate) {
       return route.fulfill({ body: png, contentType: 'image/png' });
     });
     await page.goto(process.env.GAKIT_BASE_URL || 'http://localhost:3000', { waitUntil: 'domcontentloaded' });
-    await page.getByRole('button', { name: 'Expand Layers', exact: true }).click({ timeout: 45000 });
+    const layerButton = page.getByRole('button', { name: /^(Expand|Collapse) Layers$/ });
+    await layerButton.waitFor({ timeout: 45000 });
+    if (await layerButton.getAttribute('aria-label') === 'Expand Layers') await layerButton.click();
     await page.waitForFunction(() => {
       const element = document.querySelector('.maplibregl-map');
       let fiber = element?.[Object.keys(element).find(key => key.startsWith('__reactFiber$'))];
@@ -55,7 +59,7 @@ async function until(predicate) {
           window.__himawariDraws = [];
           const update = source.updateImage;
           source.updateImage = function (options) {
-            window.__himawariDraws.push(new URL(options.image.src).searchParams.get('time'));
+            window.__himawariDraws.push(new URL(options.image.src).pathname.match(/(\d{14})\.webp$/)?.[1]);
             return update.call(this, options);
           };
           return true;
@@ -87,7 +91,7 @@ async function until(predicate) {
     outage = false;
     heldFrame = stamp(1);
     published = [heldFrame, ...frames];
-    await page.clock.fastForward(31_000);
+    await page.clock.fastForward(5 * 60_000 + 1000);
     await until(() => heldRoute !== null);
     await page.evaluate(() => { window.__himawariDraws = []; });
     await page.clock.runFor(1500);

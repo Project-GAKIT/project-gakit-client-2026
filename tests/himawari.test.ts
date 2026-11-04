@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { inflateSync } from 'node:zlib';
 import { HIMAWARI_PLACEHOLDER_DATA_URL, fetchHimawariFrame, fetchHimawariFrameTimes, loadHimawariFrames } from '@/lib/map/himawari';
 
@@ -44,7 +44,8 @@ describe('HIMAWARI_PLACEHOLDER_DATA_URL', () => {
 });
 
 describe('Himawari failure handling', () => {
-  afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
+  beforeEach(() => { vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://storage.test'); });
+  afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); vi.useRealTimers(); });
 
   function images(fail: (time: string) => boolean) {
     vi.stubGlobal('Image', class {
@@ -52,7 +53,8 @@ describe('Himawari failure handling', () => {
       onerror: (() => void) | null = null;
       set src(value: string) {
         if (!value) return;
-        const time = new URL(value, 'https://gakit.test').searchParams.get('time')!;
+        const url = new URL(value, 'https://gakit.test');
+        const time = url.searchParams.get('time') ?? url.pathname.match(/(\d{14})\.webp$/)?.[1] ?? '';
         queueMicrotask(() => { if (fail(time)) this.onerror?.(); else this.onload?.(); });
       }
     });
@@ -65,16 +67,17 @@ describe('Himawari failure handling', () => {
     const first = await fetchHimawariFrame(stamp);
     expect(await fetchHimawariFrame(stamp)).toBe(first);
     expect(requested).toEqual([stamp]);
-    for (let i = 1; i <= 6; i++) await fetchHimawariFrame(`2099010100${i}000`);
+    for (let i = 1; i <= 6; i++) await fetchHimawariFrame(new Date(Date.UTC(2099, 0, 1, 0, i * 10)).toISOString().replace(/\D/g, '').slice(0, 14));
     expect(await fetchHimawariFrame(stamp)).not.toBe(first);
     expect(requested.filter(t => t === stamp)).toHaveLength(2);
   });
 
   it('uses published full timestamps even when the upstream is behind the clock', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(Response.json({ frames: ['20261023023000', '20261023022000', '20261023023000'] }));
+    vi.useFakeTimers(); vi.setSystemTime(new Date('2026-10-23T03:00:00Z'));
+    const fetchMock = vi.fn().mockResolvedValue(Response.json({ schema: 'himawari-publication-v2', generated_at: '2026-10-23T02:40:00Z', frames: ['20261023023000','20261023022000'].map(stamp => ({ stamp, bytes: 400000, sha256: 'a'.repeat(64) })) }));
     vi.stubGlobal('fetch', fetchMock);
     expect(await fetchHimawariFrameTimes()).toEqual(['20261023022000', '20261023023000']);
-    expect(fetchMock.mock.calls[0][0]).toBe('/api/himawari-proxy?manifest=1');
+    expect(fetchMock.mock.calls[0][0]).toContain('https://storage.test/storage/v1/object/public/satellite-frames/himawari-v2/latest.json?t=');
   });
 
   it('does not guess image slots when discovery fails', async () => {

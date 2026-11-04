@@ -1,5 +1,7 @@
+import { loadSatelliteManifest } from './himawariManifestClient';
+import { publicSatelliteBase, recentPublishedScans, satelliteObjectPath } from './himawariPublication';
+
 const PROXY_BASE = '/api/himawari-proxy';
-let publishedImageURLs: ReadonlyMap<string, string> = new Map();
 
 // 1x1 transparent PNG used to seed the MapLibre image source so it never fires
 // an AJAX at a slot that may 404 (publish gaps / stale frames). Real frames
@@ -23,26 +25,15 @@ export const HIMAWARI_IMAGE_BOUNDS: [[number, number], [number, number]] = [
 
 export function himawariFrameURL(time: string): string {
   // Published URLs skip the application server entirely for image delivery.
-  return publishedImageURLs.get(time) ?? `${PROXY_BASE}?time=${time}`;
+  return /^\d{14}$/.test(time)
+    ? `${publicSatelliteBase()}/${satelliteObjectPath(time)}`
+    : `${PROXY_BASE}?time=${time}`;
 }
 
-/** Ask the server for published scans rather than guessing slots from local time. */
-export async function fetchHimawariFrameTimes(): Promise<string[]> {
-  const response = await fetch(`${PROXY_BASE}?manifest=1`, {
-    signal: AbortSignal.timeout(20_000),
-  });
-  if (!response.ok) throw new Error('Satellite frame list is temporarily unavailable');
-  const body = await response.json() as { frames?: unknown; image_urls?: Record<string, unknown> };
-  if (!Array.isArray(body.frames)) throw new Error('Invalid satellite frame list');
-  const frames = [...new Set(body.frames.filter((time): time is string => typeof time === 'string' && /^\d{14}$/.test(time)))];
-  if (!frames.length) throw new Error('No published satellite frames available');
-  publishedImageURLs = new Map(frames.flatMap(stamp => {
-    const url = body.image_urls?.[stamp];
-    if (typeof url !== 'string') return [];
-    try { return new URL(url).protocol === 'https:' ? [[stamp, url] as const] : []; }
-    catch { return []; }
-  }));
-  return frames.sort().slice(-8);
+/** Discover completed frames directly from the CDN, with a validated local fast path. */
+export async function fetchHimawariFrameTimes(options: { forceFresh?: boolean; onUpdated?: () => void } = {}): Promise<string[]> {
+  const manifest = await loadSatelliteManifest({ ...options, onUpdated: () => options.onUpdated?.() });
+  return recentPublishedScans(manifest).map(f => f.stamp);
 }
 
 // Rapid off/on switches share downloads already being rendered by the proxy.

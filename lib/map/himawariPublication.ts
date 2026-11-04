@@ -1,11 +1,11 @@
 /** Shared contract for completed images. No credentials or renderer imports. */
 export const SATELLITE_BUCKET = 'satellite-frames';
-export const SATELLITE_PREFIX = 'himawari-v1';
+export const SATELLITE_PREFIX = 'himawari-v2';
 export const SATELLITE_RETENTION_MS = 2 * 60 * 60_000;
 export const SATELLITE_FRAME_COUNT = 6;
 export type PublishedScan = { stamp: string; bytes: number; sha256: string };
 export type SatelliteManifest = {
-  schema: 'himawari-publication-v1';
+  schema: 'himawari-publication-v2';
   generated_at: string;
   frames: PublishedScan[];
 };
@@ -19,7 +19,7 @@ export function scanEpoch(stamp: string): number {
 
 export function parseSatelliteManifest(value: unknown): SatelliteManifest {
   const m = value as SatelliteManifest | null;
-  if (!m || m.schema !== 'himawari-publication-v1' || !Number.isFinite(Date.parse(m.generated_at))
+  if (!m || m.schema !== 'himawari-publication-v2' || !Number.isFinite(Date.parse(m.generated_at))
     || !Array.isArray(m.frames) || !m.frames.length || m.frames.length > SATELLITE_FRAME_COUNT
     || m.frames.some(f => !f || !Number.isFinite(scanEpoch(f.stamp)) || !Number.isInteger(f.bytes)
       || f.bytes < 33 || f.bytes > 8_000_000 || !/^[a-f0-9]{64}$/.test(f.sha256))
@@ -36,7 +36,7 @@ export function recentPublishedScans(manifest: SatelliteManifest, now = Date.now
 
 export function satelliteObjectPath(stamp: string): string {
   if (!Number.isFinite(scanEpoch(stamp))) throw new Error('Invalid satellite stamp');
-  return `${SATELLITE_PREFIX}/frames/${stamp}.png`;
+  return `${SATELLITE_PREFIX}/frames/${stamp}.webp`;
 }
 
 export function publicSatelliteBase(url = process.env.NEXT_PUBLIC_SUPABASE_URL): string {
