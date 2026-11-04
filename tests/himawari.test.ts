@@ -58,6 +58,18 @@ describe('Himawari failure handling', () => {
     });
   }
 
+  it('shares successful immutable images across map mounts with a six-frame limit', async () => {
+    const requested: string[] = [];
+    images(time => { requested.push(time); return false; });
+    const stamp = '20990101000000';
+    const first = await fetchHimawariFrame(stamp);
+    expect(await fetchHimawariFrame(stamp)).toBe(first);
+    expect(requested).toEqual([stamp]);
+    for (let i = 1; i <= 6; i++) await fetchHimawariFrame(`2099010100${i}000`);
+    expect(await fetchHimawariFrame(stamp)).not.toBe(first);
+    expect(requested.filter(t => t === stamp)).toHaveLength(2);
+  });
+
   it('uses published full timestamps even when the upstream is behind the clock', async () => {
     const fetchMock = vi.fn().mockResolvedValue(Response.json({ frames: ['20261023023000', '20261023022000', '20261023023000'] }));
     vi.stubGlobal('fetch', fetchMock);
