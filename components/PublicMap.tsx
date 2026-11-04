@@ -162,7 +162,6 @@ interface PublicMapProps {
    *  keep any mirrored state (e.g. the report modal's "Xh accum." label) in sync. */
   onRainfallHoursChange?: (hours: RainfallAccumulationHours) => void;
   onReady?: () => void;
-  onLoadingChange?: (loading: boolean) => void;
   onReportClick?: (reportId: string) => void;
   /** Full-viewport maps (e.g. the public landing page) anchor the floating
    *  controls higher on mobile so phone/browser bottom UI never covers them. */
@@ -265,7 +264,6 @@ export function PublicMap({
   reportFilters,
   showRejectedReports,
   onReady,
-  onLoadingChange,
   onReportClick,
   onRainfallHoursChange,
   fullScreen = false,
@@ -620,10 +618,6 @@ export function PublicMap({
     showStormSurge,
     stormSurgeAdvisory,
   ]);
-
-  useEffect(() => {
-    onLoadingChange?.(isLoadingReports);
-  }, [isLoadingReports, onLoadingChange]);
 
   // Looks up the flood/landslide/storm-surge hazard levels and precipitation
   // at a coordinate. Hazards come from the PMTiles archives directly

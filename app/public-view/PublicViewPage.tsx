@@ -53,7 +53,7 @@ import {
 
 // Dynamically import the map to avoid window is not defined errors
 const PublicMap = dynamic(() => import('@/components/PublicMap').then(mod => ({ default: mod.PublicMap })), {
-  loading: () => <PageLoader label="Loading map…" />,
+  loading: () => null,
   ssr: false,
 });
 
@@ -95,7 +95,6 @@ export function PublicViewPage({
     null
   );
   const [lastSubmittedReport, setLastSubmittedReport] = useState<SubmittedReport | null>(null);
-  const [isLoadingReports, setIsLoadingReports] = useState(false);
   const [rainfallHours, setRainfallHours] = useState(1);
   const [isMapReady, setIsMapReady] = useState(false);
   const [welcomePinnedLocation, setWelcomePinnedLocation] = useState<SelectedLocation | null>(null);
@@ -833,7 +832,7 @@ export function PublicViewPage({
           <section id="hazard-map" className="min-h-[100dvh] snap-start">
             <div className="flex h-[100dvh] overflow-hidden bg-white">
               <div className="relative isolate flex-1 w-full h-full min-h-0">
-                <PageLoader isLoading={isLoadingReports} label="Loading flood reports…" />
+                <PageLoader isLoading={!isMapReady} label="Loading map…" />
                 <PublicMap
                   onCampusFocusChange={setIsCampusFocus}
                   hideDisplayControls
@@ -841,7 +840,6 @@ export function PublicViewPage({
                   mapApiRef={mapRef}
                   onReady={handleMapReady}
                   onRainfallHoursChange={setRainfallHours}
-                  onLoadingChange={setIsLoadingReports}
                   onLocationSelect={handleLocationSelect}
                   selectedLocation={selectedLocation}
                   selectedLocationActions={welcomePinActions}

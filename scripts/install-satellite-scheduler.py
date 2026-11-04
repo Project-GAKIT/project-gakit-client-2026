@@ -49,19 +49,18 @@ def main():
             if args.status:
                 cursor.execute("SELECT jobid, schedule, active FROM cron.job WHERE jobname = 'gakit-satellite-publication'")
                 jobs = cursor.fetchall()
-                cursor.execute("""SELECT requested_at, d.request_id, coalesce(d.http_status,r.status_code),
-                    coalesce(d.transport_error,r.error_msg) FROM satellite_scheduler.dispatch_log d
-                    LEFT JOIN net._http_response r ON r.id=d.request_id ORDER BY requested_at DESC LIMIT 3""")
+                cursor.execute("""SELECT requested_at,http_status,transport_error FROM satellite_scheduler.dispatch_log
+                    ORDER BY requested_at DESC LIMIT 3""")
                 print(json.dumps({'jobs': jobs, 'dispatches': cursor.fetchall()}, default=str))
                 return
             cursor.execute('CREATE EXTENSION IF NOT EXISTS pg_cron WITH SCHEMA pg_catalog')
-            cursor.execute('CREATE EXTENSION IF NOT EXISTS pg_net WITH SCHEMA extensions')
-            # Queue headers/Vault must not be readable by browser roles.
+            cursor.execute('CREATE EXTENSION IF NOT EXISTS http WITH SCHEMA extensions')
+            # Vault must not be readable by browser roles; request headers are not queued.
             # Supabase's server-only service_role is an administrator role.
             for role in ['anon', 'authenticated']:
-                cursor.execute("SELECT has_table_privilege(%s,'net.http_request_queue','SELECT'), has_table_privilege(%s,'vault.decrypted_secrets','SELECT')", (role, role))
+                cursor.execute("SELECT has_table_privilege(%s,'vault.decrypted_secrets','SELECT')", (role,))
                 if any(cursor.fetchone()):
-                    raise RuntimeError('HTTP queue or Vault is readable outside the administrator role')
+                    raise RuntimeError('Vault is readable by a browser role')
             cursor.execute(Path(__file__).with_name('sql').joinpath('satellite-scheduler.sql').read_text(encoding='utf-8'))
             cursor.execute("SELECT id FROM vault.secrets WHERE name = 'gakit_satellite_github_dispatch'")
             row = cursor.fetchone()
@@ -86,5 +85,7 @@ if __name__ == '__main__':
         main()
     except Exception as error:
         # Never dump SQL parameters, connection strings, request headers or tokens.
-        print(json.dumps({'error_type': type(error).__name__, 'message': 'Scheduler setup/status failed; no credential values were printed.'}))
+        print(json.dumps({'error_type': type(error).__name__,
+            'message': str(error) if type(error) is RuntimeError else 'Scheduler setup/status failed; no credential values were printed.',
+            'sqlstate': getattr(error, 'sqlstate', None)}))
         raise SystemExit(1)
