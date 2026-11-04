@@ -6,7 +6,7 @@ five minutes at minutes 2, 7, 12, etc. GitHub can delay runs or disable schedule
 after prolonged repository inactivity; check Actions if observations fall behind.
 `workflow_dispatch` provides a manual retry. The free Render API is not involved.
 
-The job uses the existing `NEXT_PUBLIC_SUPABASE_URL` repository secret and the
+The job uses the dedicated `SATELLITE_SUPABASE_URL` repository secret and the
 worker-only `SATELLITE_SUPABASE_SERVICE_KEY` secret. These become `SUPABASE_URL`
 and `SUPABASE_SERVICE_KEY` in the publisher process. The service credential is
 never exposed to the browser or placed in a `NEXT_PUBLIC_` variable. The Next
