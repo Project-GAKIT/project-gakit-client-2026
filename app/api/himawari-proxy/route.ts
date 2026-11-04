@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getHimawariAvailableStamps, getHimawariSliderPng } from '@/lib/server/himawariSlider';
 
 export const runtime = 'nodejs';
+export const maxDuration = 60;
 
 const unavailable = () => NextResponse.json(
   { error: 'satellite imagery temporarily unavailable' },
@@ -29,6 +30,7 @@ export async function GET(request: Request) {
     });
   }
   try {
+    const started = performance.now();
     const frame = await getHimawariSliderPng(time);
     if (!frame) {
       return NextResponse.json({ error: 'satellite frame not published' }, {
@@ -40,6 +42,8 @@ export async function GET(request: Request) {
         'Content-Type': 'image/png',
         'Content-Length': String(frame.png.byteLength),
         'Last-Modified': frame.lastModified,
+        'Server-Timing': [`frame;dur=${Math.round(performance.now() - started)}`,
+          ...Object.entries(frame.timings ?? {}).map(([stage, ms]) => `${stage};dur=${ms}`)].join(', '),
         'Cache-Control': time.length === 14
           ? 'public, max-age=86400, s-maxage=86400, immutable'
           : 'public, max-age=540, s-maxage=60',

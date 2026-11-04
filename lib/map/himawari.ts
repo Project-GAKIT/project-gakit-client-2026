@@ -40,9 +40,17 @@ export async function fetchHimawariFrameTimes(): Promise<string[]> {
 }
 
 // Rapid off/on switches share downloads already being rendered by the proxy.
-// Decoded frames stay in the hook's bounded cache, not this in-flight map.
+// Retain six immutable decoded scans across map mounts (about 49 MiB maximum).
+// HHMM aliases must never be retained because their date changes.
+const decodedFrames = new Map<string, HTMLImageElement>();
 const pendingFrames = new Map<string, Promise<HTMLImageElement>>();
 export function fetchHimawariFrame(time: string): Promise<HTMLImageElement> {
+  const decoded = decodedFrames.get(time);
+  if (decoded) {
+    decodedFrames.delete(time);
+    decodedFrames.set(time, decoded);
+    return Promise.resolve(decoded);
+  }
   const existing = pendingFrames.get(time);
   if (existing) return existing;
   const pending = new Promise<HTMLImageElement>((resolve, reject) => {
@@ -54,7 +62,13 @@ export function fetchHimawariFrame(time: string): Promise<HTMLImageElement> {
       if (error) {
         img.src = '';
         reject(error);
-      } else resolve(img);
+      } else {
+        if (/^\d{14}$/.test(time)) {
+          decodedFrames.set(time, img);
+          while (decodedFrames.size > 6) decodedFrames.delete(decodedFrames.keys().next().value!);
+        }
+        resolve(img);
+      }
     };
     // The server may take 45 seconds to render a cold frame. Leave time for
     // response transfer too, so the browser does not abandon successful work.

@@ -32,6 +32,7 @@
  * throw so the route can distinguish service outages from unavailable slots.
  */
 import { cachedGet } from '@/lib/backend/apiCache';
+import { readStoredFrame, storeFrame } from './himawariFrameStore';
 
 // --- CIRA SAT config (verbatim from define-products---rammb-slider.js) ---
 
@@ -570,6 +571,7 @@ export type HimawariSliderFrame = {
   stamp: number;
   /** RFC 7231 date string for the stamp; the proxy echoes it as Last-Modified. */
   lastModified: string;
+  timings: Record<string, number>;
 };
 
 /** Shared render core, memoized per immutable stamp.
@@ -577,7 +579,12 @@ export type HimawariSliderFrame = {
  *  the route up for minutes. */
 function renderFrameStampCached(stamp: number): Promise<HimawariSliderFrame> {
   const render = async (): Promise<HimawariSliderFrame> => {
+    const started = performance.now();
+    const stored = await readStoredFrame(stamp);
+    if (stored) return { png: stored, stamp, lastModified: new Date(stampEpochMs(stamp)).toUTCString(),
+      timings: { cacheRead: Math.round(performance.now() - started) } };
     const cropData = await fetchStitchedCrop(stamp);
+    const stitched = performance.now();
     const rows = CROP_TILE_ROWS[1] - CROP_TILE_ROWS[0] + 1;
     const cols = CROP_TILE_COLS[1] - CROP_TILE_COLS[0] + 1;
     const equirect = reprojectCropToEquirectangular({
@@ -588,6 +595,7 @@ function renderFrameStampCached(stamp: number): Promise<HimawariSliderFrame> {
       height: rows * TILE_SIZE,
     });
 
+    const projected = performance.now();
     const sharpModule = await import('sharp');
     const png = await sharpModule.default(equirect, {
       raw: { width: RENDER_WIDTH, height: RENDER_HEIGHT, channels: 4 },
@@ -595,10 +603,14 @@ function renderFrameStampCached(stamp: number): Promise<HimawariSliderFrame> {
       // Palette-quantized: the tiles arrive through CIRA's discrete color table,
       // so 256 entries are visually lossless while roughly halving the PNG
       // bytes the client must pull for every 10-minute frame.
-      .png({ palette: true, compressionLevel: 6 })
+      .png({ palette: true, effort: 1, compressionLevel: 3 })
       .toBuffer();
 
-    return { png, stamp, lastModified: new Date(stampEpochMs(stamp)).toUTCString() };
+    const encoded = performance.now();
+    await storeFrame(stamp, png);
+    return { png, stamp, lastModified: new Date(stampEpochMs(stamp)).toUTCString(),
+      timings: { tiles: Math.round(stitched - started), projection: Math.round(projected - stitched),
+        encoding: Math.round(encoded - projected), cacheWrite: Math.round(performance.now() - encoded) } };
   };
   // Cache the underlying work, not the request deadline. If a slow render
   // outlives its caller, it still warms the cache for the automatic retry.
