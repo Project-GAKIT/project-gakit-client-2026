@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 12
     env:
-      SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      SUPABASE_URL: ${{ secrets.SATELLITE_SUPABASE_URL }}
       SUPABASE_SERVICE_KEY: ${{ secrets.SATELLITE_SUPABASE_SERVICE_KEY }}
     steps:
       - uses: actions/checkout@v5
