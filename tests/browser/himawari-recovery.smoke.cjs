@@ -1,7 +1,9 @@
 const { chromium } = require(process.env.GAKIT_PLAYWRIGHT_MODULE || 'playwright');
 const assert = require('node:assert/strict');
 const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGNgAAIAAAUAAXpeqz8AAAAASUVORK5CYII=', 'base64');
-const frames = ['20261023023000', '20261023022000', '20261023021000', '20261023020000', '20261023015000', '20261023014000'];
+const anchor = Math.floor(Date.now() / 600000) * 600000 - 600000;
+const stamp = offset => new Date(anchor + offset * 600000).toISOString().replace(/\D/g, '').slice(0, 14);
+const frames = Array.from({ length: 6 }, (_, i) => stamp(-i));
 async function until(predicate) {
   const end = Date.now() + 15000;
   while (!predicate()) {
@@ -83,7 +85,7 @@ async function until(predicate) {
     // Hold a newly published scan while five decoded scans are reused. The
     // previous six-frame animation must keep playing until refresh completes.
     outage = false;
-    heldFrame = '20261023024000';
+    heldFrame = stamp(1);
     published = [heldFrame, ...frames];
     await page.clock.fastForward(31_000);
     await until(() => heldRoute !== null);

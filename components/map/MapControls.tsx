@@ -552,6 +552,7 @@ interface DataLayerControlsProps {
   showHimawariIR: boolean;
   onShowHimawariIRChange: (checked: boolean) => void;
   isLoadingHimawari?: boolean;
+  himawariObservedAt?: string | null;
   himawariOpacity: number;
   onHimawariOpacityChange: (value: number) => void;
   showTyphoonTrack?: boolean;
@@ -939,6 +940,7 @@ export function DataLayerControls({
   showHimawariIR,
   onShowHimawariIRChange,
   isLoadingHimawari = false,
+  himawariObservedAt,
   himawariOpacity,
   onHimawariOpacityChange,
   showTyphoonTrack = false,
@@ -1345,7 +1347,10 @@ export function DataLayerControls({
         {showHimawariIR && (
           <div className="pl-10 pt-0.5 pb-1 space-y-1.5">
             <div className="text-[10px] leading-snug text-slate-400">
-              Last hour · 10-min satellite frames
+              Recent published scans · 10-min intervals
+              {himawariObservedAt && <p className="mt-1" data-satellite-observed-at={himawariObservedAt}>
+                Latest scan: {new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(himawariObservedAt))} PHT
+              </p>}
             </div>
             <div>
               <div className="text-[10px] uppercase tracking-wide text-slate-400 font-semibold">

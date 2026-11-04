@@ -1,4 +1,5 @@
 const PROXY_BASE = '/api/himawari-proxy';
+let publishedImageURLs: ReadonlyMap<string, string> = new Map();
 
 // 1x1 transparent PNG used to seed the MapLibre image source so it never fires
 // an AJAX at a slot that may 404 (publish gaps / stale frames). Real frames
@@ -21,9 +22,8 @@ export const HIMAWARI_IMAGE_BOUNDS: [[number, number], [number, number]] = [
 ];
 
 export function himawariFrameURL(time: string): string {
-  // The proxy renders CIRA SLIDER band-13 IR (2 km full disk, regridded)
-  // into exactly these bounds, keyed by the manifest's full UTC timestamp.
-  return `${PROXY_BASE}?time=${time}`;
+  // Published URLs skip the application server entirely for image delivery.
+  return publishedImageURLs.get(time) ?? `${PROXY_BASE}?time=${time}`;
 }
 
 /** Ask the server for published scans rather than guessing slots from local time. */
@@ -32,10 +32,16 @@ export async function fetchHimawariFrameTimes(): Promise<string[]> {
     signal: AbortSignal.timeout(20_000),
   });
   if (!response.ok) throw new Error('Satellite frame list is temporarily unavailable');
-  const body = await response.json() as { frames?: unknown };
+  const body = await response.json() as { frames?: unknown; image_urls?: Record<string, unknown> };
   if (!Array.isArray(body.frames)) throw new Error('Invalid satellite frame list');
   const frames = [...new Set(body.frames.filter((time): time is string => typeof time === 'string' && /^\d{14}$/.test(time)))];
   if (!frames.length) throw new Error('No published satellite frames available');
+  publishedImageURLs = new Map(frames.flatMap(stamp => {
+    const url = body.image_urls?.[stamp];
+    if (typeof url !== 'string') return [];
+    try { return new URL(url).protocol === 'https:' ? [[stamp, url] as const] : []; }
+    catch { return []; }
+  }));
   return frames.sort().slice(-8);
 }
 
@@ -70,8 +76,7 @@ export function fetchHimawariFrame(time: string): Promise<HTMLImageElement> {
         resolve(img);
       }
     };
-    // The server may take 45 seconds to render a cold frame. Leave time for
-    // response transfer too, so the browser does not abandon successful work.
+    // Bound slow image transfers; rendering happens in the scheduled publisher.
     const timer = setTimeout(() => finish(new Error('Satellite imagery request timed out')), 55_000);
     img.crossOrigin = 'anonymous';
     img.onload = () => finish();

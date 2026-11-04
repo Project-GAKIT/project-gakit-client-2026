@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MutableRefObject } from 'react';
+import { scanEpoch, SATELLITE_RETENTION_MS } from '@/lib/map/himawariPublication';
 import {
   loadHimawariFrames,
   fetchHimawariFrameTimes,
@@ -42,6 +43,7 @@ export function useHimawariLayer(
   const [himawariOpacity, setHimawariOpacity] = useState(0.8);
   const [isLoading, setIsLoading] = useState(false);
   const [hasFrames, setHasFrames] = useState(false);
+  const [observedAt, setObservedAt] = useState<string | null>(null);
   const [failureOpen, setFailureOpen] = useState(false);
   const failureNotifiedRef = useRef(false);
   const requestRef = useRef(0);
@@ -60,6 +62,11 @@ export function useHimawariLayer(
   const lastLoadedAtRef = useRef(0);
   const nextRefreshAtRef = useRef(0);
 
+  const sourceRecent = useCallback(() => {
+    const latest = [...himawariFramesRef.current.keys()].sort().at(-1);
+    return Boolean(latest && Date.now() - scanEpoch(latest) <= SATELLITE_RETENTION_MS);
+  }, []);
+
   // Pushes the current cached frame into the map's image source.
   const drawCurrentFrame = useCallback(() => {
     const map = mapRef.current;
@@ -73,7 +80,7 @@ export function useHimawariLayer(
   }, [mapRef]);
 
   const resumeCachedFrames = useCallback(() => {
-    if (!himawariFramesRef.current.size || Date.now() - lastLoadedAtRef.current >= KEEP_LAST_BATCH_MS) return false;
+    if (!himawariFramesRef.current.size || !sourceRecent() || Date.now() - lastLoadedAtRef.current >= KEEP_LAST_BATCH_MS) return false;
     const map = mapRef.current;
     if (map?.getLayer('himawari-ir-layer')) map.setLayoutProperty('himawari-ir-layer', 'visibility', 'visible');
     setHasFrames(true);
@@ -82,7 +89,7 @@ export function useHimawariLayer(
       himawariTimerRef.current = setInterval(drawCurrentFrame, HIMAWARI_FRAME_MS);
     }
     return true;
-  }, [mapRef, drawCurrentFrame]);
+  }, [mapRef, drawCurrentFrame, sourceRecent]);
 
   // Show successful scans immediately while the rest of the loop loads.
   const preloadHimawariFrames = useCallback(async (force = false) => {
@@ -97,9 +104,10 @@ export function useHimawariLayer(
       nextRefreshAtRef.current = Date.now() + HIMAWARI_RETRY_MS;
       // Preserve the most recently loaded batch briefly through network outages.
       // Failures never extend this grace period.
-      if (himawariFramesRef.current.size && Date.now() - lastLoadedAtRef.current < KEEP_LAST_BATCH_MS) return;
+      if (himawariFramesRef.current.size && sourceRecent() && Date.now() - lastLoadedAtRef.current < KEEP_LAST_BATCH_MS) return;
       himawariFramesRef.current = new Map();
       setHasFrames(false);
+      setObservedAt(null);
       const map = mapRef.current;
       if (map?.getLayer('himawari-ir-layer')) map.setLayoutProperty('himawari-ir-layer', 'visibility', 'none');
       if (!failureNotifiedRef.current) {
@@ -111,7 +119,7 @@ export function useHimawariLayer(
       const times = await fetchHimawariFrameTimes();
       if (!isCurrent()) return;
       const previousFrames = himawariFramesRef.current;
-      const keepPrevious = previousFrames.size > 0 && Date.now() - lastLoadedAtRef.current < KEEP_LAST_BATCH_MS;
+      const keepPrevious = previousFrames.size > 0 && sourceRecent() && Date.now() - lastLoadedAtRef.current < KEEP_LAST_BATCH_MS;
       const progressive = new Map<string, HTMLImageElement>();
       const loaded = await loadHimawariFrames(times, count => {
         if (isCurrent()) {
@@ -128,6 +136,10 @@ export function useHimawariLayer(
           // Initial loads still display each successful scan immediately.
           if (!keepPrevious) {
             himawariFramesRef.current = new Map(times.flatMap(t => progressive.has(t) ? [[t, progressive.get(t)!] as const] : []));
+          }
+          if (!keepPrevious) {
+            const latest = [...progressive.keys()].sort().at(-1);
+            setObservedAt(latest ? new Date(scanEpoch(latest)).toISOString() : null);
           }
           setHasFrames(true);
           setFailureOpen(false);
@@ -146,6 +158,8 @@ export function useHimawariLayer(
         return;
       }
       himawariFramesRef.current = cache;
+      const latest = [...cache.keys()].sort().at(-1)!;
+      setObservedAt(new Date(scanEpoch(latest)).toISOString());
       lastLoadedAtRef.current = Date.now();
       nextRefreshAtRef.current = Date.now() + (cache.size < HIMAWARI_FRAME_COUNT ? HIMAWARI_RETRY_MS : HIMAWARI_REFRESH_MS);
       setHasFrames(true);
@@ -160,7 +174,7 @@ export function useHimawariLayer(
         setIsLoading(false);
       }
     }
-  }, [mapRef, drawCurrentFrame, resumeCachedFrames]);
+  }, [mapRef, drawCurrentFrame, resumeCachedFrames, sourceRecent]);
 
   useEffect(() => () => {
     requestRef.current++;
@@ -261,8 +275,10 @@ export function useHimawariLayer(
       loadingRef.current = false;
       failureNotifiedRef.current = false;
       setFailureOpen(false);
-      setIsLoading(false);
-      if (next && Date.now() - lastLoadedAtRef.current >= KEEP_LAST_BATCH_MS) setHasFrames(false);
+      const reusable = sourceRecent() && Date.now() - lastLoadedAtRef.current < KEEP_LAST_BATCH_MS;
+      // Establish pending state in the toggle commit, before the async effect starts.
+      setIsLoading(next && !reusable);
+      if (next && !reusable) setHasFrames(false);
       setShowHimawariIR(next);
       const map = mapRef.current;
       if (!map) return;
@@ -271,7 +287,7 @@ export function useHimawariLayer(
         map.flyTo({ center, zoom, pitch: 0, duration: 1000 });
       }
     },
-    [mapRef]
+    [mapRef, sourceRecent]
   );
 
   return {
@@ -282,6 +298,7 @@ export function useHimawariLayer(
     isLoading,
     loadProgress,
     hasFrames,
+    observedAt,
     failureOpen,
     dismissFailure,
     retry,

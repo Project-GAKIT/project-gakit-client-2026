@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getHimawariAvailableStamps, getHimawariSliderPng } from '@/lib/server/himawariSlider';
+import { publishedHimawari } from '@/lib/server/publishedHimawari';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -13,9 +13,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   if (searchParams.get('manifest') === '1') {
     try {
-      const frames = await getHimawariAvailableStamps();
-      if (!frames.length) return unavailable();
-      return NextResponse.json({ frames: frames.map(String) }, {
+      return NextResponse.json(await publishedHimawari(), {
         headers: { 'Cache-Control': 'public, max-age=0, s-maxage=30' },
       });
     } catch {
@@ -30,25 +28,15 @@ export async function GET(request: Request) {
     });
   }
   try {
-    const started = performance.now();
-    const frame = await getHimawariSliderPng(time);
-    if (!frame) {
+    const publication = await publishedHimawari();
+    const stamp = time.length === 14 ? time : [...publication.frames].reverse().find(s => s.slice(8, 12) === time);
+    if (!stamp || !publication.image_urls[stamp]) {
       return NextResponse.json({ error: 'satellite frame not published' }, {
         status: 404, headers: { 'Cache-Control': 'no-store' },
       });
     }
-    return new NextResponse(new Uint8Array(frame.png), {
-      headers: {
-        'Content-Type': 'image/png',
-        'Content-Length': String(frame.png.byteLength),
-        'Last-Modified': frame.lastModified,
-        'Server-Timing': [`frame;dur=${Math.round(performance.now() - started)}`,
-          ...Object.entries(frame.timings ?? {}).map(([stage, ms]) => `${stage};dur=${ms}`)].join(', '),
-        'Cache-Control': time.length === 14
-          ? 'public, max-age=86400, s-maxage=86400, immutable'
-          : 'public, max-age=540, s-maxage=60',
-        'Access-Control-Allow-Origin': '*',
-      },
+    return NextResponse.redirect(publication.image_urls[stamp], {
+      status: 307, headers: { 'Cache-Control': 'no-store' },
     });
   } catch {
     return unavailable();
