@@ -23,6 +23,13 @@ function timeLabel(frame?: ScenarioFrame) {
   return frame && Number.isFinite(Date.parse(frame.raw_time)) ? timeFormat.format(new Date(frame.raw_time)) : '—';
 }
 
+function compactDateTimeLabel(frame?: ScenarioFrame) {
+  if (!frame || !/^\d{4}-\d{2}-\d{2}/.test(frame.raw_time) || !Number.isFinite(Date.parse(frame.raw_time))) return timeLabel(frame);
+  const date = new Date(frame.raw_time);
+  const time = timeFormat.format(date).replace(':00', '').replace(/\s/g, '');
+  return `${dateFormat.format(date)} · ${time}`;
+}
+
 export function FloodSimulationTimeline({ frames, selectedIndex, onSelect, status, loading, hasBottomNav, fullScreen, telemetry, onRetry, onClose, context, forecastControl, playback, explorer = false }: {
   frames: ScenarioFrame[];
   selectedIndex: number | null;
@@ -65,6 +72,7 @@ export function FloodSimulationTimeline({ frames, selectedIndex, onSelect, statu
     .some(kind => status === `Estimated inundation · ${kind} rainfall`);
   const message = !routineStatus ? status : null;
   const peakIndex = useMemo(() => frames.reduce((best, frame, next) => typeof frame.inundated_km2 === 'number' && frame.inundated_km2 > (best < 0 ? 0 : frames[best].inundated_km2 ?? 0) ? next : best, -1), [frames]);
+  const peakPosition = `calc(9px + (100% - 18px) * ${peakIndex / Math.max(1, maxIndex)})`;
   const liveFraction = latestIndex >= 0 ? latestIndex / Math.max(1, maxIndex) * 100 : 100;
   const track = `linear-gradient(to right, #94a3b8 ${liveFraction}%, #fbbf24 ${liveFraction}%)`;
 
@@ -99,7 +107,7 @@ export function FloodSimulationTimeline({ frames, selectedIndex, onSelect, statu
   const choose = (next: number) => { if (playback) playback.pause(); else setPlaying(false); setScrub(null); onSelect(live && next === latestIndex ? null : next); };
   // Scrubbing previews the time locally; raster selection commits on release.
   const commitScrub = () => { if (scrub !== null) choose(displayedIndex); };
-  const overview = <FloodSimulationOverview id={overviewId} frames={frames} index={index} telemetry={telemetry} loading={loading}
+  const overview = <FloodSimulationOverview id={overviewId} frames={frames} index={index} telemetry={telemetry}
     mobile={!desktop} onSelect={choose} onClose={closeOverview} context={context} forecastControl={forecastControl} />;
 
   return <>
@@ -126,12 +134,15 @@ export function FloodSimulationTimeline({ frames, selectedIndex, onSelect, statu
             <SkipForward size={15} aria-hidden="true" />
           </button>
         </div>
-        <div className="w-[66px] shrink-0 tabular-nums md:w-[78px]">
+        <div className={`w-[66px] shrink-0 tabular-nums md:w-[78px] ${explorer ? 'hidden md:block' : ''}`}>
           <p className="whitespace-nowrap text-[11px] font-bold text-primary md:text-xs">{timeLabel(displayedFrame)}</p>
-          <p className="mt-0.5 text-[8px] text-muted-foreground">{!live ? 'Elapsed time' : displayedFrame && Number.isFinite(Date.parse(displayedFrame.raw_time)) ? `${dateFormat.format(new Date(displayedFrame.raw_time))} · PHT` : 'Flood simulation'}</p>
+          <p className={`mt-0.5 text-[8px] text-muted-foreground ${explorer && !live ? 'hidden md:block' : ''}`}>{!live ? 'Elapsed time' : displayedFrame && Number.isFinite(Date.parse(displayedFrame.raw_time)) ? `${dateFormat.format(new Date(displayedFrame.raw_time))} · PHT` : 'Flood simulation'}</p>
         </div>
         <div className="min-w-0 flex-1">
-          <div data-playback-labels className="flex justify-between gap-2 whitespace-nowrap text-[8px] font-bold leading-3 text-muted-foreground"><span>{live ? 'Past' : 'Scenario playback'}</span>{live && forecastIndex >= 0 && <span className="text-warning-text">Forecast</span>}</div>
+          <div data-playback-labels className="flex justify-between gap-2 whitespace-nowrap text-[8px] font-bold leading-3 text-muted-foreground">
+            <span className="min-w-0 truncate">{explorer ? <><span className="text-[10px] tabular-nums text-primary md:hidden" title={displayedFrame?.display_time}>{compactDateTimeLabel(displayedFrame)}</span><span className="hidden md:inline">{live ? 'Past' : 'Scenario playback'}</span></> : live ? 'Past' : 'Scenario playback'}</span>
+            {live && forecastIndex >= 0 && <span className="shrink-0 text-warning-text">Forecast</span>}
+          </div>
           <div className="relative h-8">
           <input type="range" min={0} max={maxIndex} step={1} value={displayedIndex} disabled={frames.length < 2}
             aria-label={live ? 'Select past, live, or forecast flood estimate' : 'Simulation time'} aria-valuetext={displayedFrame ? `${displayedFrame.display_time} PHT${displayedFrame.is_forecast ? ', forecast' : ''}` : 'No estimates available'}
@@ -139,9 +150,12 @@ export function FloodSimulationTimeline({ frames, selectedIndex, onSelect, statu
             title={displayedFrame?.display_time}
             style={{ '--flood-timeline-track': track } as CSSProperties}
             className="flood-timeline-slider absolute inset-x-0 top-0 z-20 h-5 w-full disabled:cursor-default disabled:opacity-40" />
-          {peakIndex >= 0 && <button type="button" onClick={() => choose(peakIndex)} aria-label={`Jump to peak estimate: ${frames[peakIndex].display_time}`} title={`${frames[peakIndex].display_time} · peak estimated flooded area`}
-            className="absolute top-5 whitespace-nowrap rounded px-1 text-[8px] font-bold leading-3 text-warning-text hover:bg-warning-bg"
-            style={{ left: `clamp(0px, calc((100% - 12px) * ${peakIndex / Math.max(1, maxIndex)} - 6px), calc(100% - 28px))` }}>Peak</button>}
+          {peakIndex >= 0 && <>
+            <span aria-hidden="true" className="pointer-events-none absolute top-[5px] z-30 h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-accent" style={{ left: peakPosition }} />
+            <button type="button" onClick={() => choose(peakIndex)} aria-label={`Jump to peak estimate: ${frames[peakIndex].display_time}`} title={`${frames[peakIndex].display_time} · peak estimated flooded area`}
+              className="absolute top-5 -translate-x-1/2 whitespace-nowrap rounded px-1 text-[8px] font-bold leading-3 text-accent-text hover:bg-accent-subtle"
+              style={{ left: `clamp(14px, ${peakPosition}, calc(100% - 14px))` }}>Peak</button>
+          </>}
           </div>
         </div>
         <button type="button" onClick={() => { setScrub(null); if (playback) playback.reset(); else { setPlaying(false); onSelect(live ? null : 0); } }} aria-label={live ? 'Return to live and follow updates' : 'Restart simulation'} title={live ? followingLive ? 'Following live' : 'Go live' : 'Restart simulation'} disabled={!frames.length}
