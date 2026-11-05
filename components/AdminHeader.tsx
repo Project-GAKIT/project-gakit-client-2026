@@ -434,7 +434,7 @@ export function AdminHeader({
           >
             <Bell className={`h-5 w-5 ${isOpen ? 'text-secondary' : 'text-secondary'}`} />
             {unreadCount > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-hazard-critical px-1 text-[10px] font-bold text-on-accent">
+              <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-error-solid px-1 text-[9px] font-bold text-on-accent shadow-xs">
                 {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             )}
