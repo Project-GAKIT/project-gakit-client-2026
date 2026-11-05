@@ -21,7 +21,7 @@ export function syncParBoundary(map: any, visible = true) {
     map.addLayer({
       id: 'par-boundary-label', type: 'symbol', source: 'par-outline',
       layout: {
-        visibility, 'text-field': 'PAR Boundary (PAGASA)', 'text-size': 10,
+        visibility, 'text-field': 'PAR Boundary', 'text-size': 10,
         'text-font': ['Noto Sans Bold'], 'symbol-placement': 'line',
         'text-offset': [0, -0.8], 'text-allow-overlap': false,
       },

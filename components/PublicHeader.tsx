@@ -418,7 +418,7 @@ export function PublicHeader({
               variant="header"
             />}
             {extraAction}
-            {showBentoMenu && (
+            {showBentoMenu && guideVariant !== 'scenarios' && (
               <BentoMenu
                 items={bentoTiles}
                 onOpenChange={setIsMenuOpen}
@@ -433,8 +433,8 @@ export function PublicHeader({
 
         {/* Mobile top-right cluster */}
         <div className="flex shrink-0 items-center gap-0.5 sm:gap-1 md:hidden [&>button]:h-8 [&>button]:min-w-8 [&>div>button]:h-8 [&>div>button]:min-w-8">
-          {activeSection === 'about' && mobileExtraAction}
-          {showBentoMenu && !showBottomNav && (!hideMobileAlertsAndMenu || guideVariant === 'scenarios') && (
+          {activeSection === 'about' && guideVariant !== 'scenarios' && mobileExtraAction}
+          {showBentoMenu && guideVariant !== 'scenarios' && !showBottomNav && !hideMobileAlertsAndMenu && (
             <BentoMenu
               items={bentoTiles}
               onOpenChange={setIsMenuOpen}
@@ -455,7 +455,7 @@ export function PublicHeader({
             onStartTour={onStartTour}
             containerRef={mobileInfoRef}
           />
-
+          {guideVariant === 'scenarios' && mobileExtraAction}
         </div>
       </div>
     </header>
@@ -465,7 +465,7 @@ export function PublicHeader({
       <div data-map-mobile-controls-slot className="min-w-0 flex-1 empty:hidden" />
       {showAlerts && <NotificationBell notifications={weatherNotifications} onSelectAlert={setSelectedAlert}
         onMarkRead={markAlertRead} variant="toolbar" className="shrink-0" />}
-      {mobileExtraAction}
+      {guideVariant !== 'scenarios' && mobileExtraAction}
     </div>
     {showBottomNav && <nav aria-label="Map navigation" className="pointer-events-none fixed bottom-0 inset-x-0 z-[1200] px-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom,0px))] md:hidden">
       <div className={`pointer-events-auto mx-auto grid ${hideReportButton ? 'max-w-[160px] grid-cols-2' : 'max-w-[240px] grid-cols-3'} items-center gap-1.5 rounded-full border border-default/80 bg-panel/95 p-1 shadow-lg backdrop-blur-md`}>

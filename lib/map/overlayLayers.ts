@@ -46,9 +46,7 @@ import { createReportBubbleImage, createReportMarkerImage } from '@/lib/map/repo
 import { DEPTH_BAR_COLOR } from '@/lib/reports/reportFormatting';
 import { getFirstBasemapSymbolLayerId } from '@/lib/map/basemapLayers';
 import {
-  addBuildingExtrusionLayer,
-  addBuildingFootprintLayer,
-  applyBuildingBasemapPaint,
+  syncBuildingLayers,
   BUILDING_EXTRUSION_LAYER_ID,
   BUILDING_FOOTPRINT_LAYER_ID,
 } from '@/lib/map/buildingLayers';
@@ -228,6 +226,17 @@ export const setupOverlayLayers = async (
     if (!isCurrent()) return;
     ensureAssessmentLandMask(map);
 
+    // Request the active building geometry immediately, before unrelated icon
+    // downloads. A hidden second variant still makes workers build extra buckets.
+    if (!map.getSource('iligan-buildings')) {
+      map.addSource('iligan-buildings', {
+        type: 'vector',
+        url: BUILDINGS_PMTILES_URL,
+        attribution: 'Buildings: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
+      });
+    }
+    syncBuildingLayers(map, 'iligan-buildings', state.mapMode, state.basemap);
+    applyBuildingsVisibility(map, state.mapMode, state.showBuildings);
     // --- Flood hazard vector tile layer (PMTiles) ---
     if (!map.getSource('flood-hazard')) {
       map.addSource('flood-hazard', {
@@ -909,50 +918,6 @@ export const setupOverlayLayers = async (
     map.setLayoutProperty('himawari-ir-layer', 'visibility', state.showHimawariIR ? 'visible' : 'none');
   }
 
-  // --- Iligan City building footprints (2D footprints for 2D mode, 3D extrusion for 3D mode, PMTiles) ---
-  if (!map.getSource('iligan-buildings')) {
-    map.addSource('iligan-buildings', {
-      type: 'vector',
-      url: BUILDINGS_PMTILES_URL,
-      attribution:
-        'Buildings: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
-    });
-  }
-
-  const shouldShowBuildings3D = state.showBuildings !== false && state.mapMode === '3d';
-  const shouldShowBuildings2D = state.showBuildings !== false && state.mapMode === '2d';
-  const firstSymbolLayer = getFirstBasemapSymbolLayerId(map);
-
-  // 2D building footprints for 2D view on Light (Positron) map, inserted beneath basemap text labels
-  if (!map.getLayer(BUILDING_FOOTPRINT_LAYER_ID)) {
-    addBuildingFootprintLayer(
-      map,
-      'iligan-buildings',
-      firstSymbolLayer,
-      shouldShowBuildings2D
-    );
-  }
-
-  // 3D building extrusion for 3D/terrain view only on Light map (hidden on Satellite)
-  if (!map.getLayer(BUILDING_EXTRUSION_LAYER_ID)) {
-    addBuildingExtrusionLayer(
-      map,
-      'iligan-buildings',
-      firstSymbolLayer,
-      shouldShowBuildings3D
-    );
-
-    if (shouldShowBuildings3D && map.setLight) {
-      map.setLight(FLAT_EXTRUSION_LIGHT);
-    }
-  }
-
-  // Footprints/extrusions restyle for the active basemap palette (light vs dark).
-  applyBuildingBasemapPaint(map, state.basemap);
-
-  // Keep visibility in sync when basemap/mode changes
-  applyBuildingsVisibility(map, state.mapMode, state.showBuildings);
-
   // --- Iligan road network (Overture transportation segments, PMTiles) ---
   if (!map.getSource('iligan-roads')) {
     map.addSource('iligan-roads', {
@@ -967,6 +932,7 @@ export const setupOverlayLayers = async (
   // street/place names stay readable. Styles without labels (Satellite) have
   // no first symbol layer, so anchor beneath the report pins instead of
   // stacking the roads over them.
+  const firstSymbolLayer = getFirstBasemapSymbolLayerId(map);
   const roadsBefore =
     firstSymbolLayer ?? (map.getLayer('report-clusters') ? 'report-clusters' : undefined);
   if (

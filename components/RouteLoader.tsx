@@ -28,8 +28,8 @@ function RouteChangeWatcher({ onRouteChange }: { onRouteChange: () => void }) {
   return null;
 }
 
-export function RouteLoadingOverlay({ isLoading, label = 'Loading page…' }: { isLoading: boolean; label?: string }) {
-  return <PageLoader isLoading={isLoading} label={label} standalone />;
+export function RouteLoadingOverlay({ isLoading, label = 'Loading page…', showLabel = true }: { isLoading: boolean; label?: string; showLabel?: boolean }) {
+  return <PageLoader isLoading={isLoading} label={label} showLabel={showLabel} standalone />;
 }
 
 const MIN_DISPLAY_TIME_MS = 150;
@@ -49,6 +49,7 @@ function routeLabel(href: string) {
 export function RouteLoaderProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [hasNavigated, setHasNavigated] = useState(false);
   const [loadingLabel, setLoadingLabel] = useState('Loading page…');
   const fallbackLabels = useRef(new Map<symbol, string>());
   const startTimeRef = useRef<number>(0);
@@ -59,6 +60,7 @@ export function RouteLoaderProvider({ children }: { children: React.ReactNode })
   const lastPathRef = useRef<string | null>(null);
 
   const showLoader = useCallback((label = 'Loading page…') => {
+    setHasNavigated(true);
     setLoadingLabel(label);
     if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
     if (contentRef.current && snapshotRef.current && !snapshotRef.current.hasChildNodes()) {
@@ -231,7 +233,7 @@ export function RouteLoaderProvider({ children }: { children: React.ReactNode })
       <div ref={contentRef} className="contents" data-route-content>{children}</div>
       <div ref={snapshotRef} aria-hidden="true" inert data-route-snapshot
         className="fixed inset-0 z-[1999] overflow-hidden bg-panel pointer-events-none select-none" />
-      <RouteLoadingOverlay isLoading={isLoading} label={loadingLabel} />
+      <RouteLoadingOverlay isLoading={isLoading} label={loadingLabel} showLabel={hasNavigated} />
     </RouteLoaderContext.Provider>
   );
 }

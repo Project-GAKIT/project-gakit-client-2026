@@ -10,13 +10,15 @@ const COMPACT_SIZES = {
 } as const;
 
 export type FloodLoaderSize = keyof typeof COMPACT_SIZES;
+export const FLOOD_LOADER_COLOR = '#38bdf8';
 
 /** Indeterminate water motion; the water level does not represent progress. */
-export function FloodLoader({ active = true, label = 'Loading', compact = false, size = 'sm' }: {
+export function FloodLoader({ active = true, label = 'Loading', compact = false, size = 'sm', showLabel = true }: {
   active?: boolean;
   label?: string;
   compact?: boolean;
   size?: FloodLoaderSize;
+  showLabel?: boolean;
 }) {
   const clipId = useId();
 
@@ -33,16 +35,16 @@ export function FloodLoader({ active = true, label = 'Loading', compact = false,
         <g clipPath={`url(#${clipId})`}>
           {!compact && <path d="M4 33C17 18 27 21 37 29S58 41 77 24M3 44C16 30 26 32 37 39S59 52 79 35M5 56C18 42 27 44 39 50S60 63 77 48" stroke="#cbd5e1" strokeOpacity=".15" strokeWidth="1.2" />}
           <g className="flood-loader-tide">
-            <path className="flood-loader-wave-back" d="M-64 44C-48 36-48 36-32 44S-16 52 0 44S16 36 32 44S48 52 64 44S80 36 96 44S112 52 128 44S144 36 160 44S176 52 192 44V128H-64Z" fill="#38bdf8" fillOpacity=".35" />
+            <path className="flood-loader-wave-back" d="M-64 44C-48 36-48 36-32 44S-16 52 0 44S16 36 32 44S48 52 64 44S80 36 96 44S112 52 128 44S144 36 160 44S176 52 192 44V128H-64Z" fill={FLOOD_LOADER_COLOR} fillOpacity=".35" />
             <g className="flood-loader-wave-front">
-              <path d="M-64 50C-48 41-48 41-32 50S-16 59 0 50S16 41 32 50S48 59 64 50S80 41 96 50S112 59 128 50S144 41 160 50S176 59 192 50V128H-64Z" fill={compact ? '#0284c7' : '#38bdf8'} fillOpacity=".8" />
+              <path d="M-64 50C-48 41-48 41-32 50S-16 59 0 50S16 41 32 50S48 59 64 50S80 41 96 50S112 59 128 50S144 41 160 50S176 59 192 50V128H-64Z" fill={compact ? '#0284c7' : FLOOD_LOADER_COLOR} fillOpacity=".8" />
               <path d="M-64 50C-48 41-48 41-32 50S-16 59 0 50S16 41 32 50S48 59 64 50S80 41 96 50S112 59 128 50S144 41 160 50S176 59 192 50" stroke="#e0f2fe" strokeWidth="1.3" strokeOpacity=".9" />
             </g>
           </g>
           {!compact && <path d="M65 23h5M67 33h3M65 43h5M67 53h3" stroke="#f0f9ff" strokeOpacity=".65" strokeLinecap="round" />}
         </g>
       </svg>
-      {!compact && <span className="max-w-xs px-4 text-center text-xs font-medium leading-5 text-on-accent">{label}</span>}
+      {!compact && <span className={showLabel ? 'max-w-xs px-4 text-center text-xs font-medium leading-5 text-on-accent' : 'sr-only'}>{label}</span>}
     </span>
   );
 }

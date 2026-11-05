@@ -24,11 +24,13 @@ export function PageLoader({
   isLoading = true,
   standalone = false,
   label = 'Loading page…',
+  showLabel = true,
 }: {
   className?: string;
   isLoading?: boolean;
   standalone?: boolean;
   label?: string;
+  showLabel?: boolean;
 }) {
   const route = useContext(RouteLoaderContext);
   const registerFallback = route?.registerFallback;
@@ -47,7 +49,7 @@ export function PageLoader({
       aria-live="polite"
       className={`fixed inset-0 z-[2000] flex items-center justify-center bg-transparent backdrop-blur-md backdrop-brightness-[0.45] transition-opacity duration-200 ease-out motion-reduce:transition-none ${isLoading ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'} ${className}`}
     >
-      <FloodLoader active={isLoading} label={label} />
+      <FloodLoader active={isLoading} label={label} showLabel={showLabel} />
     </div>
   );
 }
