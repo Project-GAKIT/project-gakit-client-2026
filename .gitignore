@@ -42,3 +42,6 @@ tsconfig.tsbuildinfo
 
 # Graphify knowledge graph output
 graphify-out/
+
+# Derived from committed source bundles by dev/build/postinstall.
+/public/data/scenario-assets/

@@ -1,16 +1,3 @@
-[data-public-map-shell] {
-  --map-edge-gap: 8px;
-}
-
-[data-public-map-shell] [data-map-header] {
-  top: max(var(--map-edge-gap), env(safe-area-inset-top, 0px));
-  left: var(--map-edge-gap);
-  right: var(--map-edge-gap);
-  width: auto;
-  max-width: none;
-  transform: none;
-}
-
 [data-public-map-shell] [data-map-sidebar] {
   left: var(--map-edge-gap);
 }
@@ -24,14 +11,6 @@
   [data-public-map-shell] [data-map-sidebar] [data-map-card-stack] > :not([hidden]) ~ :not([hidden]) {
     margin-top: var(--map-edge-gap);
     margin-bottom: 0;
-  }
-
-  [data-public-map-shell] [data-map-header] {
-    left: 50%;
-    right: auto;
-    width: calc(100% - 2 * var(--map-edge-gap));
-    max-width: 80rem;
-    transform: translateX(-50%);
   }
 
 }

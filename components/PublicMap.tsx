@@ -11,6 +11,8 @@ import {
 } from 'react';
 import { getSessionBasemap, setSessionBasemap, themeStore } from '@/lib/theme/store';
 import { useBasemapStyle } from '@/hooks/useBasemapStyle';
+import { useMapGlassActivity } from '@/hooks/useMapGlassActivity';
+import { attachAdaptiveGlass, mapGlassScope } from '@/lib/map/adaptiveGlass';
 import { syncParBoundary } from '@/lib/map/parBoundary';
 import { Focus, Locate, X } from 'lucide-react';
 import { IIT_BOUNDS, isInsideIit, syncCampusFocus } from '@/lib/map/campusFocus';
@@ -433,6 +435,7 @@ export function PublicMap({
     [rainfall, onRainfallHoursChange]
   );
   const himawari = useHimawariLayer(mapRef, layersReadyRef);
+  useMapGlassActivity(mapContainer, himawari.showHimawariIR && (himawari.hasFrames || himawari.isLoading));
   const typhoonPointClickHandlerRef = useRef<((feature: any, lngLat: [number, number]) => void) | undefined>(undefined);
   const handleTyphoonPointClick = useCallback((feature: any, lngLat: [number, number]) => {
     typhoonPointClickHandlerRef.current?.(feature, lngLat);
@@ -1156,6 +1159,7 @@ export function PublicMap({
 
     mapRef.current = map;
     const releaseScrollContainment = containMapScroll(mapContainer.current.parentElement!);
+    const releaseGlass = attachAdaptiveGlass(map, mapGlassScope(mapContainer.current));
 
     // Keep the map sized correctly when its container changes (e.g. when the
     // tab wrapper toggles display, or layout shifts). Prevents a stale/blank
@@ -1272,6 +1276,7 @@ export function PublicMap({
       if (moveendTimerRef.current) clearTimeout(moveendTimerRef.current);
       resizeObserver.disconnect();
       releaseScrollContainment();
+      releaseGlass();
       selectedMarkerRef.current?.remove();
       selectedMarkerRef.current = null;
       setMapReady(false);

@@ -1,0 +1,23 @@
+/* Shared outer spacing for the public map and Flood Scenario Explorer. */
+:is([data-public-map-shell], [data-scenario-map-shell]) {
+  --map-edge-gap: 8px;
+}
+
+:is([data-public-map-shell], [data-scenario-map-shell]) [data-map-header] {
+  top: max(var(--map-edge-gap), env(safe-area-inset-top, 0px));
+  left: var(--map-edge-gap);
+  right: var(--map-edge-gap);
+  width: auto;
+  max-width: none;
+  transform: none;
+}
+
+@media (min-width: 768px) {
+  :is([data-public-map-shell], [data-scenario-map-shell]) [data-map-header] {
+    left: 50%;
+    right: auto;
+    width: calc(100% - 2 * var(--map-edge-gap));
+    max-width: 80rem;
+    transform: translateX(-50%);
+  }
+}

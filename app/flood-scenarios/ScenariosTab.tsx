@@ -3,39 +3,40 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  SCENARIO_PRESETS,
   type ScenarioPreset,
   type ScenarioData,
 } from '@/types/scenario';
 import { ScenarioMap } from './components/ScenarioMap';
 import { ScenarioSelector } from './components/ScenarioSelector';
-import { ScenarioSidebar } from './components/ScenarioSidebar';
 import { FloodSimulationTimeline } from '@/components/map/FloodSimulationTimeline';
 import { liveObservationPollDelay, liveReportNotice } from '@/lib/map/liveReportObservations';
 import { liveModelNotice, liveStatus, selectedLiveFrame, selectionForFrame } from '@/lib/map/liveFloodState';
 import type { ScenarioFrame } from '@/types/scenario';
-import { LoadingOverlay } from '@/components/ui/LoadingState';
+import { LoadingOverlay, PageLoader } from '@/components/ui/LoadingState';
 import { ScenarioDisclaimerModal } from './components/ScenarioDisclaimerModal';
+import { fetchStaticScenario } from '@/lib/map/staticScenario';
 import { fetchLiveFloodTimeline, LiveFloodPending, LIVE_TIMELINE_POLL_MS, type SimulatedFloodTelemetry } from '@/lib/map/surrogate';
 
 interface ScenariosTabProps {
   active: boolean;
+  activePreset: ScenarioPreset;
+  onSelectPreset: (preset: ScenarioPreset) => void;
 }
 
-export function ScenariosTab({ active }: ScenariosTabProps) {
-  const [mobileControlsHost, setMobileControlsHost] = useState<HTMLElement | null>(null);
+export function ScenariosTab({ active, activePreset, onSelectPreset }: ScenariosTabProps) {
+  const [headerHost, setHeaderHost] = useState<HTMLElement | null>(null);
   useEffect(() => {
     let cancelled = false;
     queueMicrotask(() => {
-      if (!cancelled) setMobileControlsHost(document.querySelector<HTMLElement>('[data-map-mobile-controls-slot]'));
+      if (!cancelled) setHeaderHost(document.querySelector<HTMLElement>('[data-scenario-header-slot]'));
     });
     return () => { cancelled = true; };
   }, []);
-  const [activePreset, setActivePreset] = useState<ScenarioPreset>(SCENARIO_PRESETS.find(p => p.id === 'sendong') || SCENARIO_PRESETS[0]);
   const [scenarioData, setScenarioData] = useState<ScenarioData | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasPresentedScenario, setHasPresentedScenario] = useState(false);
   const [hasEverBeenActive, setHasEverBeenActive] = useState(Boolean(active));
   const [includeForecast, setIncludeForecast] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -44,6 +45,9 @@ export function ScenariosTab({ active }: ScenariosTabProps) {
   const [readyScenario, setReadyScenario] = useState<string | null>(null);
   const frameRef = useRef<ScenarioFrame | undefined>(undefined);
   const followLatest = useRef(true);
+  useEffect(() => {
+    if (readyScenario !== null) setHasPresentedScenario(true);
+  }, [readyScenario]);
 
   useEffect(() => {
     const pauseWhenHidden = () => { if (document.visibilityState !== 'visible') setIsPlaying(false); };
@@ -102,9 +106,7 @@ export function ScenariosTab({ active }: ScenariosTabProps) {
         if (isLive) {
           data = await fetchLiveFloodTimeline(controller.signal);
         } else {
-          const res = await fetch(activePreset.dataFile, { signal: controller.signal });
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          data = (await res.json()) as ScenarioData;
+          data = await fetchStaticScenario(activePreset.dataFile, controller.signal);
         }
         if (cancelled || generation !== request || !data) return;
 
@@ -237,7 +239,7 @@ export function ScenariosTab({ active }: ScenariosTabProps) {
     if (preset.id === activePreset.id) return;
     setIsPlaying(false);
     setReadyScenario(null);
-    setActivePreset(preset);
+    onSelectPreset(preset);
     setScenarioData(null);
     setLoadError(null);
     setRasterState(null);
@@ -248,15 +250,14 @@ export function ScenariosTab({ active }: ScenariosTabProps) {
   return (
     <div className="relative h-[100dvh] w-full flex flex-col overflow-hidden">
       {/* Loading Overlay */}
-      {initialLoading && (
+      <PageLoader isLoading={!hasPresentedScenario && initialLoading} label="Loading Flood Scenario Explorer…" />
+      {hasPresentedScenario && initialLoading && (
         <LoadingOverlay message={loadError === 'Preparing live estimates' ? 'Preparing live flood estimates…' : rasterState === 'Loading flood image' ? 'Loading flood simulation map…' : `Loading ${activePreset.name}…`} className="pointer-events-none" />
       )}
 
-      {mobileControlsHost && createPortal(
-        <div data-scenario-controls className="pointer-events-auto min-w-0 md:hidden">
-          <ScenarioSelector activePreset={activePreset} onSelectPreset={selectPreset} isLoading={isLoading} />
-        </div>,
-        mobileControlsHost,
+      {headerHost && createPortal(
+        <ScenarioSelector header activePreset={activePreset} onSelectPreset={selectPreset} isLoading={isLoading} rainfallMm={scenarioData?.total_rainfall_mm} frames={scenarioData?.frames} />,
+        headerHost,
       )}
 
       {/* Educational Disclaimer Modal for first-time visitors */}
@@ -268,12 +269,6 @@ export function ScenariosTab({ active }: ScenariosTabProps) {
           <ScenarioMap
           reportObservations={scenarioData?.live?.report_observations} scenarioId={activePreset.id} currentFrame={currentFrame} bounds={scenarioData?.bounds} onRasterStateChange={handleRasterStateChange} />
         ) : null}
-
-        {/* Scenario selection stays on the left; frame details live in the overview. */}
-        <div className="absolute inset-0 z-[1020] pointer-events-none">
-          <ScenarioSidebar activePreset={activePreset} onSelectPreset={selectPreset} isLoading={isLoading} />
-
-        </div>
 
         {/* Bottom Center: Timeline Scrubber & Controls */}
           <FloodSimulationTimeline

@@ -57,7 +57,7 @@ export function DisplayPopover({ children, className = '', placement = 'below', 
       </button>
       {open && <>
         {align !== 'start' && <div className="fixed inset-0 z-[1290] bg-scrim/20 md:hidden" onClick={close} aria-hidden="true" />}
-        <div id={id} role="region" aria-label="Display settings" data-header-dropdown={(align !== 'start' && placement === 'below') || undefined}
+        <div id={id} role="region" aria-label="Display settings" data-map-glass-surface data-header-dropdown={(align !== 'start' && placement === 'below') || undefined}
           style={align === 'start' ? { position: 'fixed', ...popupPosition } : undefined}
           className={align === 'start' ? 'z-[1300] overflow-y-auto overscroll-contain rounded-2xl border border-default bg-panel text-primary shadow-xl' : `${placement === 'below' ? 'map-header-dropdown' : ''} fixed inset-x-4 top-16 z-[1300] mx-auto max-h-[calc(100dvh-10rem-env(safe-area-inset-bottom,0px))] max-w-[320px] overflow-y-auto overscroll-contain rounded-2xl border border-default bg-panel/95 p-3 text-primary shadow-xl backdrop-blur-xl md:absolute md:inset-x-auto md:right-0 md:w-80 md:max-h-[calc(100dvh-5rem)] ${placement === 'above' ? 'md:top-auto md:bottom-full md:mb-2' : 'md:top-12'}`}>
           <div className={align === 'start' ? 'flex items-center justify-between gap-2 border-b border-default px-3 py-2' : 'mb-2 flex items-center justify-between border-b border-default pb-1.5'}>

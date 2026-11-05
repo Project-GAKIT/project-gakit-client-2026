@@ -14,7 +14,7 @@ const timeline={schema_version:2,snapshot_id:'fixture',created_at:new Date().toI
  await page.route('**/api/v1/surrogate/live/v2/timeline',route=>route.fulfill({json:timeline,headers:{'access-control-allow-origin':'*'}}));
  await page.route('**/api/v1/drought/catalog',route=>route.fulfill({json:{status:'pending',generatedAt:null,periods:[],forecastStatus:'unavailable',observedMessage:'Fixture awaiting assessment',forecastMessage:'Fixture awaiting outlook'},headers:{'access-control-allow-origin':'*'}}));
  await page.route('**/api/v1/surrogate/live/v2/snapshots/**',route=>{images++;return route.fulfill({body:png,contentType:'image/png',headers:{'access-control-allow-origin':'*'}})});
- await page.route('**/data/scenarios/*.json',route=>route.fulfill({json:{storm_id:'fixture',source:'fixture',source_label:'Fixture',event_name:'Fixture',category:'historical',dates:'Fixture',total_rainfall_mm:0,official_total_mm:null,is_calibrated:false,description:'Fixture',total_frames:0,bounds:timeline.bounds,frames:[]}}));
+ await page.route(/\/data\/(scenarios|scenario-assets)\/[^/]+\.json$/,route=>route.fulfill({json:{storm_id:'fixture',source:'fixture',source_label:'Fixture',event_name:'Fixture',category:'historical',dates:'Fixture',total_rainfall_mm:0,official_total_mm:null,is_calibrated:false,description:'Fixture',total_frames:0,bounds:timeline.bounds,frames:[]}}));
  const area=async value=>page.waitForFunction(value=>document.querySelector('[data-flood-metric="area"]')?.textContent.includes(value),value);
  await page.goto(`${base}/flood-scenarios`,{waitUntil:'domcontentloaded'});
  const notice=page.getByRole('button',{name:'Start exploring',exact:true});await notice.waitFor({state:'visible'});await notice.click();

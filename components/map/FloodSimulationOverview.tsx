@@ -37,7 +37,7 @@ export function FloodSimulationOverview({ id, frames, index, telemetry, mobile, 
 }) {
   const [minimized, setMinimized] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
-  const { panelRef, start, move, end, keyMove } = useDraggableCard();
+  const { panelRef, start, move, end, keyMove } = useDraggableCard(!mobile);
   const frame = frames[index];
   const live = !context || context.presetType === 'live';
   // Frame metadata is already known while its map image loads. Use only this
@@ -54,7 +54,7 @@ export function FloodSimulationOverview({ id, frames, index, telemetry, mobile, 
   }, [frames]);
   const peakIndex = maxArea === null ? -1 : frames.findIndex(item => item.inundated_km2 === maxArea);
 
-  return <aside id={id} ref={panelRef} aria-label="Flood simulation overview" className={`pointer-events-auto absolute z-[1010] flex flex-col overflow-hidden rounded-2xl border border-default/80 bg-panel/95 shadow-xl backdrop-blur-md ${mobile ? 'inset-x-0 bottom-[calc(100%+0.75rem)] max-h-[min(55dvh,calc(100dvh-16rem))]' : 'right-5 top-24 max-h-[calc(100%-13rem)] w-[320px] lg:w-[340px]'}`}>
+  return <aside id={id} ref={panelRef} data-flood-overview aria-label="Flood simulation overview" className={`pointer-events-auto absolute z-[1010] flex flex-col overflow-hidden rounded-2xl border border-default/80 bg-panel/95 shadow-xl map-glass backdrop-blur-md ${mobile ? 'inset-x-0 bottom-[calc(100%+0.75rem)] max-h-[min(55dvh,calc(100dvh-16rem))]' : 'right-5 top-24 max-h-[calc(100%-13rem)] w-[320px] lg:w-[340px]'}`}>
     <header className="flex shrink-0 items-center gap-1 border-b border-default px-3 py-2">
       {mobile ? <h2 className="flex-1 text-xs font-bold text-primary">Flood overview</h2> : <button type="button" aria-label="Move flood overview" onPointerDown={start} onPointerMove={move} onPointerUp={end} onPointerCancel={end} onKeyDown={keyMove} className="flex min-w-0 flex-1 cursor-grab touch-none items-center gap-2 text-left active:cursor-grabbing"><GripHorizontal size={12} className="text-muted-foreground" /><span className="text-xs font-bold text-primary">Flood overview</span></button>}
       <button type="button" aria-label="About Flood Simulation" aria-haspopup="dialog" onClick={() => setShowInfo(true)} className="p-1.5 text-muted-foreground hover:text-secondary"><Info size={13} /></button>

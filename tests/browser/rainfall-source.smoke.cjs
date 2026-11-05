@@ -34,13 +34,13 @@ async function main(){
    const {requestId,request}=m.params;let body,type='application/json';
    if(request.url.includes('/surrogate/live/v2/timeline'))body=JSON.stringify(timeline);
    else if(request.url.includes('/surrogate/live/v2/snapshots/')){body=png;type='image/png';}
-   else if(request.url.includes('/data/scenarios/'))body=JSON.stringify(historical);
+   else if(/\/data\/(scenarios|scenario-assets)\//.test(request.url))body=JSON.stringify(historical);
    if(body){await command('Fetch.fulfillRequest',{requestId,responseCode:200,responseHeaders:[{name:'content-type',value:type},{name:'access-control-allow-origin',value:'*'},{name:'access-control-allow-methods',value:'GET, OPTIONS'},{name:'access-control-allow-headers',value:'content-type'}],body:request.method==='OPTIONS'?'':type==='image/png'?body:Buffer.from(body).toString('base64')});}
    else await command('Fetch.continueRequest',{requestId});
   }
  });
  await command('Page.enable');await command('Runtime.enable');
- await command('Fetch.enable',{patterns:[{urlPattern:'*surrogate/live/v2/*'},{urlPattern:'*/data/scenarios/*.json'}]});
+ await command('Fetch.enable',{patterns:[{urlPattern:'*surrogate/live/v2/*'},{urlPattern:'*/data/scenarios/*.json'},{urlPattern:'*/data/scenario-assets/*.json'}]});
  await command('Page.addScriptToEvaluateOnNewDocument',{source:"try{localStorage.setItem('gakit:scenario-disclaimer-seen','true')}catch{}"});
  await command('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});
  await command('Page.navigate',{url:base+'/flood-scenarios'});

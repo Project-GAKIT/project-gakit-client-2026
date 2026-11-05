@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Pause, PieChart, Play, X } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
+import { useMapGlassActivity } from '@/hooks/useMapGlassActivity';
 import { STATUS_BANDS, droughtMonthLabel, type DroughtPeriod } from '@/lib/map/drought';
 import type { DroughtControlState } from './DroughtControls';
 
@@ -16,6 +17,7 @@ export function DroughtTimeline({ state, periods, overviewOpen, onOverview }: {
   const [pageVisible, setPageVisible] = useState(true);
   const ticksRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<HTMLElement>(null);
+  useMapGlassActivity(playerRef, playing && pageVisible);
   const { selectPeriod: choosePeriod } = state;
   const index = periods.findIndex(p => p.mode === state.mode && p.month === state.month);
   const displayed = scrub ?? Math.max(0, index);
@@ -67,7 +69,7 @@ export function DroughtTimeline({ state, periods, overviewOpen, onOverview }: {
       <span className="mr-1 hidden text-muted-foreground md:inline">STATUS</span>
       {STATUS_BANDS.map(b => <span key={b.label} className="inline-flex items-center gap-1 whitespace-nowrap rounded-md bg-panel/90 px-1 py-1 shadow-sm md:px-1.5"><span className="h-2 w-2 rounded-sm ring-1 ring-scrim/10" style={{ backgroundColor: b.color }} />{b.label}</span>)}
     </div>
-    <div className="flex h-[62px] items-center gap-2 rounded-2xl border border-default/80 bg-panel/95 px-2.5 shadow-lg backdrop-blur-md md:gap-3 md:px-3">
+    <div className="flex h-[62px] items-center gap-2 rounded-2xl border border-default/80 bg-panel/95 px-2.5 shadow-lg map-glass backdrop-blur-md md:gap-3 md:px-3">
       <button type="button" aria-label={playing ? 'Pause drought timeline' : 'Play drought timeline'} aria-pressed={playing} disabled={periods.length < 2} onClick={() => setPlaying(p => !p)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-on-accent disabled:opacity-30">{playing ? <Pause size={15} /> : <Play size={15} className="ml-0.5" />}</button>
       <div className="w-[65px] shrink-0 md:w-[78px]"><p className="whitespace-nowrap text-[11px] font-bold text-primary md:text-xs" aria-live="polite">{shown ? droughtMonthLabel(shown.month) : 'Drought'}</p><span className={`whitespace-nowrap text-[8px] font-bold uppercase ${state.mode === 'forecast' ? 'text-info-text' : 'text-muted-foreground'}`}>{state.mode === 'forecast' ? 'Forecast' : 'Observed'}<span className="hidden md:inline"> · PAGASA</span></span></div>
       <div ref={ticksRef} className="min-w-0 flex-1 overflow-x-auto [scrollbar-width:none]" role="group" aria-label="Drought months">
