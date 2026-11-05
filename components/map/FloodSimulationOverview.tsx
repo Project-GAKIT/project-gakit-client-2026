@@ -24,12 +24,11 @@ export interface FloodForecastControl {
   onChange: (included: boolean) => void;
 }
 
-export function FloodSimulationOverview({ id, frames, index, telemetry, loading, mobile, onSelect, onClose, context, forecastControl }: {
+export function FloodSimulationOverview({ id, frames, index, telemetry, mobile, onSelect, onClose, context, forecastControl }: {
   id: string;
   frames: ScenarioFrame[];
   index: number;
   telemetry: SimulatedFloodTelemetry | null;
-  loading: boolean;
   mobile: boolean;
   onSelect: (index: number) => void;
   onClose: () => void;
@@ -98,7 +97,6 @@ export function FloodSimulationOverview({ id, frames, index, telemetry, loading,
         </div>
         <div className="mt-1 flex justify-between text-[9px] font-bold text-muted-foreground"><span>{live ? 'Past rainfall' : 'Start'}</span><span className={live ? 'text-warning-text' : ''}>{live ? 'Forecast rainfall' : 'End'}</span></div>
       </section>
-      <p aria-live="polite" className="mt-2 min-h-4 text-[10px] text-muted-foreground">{loading ? 'Updating the map…' : ''}</p>
       <details className="mt-3 border-t border-default pt-2 text-[9px] leading-4 text-muted-foreground"><summary className="flex cursor-pointer list-none items-center gap-1 font-medium"><Info size={11} />About this estimate</summary><p className="mt-1.5 text-[10px] text-muted-foreground">{current?.modelNotice ?? context?.modelNotice ?? 'Rainfall-based spatial estimates. Flood arrival, recession and exact depths are unvalidated.'}</p>{!live && context.totalRainfallMm !== null && <p className="mt-1">Scenario rainfall total: {formatFloodMetric(context.totalRainfallMm, 1)} mm.</p>}</details>
     </div>}
     {showInfo && <FloodSimulationInfoModal isOpen onClose={() => setShowInfo(false)} />}

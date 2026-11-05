@@ -10,10 +10,11 @@ export interface DisplayPopoverProps {
   placement?: 'above' | 'below';
   align?: 'start' | 'end';
   compact?: boolean;
+  mobileLabel?: boolean;
 }
 
 /** Appearance is always available, including while map controls are loading. */
-export function DisplayPopover({ children, className = '', placement = 'below', compact = false, align = 'end' }: DisplayPopoverProps) {
+export function DisplayPopover({ children, className = '', placement = 'below', compact = false, align = 'end', mobileLabel = false }: DisplayPopoverProps) {
   const [open, setOpen] = useState(false);
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 8, width: 304, maxHeight: 400 });
   const container = useRef<HTMLDivElement>(null);
@@ -49,10 +50,10 @@ export function DisplayPopover({ children, className = '', placement = 'below', 
         }
         setOpen(value => !value);
       }} aria-label="Display settings" title="Display settings"
-        aria-expanded={open} aria-controls={id} className={`flex w-max shrink-0 items-center justify-center gap-1 rounded-full px-2 font-semibold text-secondary transition-colors hover:bg-muted md:gap-1.5 md:px-2.5 md:text-[11px] ${compact ? (align === 'start' ? 'h-[30px]' : 'h-8') : 'h-10 md:h-9'} ${open ? 'bg-muted text-secondary ring-1 ring-default' : ''}`}>
-        <SlidersHorizontal className="h-3.5 w-3.5 shrink-0 md:hidden" aria-hidden="true" />
-        <span className="hidden md:inline">Display</span>
-        <ChevronDown className={`h-3 w-3 shrink-0 transition-transform md:h-3.5 md:w-3.5 ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
+        aria-expanded={open} aria-controls={id} className={`flex w-max shrink-0 items-center justify-center rounded-full font-semibold text-secondary transition-colors hover:bg-muted md:flex-row md:gap-1.5 md:px-2.5 md:text-[11px] ${mobileLabel ? 'flex-col gap-0.5 px-1 text-[9px]' : 'gap-1 px-2'} ${compact ? (align === 'start' ? 'h-[30px]' : 'h-8') : 'h-10 md:h-9'} ${open ? 'bg-muted text-secondary ring-1 ring-default' : ''}`}>
+        <SlidersHorizontal className={`${mobileLabel ? 'h-4 w-4' : 'h-3.5 w-3.5'} shrink-0 md:hidden`} aria-hidden="true" />
+        <span className={mobileLabel ? '' : 'hidden md:inline'}>Display</span>
+        <ChevronDown className={`${mobileLabel ? 'hidden md:block' : ''} h-3 w-3 shrink-0 transition-transform md:h-3.5 md:w-3.5 ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
       </button>
       {open && <>
         {align !== 'start' && <div className="fixed inset-0 z-[1290] bg-scrim/20 md:hidden" onClick={close} aria-hidden="true" />}

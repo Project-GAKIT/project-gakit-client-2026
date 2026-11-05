@@ -10,5 +10,5 @@ export function ScenarioDisplayPopover({ className = '', compact = false }: { cl
     onBasemapChange={scenarioDisplayStore.setBasemap} onModeChange={scenarioDisplayStore.setMode}
     smoothPolygons={renderMode === 'linear'} onSmoothingChange={smooth => scenarioDisplayStore.setRenderMode(smooth ? 'linear' : 'nearest')}
     onBuildingsChange={scenarioDisplayStore.setEnableBuildings} onRoadsChange={scenarioDisplayStore.setEnableRoads}
-    compact={compact} focusRoads={focusRoads} onFocusRoadsChange={scenarioDisplayStore.setFocusRoads} />;
+    mobileLabel compact={compact} focusRoads={focusRoads} onFocusRoadsChange={scenarioDisplayStore.setFocusRoads} />;
 }

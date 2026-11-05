@@ -1,6 +1,5 @@
 'use client';
 
-import type { ReactNode } from 'react';
 import { DisplayPopover } from './DisplayPopover';
 import { BASEMAP_LABELS, type BasemapId } from '@/constants/publicMap';
 
@@ -18,10 +17,6 @@ const BASEMAP_PREVIEWS: Array<{ value: BasemapId; src: string }> = [
 
 type DisplaySetting = { label: string; description: string; checked: boolean; change: (checked: boolean) => void };
 
-function DisplaySectionHeading({ children }: { children: ReactNode }) {
-  return <p className="text-[10px] font-semibold uppercase leading-3 tracking-wide text-muted-foreground">{children}</p>;
-}
-
 function DisplaySettingRow({ label, description, checked, change }: DisplaySetting) {
   return (
     <div className="flex items-center justify-between gap-3 border-t border-default pt-2">
@@ -37,7 +32,7 @@ function DisplaySettingRow({ label, description, checked, change }: DisplaySetti
   );
 }
 
-export function MapDisplayPopover({ basemap, mode, showBuildings, onBasemapChange, onModeChange, onBuildingsChange, smoothPolygons = true, onSmoothingChange, showBarangayBoundaries = false, onBarangayBoundariesChange, showRoads = false, onRoadsChange, focusRoads = false, onFocusRoadsChange, showParBoundary = true, onParBoundaryChange, disabled = false, className = '', placement = 'below', compact = false, align = 'end' }: MapDisplaySettings & {
+export function MapDisplayPopover({ basemap, mode, showBuildings, onBasemapChange, onModeChange, onBuildingsChange, smoothPolygons = true, onSmoothingChange, showBarangayBoundaries = false, onBarangayBoundariesChange, showRoads = false, onRoadsChange, focusRoads = false, onFocusRoadsChange, showParBoundary = true, onParBoundaryChange, disabled = false, className = '', placement = 'below', compact = false, align = 'end', mobileLabel = false }: MapDisplaySettings & {
   onParBoundaryChange?: (visible: boolean) => void;
   onBasemapChange: (basemap: BasemapId) => void;
   onModeChange: (mode: '2d' | '3d') => void;
@@ -53,13 +48,13 @@ export function MapDisplayPopover({ basemap, mode, showBuildings, onBasemapChang
   placement?: 'above' | 'below';
   align?: 'start' | 'end';
   compact?: boolean;
+  mobileLabel?: boolean;
 }) {
   return (
-    <DisplayPopover className={className} placement={placement} compact={compact} align={align}>
+    <DisplayPopover className={className} placement={placement} compact={compact} align={align} mobileLabel={mobileLabel}>
           <fieldset disabled={disabled} className="space-y-2 disabled:opacity-50">
             <legend className="mb-2 text-sm font-semibold text-primary">Map</legend>
             <div>
-              <div className="mb-1"><DisplaySectionHeading>Basemap</DisplaySectionHeading></div>
               <div className="grid grid-cols-4 gap-1.5">
                 {BASEMAP_PREVIEWS.map(({ value, src }) => (
                   <button key={value} type="button" aria-pressed={basemap === value} onClick={() => onBasemapChange(value)}

@@ -309,36 +309,36 @@ export function PublicHeader({
   const mobileExtraAction = isValidElement<{ compact?: boolean; className?: string }>(extraAction)
     ? cloneElement(extraAction, {
         compact: true,
-        className: `${extraAction.props.className ?? ''} h-8 w-12 shrink-0 rounded-full border border-default bg-panel/95 shadow-sm [&>button]:h-full [&>button]:w-full`,
+        className: `${extraAction.props.className ?? ''} ${guideVariant === 'scenarios' ? 'shrink-0' : 'h-8 w-12 shrink-0 rounded-full border border-default bg-panel/95 shadow-sm [&>button]:h-full [&>button]:w-full'}`,
       })
     : extraAction;
 
   return (
     <>
     <header ref={headerRef} data-map-header data-scenario-header={guideVariant === 'scenarios' || undefined} className={`fixed top-[max(0.375rem,env(safe-area-inset-top,0px))] inset-x-1.5 md:top-4 md:left-1/2 md:-translate-x-1/2 md:inset-x-auto md:w-[calc(100%-3rem)] md:max-w-7xl z-[1200] isolate rounded-full bg-panel shadow-panel border border-default/90 ring-1 ring-strong/5 md:[background-color:var(--hud-bg-desktop)] md:[backdrop-filter:blur(var(--hud-blur-desktop))] md:border-default/80 md:shadow-panel`}>
-      <div className={`flex h-12 md:h-14 items-center justify-between px-2 md:px-5 ${onSearchSelect ? 'md:grid md:grid-cols-[minmax(0,1fr)_var(--map-header-search-width,0px)_minmax(0,1fr)]' : ''}`}>
+      <div className={`flex h-12 md:h-14 items-center justify-between ${guideVariant === 'scenarios' ? 'px-1' : 'px-2'} md:px-5 ${onSearchSelect ? 'md:grid md:grid-cols-[minmax(0,1fr)_var(--map-header-search-width,0px)_minmax(0,1fr)]' : ''}`}>
         {/* Left: Brand Logo & Title */}
-        <div ref={brandRef} className={`flex items-center min-w-0 md:justify-self-start md:gap-3 ${showSectionNav ? 'shrink-0 gap-2' : 'flex-1 gap-1 md:flex-none md:shrink-0'}`}>
+        <div ref={brandRef} className={`flex items-center min-w-0 md:justify-self-start md:gap-3 ${showSectionNav ? 'shrink-0 gap-2' : guideVariant === 'scenarios' ? 'shrink-0 gap-1' : 'flex-1 gap-1 md:flex-none md:shrink-0'}`}>
           {!showSectionNav && (
             <button
               type="button"
               onClick={() => navigate('/')}
               aria-label="Back to Hazard Map"
               title="Back to Hazard Map"
-              className="flex h-10 min-w-10 shrink-0 flex-col items-center justify-center gap-0.5 rounded-full px-1 text-[9px] font-semibold text-secondary transition-colors hover:bg-muted hover:text-primary md:h-9 md:flex-row md:gap-1.5 md:px-2.5 md:text-[11px]"
+              className={`flex h-10 ${guideVariant === 'scenarios' ? 'min-w-8' : 'min-w-10'} shrink-0 flex-col items-center justify-center gap-0.5 rounded-full px-1 text-[9px] font-semibold text-secondary transition-colors hover:bg-muted hover:text-primary md:h-9 md:flex-row md:gap-1.5 md:px-2.5 md:text-[11px]`}
             >
               <ChevronLeft className="h-4 w-4 stroke-[2.5]" />
-              <span>Back</span>
+              <span className={guideVariant === 'scenarios' ? 'hidden md:inline' : ''}>Back</span>
             </button>
           )}
 
 
 
-          <button
+          {guideVariant !== 'scenarios' && <button
             type="button"
             onClick={() => (showSectionNav ? scrollToSection('hazard-map') : navigate('/'))}
             className={`group shrink-0 items-center rounded-lg transition-transform duration-200 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 ${
-              !showSectionNav && guideVariant !== 'scenarios' ? 'hidden md:flex' : 'flex'
+              !showSectionNav ? 'hidden md:flex' : 'flex'
             }`}
             aria-label="Go to the GAKIT hazard map"
             title={showSectionNav ? undefined : 'Return to public map'}
@@ -362,21 +362,21 @@ export function PublicHeader({
                 className="hidden h-8 w-auto object-contain md:block"
               />
             </div>
-            <div className={`hidden h-9 pl-2 flex-col justify-center text-left font-heading text-[11px] font-bold uppercase tracking-wide leading-[14px] text-secondary ${guideVariant === 'scenarios' ? '' : 'xl:flex'}`}>
+            <div className="hidden h-9 pl-2 flex-col justify-center text-left font-heading text-[11px] font-bold uppercase tracking-wide leading-[14px] text-secondary xl:flex">
               <div>Geohazard Assessment &amp;</div>
               <div>Knowledge Integration Tool</div>
             </div>
-          </button>
-          {guideVariant === 'scenarios' && (
-            <div className="flex min-w-0 items-center gap-1 whitespace-nowrap">
-              <span className="max-w-[8rem] whitespace-normal font-heading text-[10px] font-bold uppercase leading-3 tracking-wide text-secondary md:max-w-none md:whitespace-nowrap">Flood Scenario Explorer</span>
-              <sup className="relative -top-1 shrink-0 select-none rounded bg-warning-bg px-1 py-0.5 text-[8px] font-semibold leading-none text-warning-text">BETA</sup>
-            </div>
-          )}
+          </button>}
         </div>
 
         {/* Location search or flexible spacing between brand and actions. */}
-        <div className={`${!showSectionNav && !onSearchSelect ? 'hidden md:flex' : 'flex'} min-w-0 flex-1 items-center justify-center px-2`}>
+        <div className={`${!showSectionNav && !onSearchSelect && guideVariant !== 'scenarios' ? 'hidden md:flex' : 'flex'} min-w-0 flex-1 items-center justify-center ${guideVariant === 'scenarios' ? 'px-0.5 md:px-4' : 'px-2'}`}>
+          {guideVariant === 'scenarios' && (
+            <div className="flex min-w-0 items-center justify-center gap-0.5 whitespace-nowrap min-[375px]:gap-1">
+              <span className="min-w-0 truncate font-heading text-[11px] font-bold uppercase leading-4 text-secondary min-[375px]:text-xs md:text-sm">Flood Scenario Explorer</span>
+              <sup className="relative -top-1 shrink-0 select-none rounded bg-warning-bg px-0.5 py-0.5 text-[7px] font-semibold leading-none text-warning-text min-[375px]:px-1 min-[375px]:text-[8px]">BETA</sup>
+            </div>
+          )}
           {onSearchSelect && (
             <div data-tour="search" className="w-full min-w-0 max-w-md lg:max-w-lg">
               <LocationSearch
