@@ -230,7 +230,7 @@ export function RouteLoaderProvider({ children }: { children: React.ReactNode })
       </Suspense>
       <div ref={contentRef} className="contents" data-route-content>{children}</div>
       <div ref={snapshotRef} aria-hidden="true" inert data-route-snapshot
-        className="fixed inset-0 z-[1999] overflow-hidden bg-white pointer-events-none select-none" />
+        className="fixed inset-0 z-[1999] overflow-hidden bg-panel pointer-events-none select-none" />
       <RouteLoadingOverlay isLoading={isLoading} label={loadingLabel} />
     </RouteLoaderContext.Provider>
   );

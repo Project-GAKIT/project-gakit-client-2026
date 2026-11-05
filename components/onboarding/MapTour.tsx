@@ -241,7 +241,7 @@ export function MapTour({
   return createPortal(
     <>
       <div
-        className={`fixed inset-0 z-[1700] ${spotlight ? '' : 'bg-slate-950/55 backdrop-blur-[1px]'}`}
+        className={`fixed inset-0 z-[1700] ${spotlight ? '' : 'bg-contrast/55 backdrop-blur-[1px]'}`}
         aria-hidden="true"
         onMouseDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
@@ -257,7 +257,7 @@ export function MapTour({
             width: spotlight.width,
             height: spotlight.height,
             boxShadow:
-              '0 0 0 3px rgba(122, 0, 25, 0.95), 0 0 0 5px rgba(255,255,255,0.92), 0 0 0 9999px rgba(15,23,42,0.58)',
+              '0 0 0 3px rgb(var(--accent-text) / .95), 0 0 0 5px rgb(var(--surface-panel) / .92), 0 0 0 9999px rgb(var(--scrim) / .58)',
           }}
         />
       )}
@@ -280,7 +280,7 @@ export function MapTour({
             else onStepChange(stepIndex + 1);
           }
         }}
-        className="fixed z-[1710] max-h-[calc(100dvh-12rem)] w-[min(21.5rem,calc(100vw-1.5rem))] overflow-y-auto overscroll-contain rounded-2xl bg-white p-4 text-left shadow-2xl ring-1 ring-slate-900/10 outline-none transition-shadow focus-visible:ring-2 focus-visible:ring-gakit-maroon md:max-h-[calc(100dvh-7rem)]"
+        className="fixed z-[1710] max-h-[calc(100dvh-12rem)] w-[min(21.5rem,calc(100vw-1.5rem))] overflow-y-auto overscroll-contain rounded-2xl bg-panel p-4 text-left shadow-2xl ring-1 ring-strong/10 outline-none transition-shadow focus-visible:ring-2 focus-visible:ring-focus md:max-h-[calc(100dvh-7rem)]"
         style={{
           top: position.top,
           left: position.left,
@@ -288,7 +288,7 @@ export function MapTour({
         }}
       >
         <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-1.5 text-gakit-maroon">
+          <div className="flex items-center gap-1.5 text-secondary">
             <Compass className="h-3.5 w-3.5" aria-hidden />
             <p className="text-[10px] font-bold uppercase tracking-[0.16em]">Map tour</p>
           </div>
@@ -296,7 +296,7 @@ export function MapTour({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg px-2 py-1 text-[11px] font-semibold text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon"
+              className="rounded-lg px-2 py-1 text-[11px] font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
             >
               Skip
             </button>
@@ -304,7 +304,7 @@ export function MapTour({
               type="button"
               onClick={onClose}
               aria-label="Close map tour"
-              className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon"
+              className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
             >
               <X className="h-3.5 w-3.5" aria-hidden />
             </button>
@@ -314,12 +314,12 @@ export function MapTour({
         <p className="sr-only" aria-live="polite">
           Step {stepIndex + 1} of {TOUR_STEPS.length}: {step.title}
         </p>
-        <h3 className="mt-2.5 text-base font-bold leading-5 text-slate-900">{step.title}</h3>
-        <p id={bodyId} className="mt-1.5 text-xs leading-5 text-slate-600" aria-live="polite">
+        <h3 className="mt-2.5 text-base font-bold leading-5 text-primary">{step.title}</h3>
+        <p id={bodyId} className="mt-1.5 text-xs leading-5 text-secondary" aria-live="polite">
           {step.body}
         </p>
 
-        <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-3">
+        <div className="mt-4 flex items-center justify-between gap-3 border-t border-default pt-3">
           <div className="flex items-center gap-1.5" aria-label={`Step ${stepIndex + 1} of ${TOUR_STEPS.length}`}>
             {TOUR_STEPS.map((tourStep, index) => (
               <span
@@ -327,14 +327,14 @@ export function MapTour({
                 aria-hidden
                 className={`h-1.5 rounded-full transition-all duration-200 motion-reduce:transition-none ${
                   index === stepIndex
-                    ? 'w-4 bg-gakit-maroon'
+                    ? 'w-4 bg-accent'
                     : index < stepIndex
-                      ? 'w-1.5 bg-maroon-200'
-                      : 'w-1.5 bg-slate-200'
+                      ? 'w-1.5 bg-selected'
+                      : 'w-1.5 bg-muted'
                 }`}
               />
             ))}
-            <span className="ml-1 text-[10px] font-semibold tabular-nums text-slate-400">
+            <span className="ml-1 text-[10px] font-semibold tabular-nums text-muted-foreground">
               {stepIndex + 1}/{TOUR_STEPS.length}
             </span>
           </div>
@@ -345,7 +345,7 @@ export function MapTour({
                 type="button"
                 onClick={() => onStepChange(stepIndex - 1)}
                 aria-label="Previous tour step"
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-default bg-panel text-muted-foreground transition-colors hover:bg-page hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
               >
                 <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
               </button>
@@ -353,7 +353,7 @@ export function MapTour({
             <button
               type="button"
               onClick={lastStep ? onFinish : () => onStepChange(stepIndex + 1)}
-              className="flex h-9 items-center gap-1.5 rounded-lg bg-gakit-maroon px-3 text-xs font-bold text-white transition-colors hover:bg-maroon-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon focus-visible:ring-offset-2 active:scale-[0.98]"
+              className="flex h-9 items-center gap-1.5 rounded-lg bg-accent px-3 text-xs font-bold text-on-accent transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 active:scale-[0.98]"
             >
               {lastStep ? 'Start exploring' : 'Next'}
               {!lastStep}

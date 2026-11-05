@@ -155,23 +155,23 @@ export function AlertsPanel({
   );
 
   const groupButtonClass =
-    'flex w-full items-center gap-1.5 bg-canvas-light px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-500 hover:text-slate-700';
+    'flex w-full items-center gap-1.5 bg-page px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-muted-foreground hover:text-secondary';
 
   return (
     <section
       aria-label={title}
-      className="flex max-h-[75dvh] min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border border-canvas-grey bg-white shadow-sm xl:h-full xl:max-h-none"
+      className="flex max-h-[75dvh] min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border border-default bg-panel shadow-sm xl:h-full xl:max-h-none"
     >
-      <header className="shrink-0 space-y-2 border-b border-canvas-grey p-3">
+      <header className="shrink-0 space-y-2 border-b border-default p-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h3 className="flex items-center gap-2 font-bold text-slate-900">
-              <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-canvas-light text-gakit-maroon">
+            <h3 className="flex items-center gap-2 font-bold text-primary">
+              <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-page text-secondary">
                 <Icon className="h-4 w-4" />
               </span>
               <span className="truncate">{title}</span>
             </h3>
-            <p className="mt-0.5 text-xs text-slate-500" aria-live="polite">
+            <p className="mt-0.5 text-xs text-muted-foreground" aria-live="polite">
               {loading
                 ? 'Loading…'
                 : error
@@ -185,7 +185,7 @@ export function AlertsPanel({
             <button
               type="button"
               onClick={handleMarkAllRead}
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-canvas-grey bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-gakit-maroon hover:text-gakit-maroon"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-default bg-panel px-3 py-1.5 text-xs font-semibold text-secondary hover:border-strong hover:text-primary"
             >
               <CheckCircle2 className="h-3.5 w-3.5" />
               Mark all read
@@ -203,11 +203,11 @@ export function AlertsPanel({
         className="min-h-0 overflow-y-auto overscroll-y-contain [scrollbar-gutter:stable] xl:flex-1"
       >
         {error ? (
-          <div className="p-5 text-sm text-red-700">{error}</div>
+          <div className="p-5 text-sm text-error-text">{error}</div>
         ) : count === 0 && !loading ? (
           <div className="p-2">{emptyState ?? <EmptyNotifications />}</div>
         ) : (
-          <div className="divide-y divide-canvas-grey">
+          <div className="divide-y divide-default">
             {!isArchivedView && (
               <div>
                 <button
@@ -227,7 +227,7 @@ export function AlertsPanel({
                   (pagedUnread.length > 0 ? (
                     pagedUnread.map((n) => renderRow(n, false))
                   ) : (
-                    <p className="px-3 py-2 text-xs text-slate-400">
+                    <p className="px-3 py-2 text-xs text-muted-foreground">
                       No unread notifications.
                     </p>
                   ))}

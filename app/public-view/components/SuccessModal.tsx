@@ -20,9 +20,9 @@ export interface SubmittedReport extends ReportReceipt {
 }
 
 const TONE = {
-  green: 'border-green-200 bg-green-50/70 text-green-950',
-  amber: 'border-amber-200 bg-amber-50/70 text-amber-950',
-  slate: 'border-slate-200 bg-slate-50 text-slate-800',
+  green: 'border-success-border bg-success-bg/70 text-success-text',
+  amber: 'border-warning-border bg-warning-bg/70 text-warning-text',
+  slate: 'border-default bg-page text-primary',
 };
 
 export function SuccessModal({ isOpen, report, onClose }: {
@@ -62,16 +62,16 @@ export function SuccessModal({ isOpen, report, onClose }: {
   return (
     <Dialog isOpen={isOpen} onClose={onClose} ariaLabelledBy="submission-receipt-title"
       maxWidthClass="max-w-lg" panelClassName="flex max-h-[calc(100dvh-2rem)] flex-col overflow-hidden">
-      <header className="flex shrink-0 items-start gap-3 border-b border-slate-100 p-5 sm:px-6">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-maroon-50 text-gakit-maroon">
+      <header className="flex shrink-0 items-start gap-3 border-b border-default p-5 sm:px-6">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-muted text-secondary">
           <ClipboardCheck className="h-5 w-5" aria-hidden="true" />
         </span>
         <div className="min-w-0 flex-1">
-          <h2 id="submission-receipt-title" className="text-lg font-bold text-slate-900">Report submitted</h2>
-          <p className="mt-1 text-[13px] leading-5 text-slate-500">Your submission is saved. Its review status is below.</p>
+          <h2 id="submission-receipt-title" className="text-lg font-bold text-primary">Report submitted</h2>
+          <p className="mt-1 text-[13px] leading-5 text-muted-foreground">Your submission is saved. Its review status is below.</p>
         </div>
         <button type="button" onClick={onClose} aria-label="Close report feedback"
-          className="-mr-2 -mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon">
+          className="-mr-2 -mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
           <X className="h-5 w-5" />
         </button>
       </header>
@@ -80,7 +80,7 @@ export function SuccessModal({ isOpen, report, onClose }: {
         <section aria-label="Saved review status" className={`rounded-xl border p-4 ${TONE[view.tone]}`}>
           <div className="flex items-center justify-between gap-3">
             <span className="text-[11px] font-semibold uppercase tracking-wide opacity-70">Saved review status</span>
-            <span className="rounded-full border border-current/15 bg-white/70 px-2.5 py-1 text-[11px] font-semibold">{view.label}</span>
+            <span className="rounded-full border border-current/15 bg-panel/70 px-2.5 py-1 text-[11px] font-semibold">{view.label}</span>
           </div>
           <div className="mt-3 flex items-start gap-2.5">
             <StatusIcon className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
@@ -94,39 +94,39 @@ export function SuccessModal({ isOpen, report, onClose }: {
           {latest && latest.status !== report.status && <p className="mt-1 text-xs font-medium">Status updated after submission.</p>}
         </section>
 
-        {view.reviewNotice && <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-5 text-amber-900">{view.reviewNotice}</p>}
-        {refreshFailed && <p role="status" className="text-xs leading-5 text-slate-500">Could not refresh. Showing the last saved status.</p>}
+        {view.reviewNotice && <p className="rounded-lg border border-warning-border bg-warning-bg px-3 py-2.5 text-xs leading-5 text-warning-text">{view.reviewNotice}</p>}
+        {refreshFailed && <p role="status" className="text-xs leading-5 text-muted-foreground">Could not refresh. Showing the last saved status.</p>}
 
         <dl className="grid grid-cols-2 gap-x-5 gap-y-4">
           <div className="col-span-2">
-            <dt className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500"><MapPin className="h-3.5 w-3.5" aria-hidden="true" />Reported location</dt>
-            <dd className="mt-1.5 break-words text-sm font-medium leading-6 text-slate-800">{report.location.address}</dd>
+            <dt className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground"><MapPin className="h-3.5 w-3.5" aria-hidden="true" />Reported location</dt>
+            <dd className="mt-1.5 break-words text-sm font-medium leading-6 text-primary">{report.location.address}</dd>
           </div>
           <div>
-            <dt className="text-[11px] font-medium text-slate-500">Reported water depth</dt>
-            <dd className="mt-1.5 text-[13px] font-semibold leading-5 text-slate-800">{formatReportDepth(report.depth, report.depthCm)}</dd>
+            <dt className="text-[11px] font-medium text-muted-foreground">Reported water depth</dt>
+            <dd className="mt-1.5 text-[13px] font-semibold leading-5 text-primary">{formatReportDepth(report.depth, report.depthCm)}</dd>
           </div>
           <div>
-            <dt className="text-[11px] font-medium text-slate-500">Submitted</dt>
-            <dd className="mt-1.5 text-xs leading-5 text-slate-700">{report.submittedAt}</dd>
+            <dt className="text-[11px] font-medium text-muted-foreground">Submitted</dt>
+            <dd className="mt-1.5 text-xs leading-5 text-secondary">{report.submittedAt}</dd>
           </div>
         </dl>
 
-        <details className="group border-t border-slate-100 pt-3">
-          <summary className="flex cursor-pointer list-none items-center justify-between rounded py-1 text-xs font-medium text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon [&::-webkit-details-marker]:hidden">
+        <details className="group border-t border-default pt-3">
+          <summary className="flex cursor-pointer list-none items-center justify-between rounded py-1 text-xs font-medium text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus [&::-webkit-details-marker]:hidden">
             Submission details <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180 motion-reduce:transition-none" aria-hidden="true" />
           </summary>
           <dl className="mt-3 space-y-3 text-xs leading-5">
-            <div><dt className="text-slate-500">Report ID</dt><dd className="mt-1 select-all break-all font-mono text-[11px] text-slate-700">{report.id}</dd></div>
-            {view.assessedAt && <div><dt className="text-slate-500">Evidence checked</dt><dd className="mt-1 text-slate-700">{new Date(view.assessedAt).toLocaleString()}</dd></div>}
-            {view.decidedAt && <div><dt className="text-slate-500">Staff decision recorded</dt><dd className="mt-1 text-slate-700">{new Date(view.decidedAt).toLocaleString()}</dd></div>}
-            {view.savedExplanation && <div><dt className="text-slate-500">Saved assessment explanation</dt><dd className="mt-1 text-slate-700">{view.savedExplanation}</dd></div>}
+            <div><dt className="text-muted-foreground">Report ID</dt><dd className="mt-1 select-all break-all font-mono text-[11px] text-secondary">{report.id}</dd></div>
+            {view.assessedAt && <div><dt className="text-muted-foreground">Evidence checked</dt><dd className="mt-1 text-secondary">{new Date(view.assessedAt).toLocaleString()}</dd></div>}
+            {view.decidedAt && <div><dt className="text-muted-foreground">Staff decision recorded</dt><dd className="mt-1 text-secondary">{new Date(view.decidedAt).toLocaleString()}</dd></div>}
+            {view.savedExplanation && <div><dt className="text-muted-foreground">Saved assessment explanation</dt><dd className="mt-1 text-secondary">{view.savedExplanation}</dd></div>}
           </dl>
         </details>
       </div>
-      <footer className="shrink-0 border-t border-slate-100 px-5 py-4 sm:px-6">
+      <footer className="shrink-0 border-t border-default px-5 py-4 sm:px-6">
         <button type="button" onClick={onClose}
-          className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-gakit-maroon px-4 text-sm font-semibold text-white transition-colors hover:bg-maroon-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon focus-visible:ring-offset-2">
+          className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-accent px-4 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2">
           Done
         </button>
       </footer>

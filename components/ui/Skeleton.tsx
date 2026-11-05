@@ -49,7 +49,7 @@ export function SkeletonTable({
     <div className={`w-full ${className}`}>
       <Skeleton className="h-10 w-full rounded-t-xl" />
       {Array.from({ length: rows }).map((_, rowIndex) => (
-        <div key={rowIndex} className="flex items-center gap-4 border-t border-canvas-grey/60 px-5 py-4">
+        <div key={rowIndex} className="flex items-center gap-4 border-t border-default/60 px-5 py-4">
           {Array.from({ length: columns }).map((_, colIndex) => (
             <Skeleton
               key={colIndex}
@@ -73,7 +73,7 @@ export function SkeletonCard({
   className?: string;
 }) {
   return (
-    <div className={`rounded-2xl border border-canvas-grey bg-white p-5 ${className}`}>
+    <div className={`rounded-2xl border border-default bg-panel p-5 ${className}`}>
       {header && (
         <div className="mb-4 flex items-center justify-between gap-3">
           <Skeleton className="h-4 w-1/3 rounded-md" />

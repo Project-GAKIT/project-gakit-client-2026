@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import { ChartNoAxesColumnIncreasing, Pause, Play, Radio, RotateCcw, SkipBack, SkipForward, X } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
 import { SIMULATION_DEPTH_LEGEND } from '@/lib/map/colorScales';
@@ -106,53 +106,51 @@ export function FloodSimulationTimeline({ frames, selectedIndex, onSelect, statu
     <section ref={playerRef} aria-label="Flood simulation timeline" className={`pointer-events-auto absolute inset-x-3 z-[1010] md:left-1/2 md:right-auto md:-translate-x-1/2 ${explorer ? 'md:w-[min(960px,calc(100%-2rem))]' : 'md:w-[min(960px,calc(100%-380px))]'} ${hasBottomNav ? 'bottom-[calc(env(safe-area-inset-bottom,0px)+5rem)]' : 'bottom-[max(1.5rem,env(safe-area-inset-bottom,0px))]'} ${fullScreen ? 'md:bottom-5' : 'md:bottom-3'}`}>
       {!desktop && overviewOpen && overview}
       <div aria-label="Flood simulation depth legend" className="mb-1.5 flex items-center justify-center gap-1 text-[9px] font-bold md:gap-1.5">
-        <span className="mr-1 hidden text-slate-600 md:inline">DEPTH</span>
-        {(live ? SIMULATION_DEPTH_LEGEND : scenarioDepthLegend).map(band => <span key={band.key} className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md bg-white/95 px-2 py-1 text-slate-700 shadow-sm"><span aria-hidden="true" className="h-2 w-2 rounded-sm" style={{ backgroundColor: band.color }} />{band.label}</span>)}
+        <span className="mr-1 hidden text-secondary md:inline">DEPTH</span>
+        {(live ? SIMULATION_DEPTH_LEGEND : scenarioDepthLegend).map(band => <span key={band.key} className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md bg-panel/95 px-2 py-1 text-secondary shadow-sm"><span aria-hidden="true" className="h-2 w-2 rounded-sm" style={{ backgroundColor: band.color }} />{band.label}</span>)}
       </div>
-      {message && <div role="status" className="mb-1.5 flex items-center justify-between gap-2 rounded-xl bg-white/95 px-3 py-2 text-[10px] leading-4 text-slate-600 shadow-sm"><span>{message}</span>{!loading && <button type="button" onClick={() => { if (playback) playback.pause(); else setPlaying(false); onRetry(); }} className="shrink-0 font-bold text-gakit-maroon">Retry</button>}</div>}
-      <div className="flex h-[66px] items-center gap-1.5 rounded-2xl border border-white/80 bg-white/95 px-2.5 shadow-lg backdrop-blur-md md:gap-3 md:px-3">
+      {message && <div role="status" className="mb-1.5 flex items-center justify-between gap-2 rounded-xl bg-panel/95 px-3 py-2 text-[10px] leading-4 text-secondary shadow-sm"><span>{message}</span>{!loading && <button type="button" onClick={() => { if (playback) playback.pause(); else setPlaying(false); onRetry(); }} className="shrink-0 font-bold text-accent-text">Retry</button>}</div>}
+      <div className="flex h-[66px] items-center gap-1.5 rounded-2xl border border-default/80 bg-panel/95 px-2.5 shadow-lg backdrop-blur-md md:gap-3 md:px-3">
         <div role="group" aria-label="Playback controls" className="flex shrink-0 items-center gap-0.5">
           <button type="button" aria-label="Previous hour" title="Previous hour" disabled={frames.length < 2 || index <= 0}
-            onClick={() => choose(index - 1)} className="flex h-9 w-6 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 disabled:cursor-default disabled:opacity-30 md:w-7">
+            onClick={() => choose(index - 1)} className="flex h-9 w-6 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted disabled:cursor-default disabled:opacity-30 md:w-7">
             <SkipBack size={15} aria-hidden="true" />
           </button>
           <button type="button" aria-label={playing ? 'Pause simulation' : 'Play simulation'} aria-pressed={playing} disabled={frames.length < 2}
             onClick={() => { setScrub(null); if (playback) playback.toggle(); else { if (!playing && index === maxIndex) onSelect(0); setPlaying(value => !value); } }}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gakit-maroon text-white disabled:opacity-30">
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-on-accent disabled:opacity-30">
             {playing ? <Pause size={15} /> : <Play size={15} className="ml-0.5" />}
           </button>
           <button type="button" aria-label="Next hour" title="Next hour" disabled={frames.length < 2 || index >= maxIndex}
-            onClick={() => choose(index + 1)} className="flex h-9 w-6 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 disabled:cursor-default disabled:opacity-30 md:w-7">
+            onClick={() => choose(index + 1)} className="flex h-9 w-6 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted disabled:cursor-default disabled:opacity-30 md:w-7">
             <SkipForward size={15} aria-hidden="true" />
           </button>
         </div>
         <div className="w-[66px] shrink-0 tabular-nums md:w-[78px]">
-          <p className="whitespace-nowrap text-[11px] font-bold text-slate-800 md:text-xs">{timeLabel(displayedFrame)}</p>
-          <p className="mt-0.5 text-[8px] text-slate-500">{!live ? 'Elapsed time' : displayedFrame && Number.isFinite(Date.parse(displayedFrame.raw_time)) ? `${dateFormat.format(new Date(displayedFrame.raw_time))} · PHT` : 'Flood simulation'}</p>
+          <p className="whitespace-nowrap text-[11px] font-bold text-primary md:text-xs">{timeLabel(displayedFrame)}</p>
+          <p className="mt-0.5 text-[8px] text-muted-foreground">{!live ? 'Elapsed time' : displayedFrame && Number.isFinite(Date.parse(displayedFrame.raw_time)) ? `${dateFormat.format(new Date(displayedFrame.raw_time))} · PHT` : 'Flood simulation'}</p>
         </div>
         <div className="min-w-0 flex-1">
-          <div data-playback-labels className="flex justify-between gap-2 whitespace-nowrap text-[8px] font-bold leading-3 text-slate-400"><span>{live ? 'Past' : 'Scenario playback'}</span>{live && forecastIndex >= 0 && <span className="text-amber-700">Forecast</span>}</div>
-          <div className="relative h-8 rounded has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-gakit-maroon/40">
-            <div aria-hidden="true" className="absolute inset-x-1.5 top-2.5 h-0.5 rounded-full" style={{ background: track }} />
-            {frames.length > 0 && <span aria-hidden="true" className="pointer-events-none absolute top-[11px] h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-gakit-maroon shadow-sm"
-              style={{ left: `calc(6px + (100% - 12px) * ${displayedIndex / Math.max(1, maxIndex)})` }} />}
+          <div data-playback-labels className="flex justify-between gap-2 whitespace-nowrap text-[8px] font-bold leading-3 text-muted-foreground"><span>{live ? 'Past' : 'Scenario playback'}</span>{live && forecastIndex >= 0 && <span className="text-warning-text">Forecast</span>}</div>
+          <div className="relative h-8">
           <input type="range" min={0} max={maxIndex} step={1} value={displayedIndex} disabled={frames.length < 2}
             aria-label={live ? 'Select past, live, or forecast flood estimate' : 'Simulation time'} aria-valuetext={displayedFrame ? `${displayedFrame.display_time} PHT${displayedFrame.is_forecast ? ', forecast' : ''}` : 'No estimates available'}
             onChange={event => setScrub(Number(event.target.value))} onPointerUp={commitScrub} onPointerCancel={() => setScrub(null)} onKeyUp={commitScrub} onBlur={commitScrub}
             title={displayedFrame?.display_time}
-            className="flood-timeline-slider absolute inset-x-0 top-0 z-20 h-5 w-full cursor-pointer appearance-none opacity-0" />
+            style={{ '--flood-timeline-track': track } as CSSProperties}
+            className="flood-timeline-slider absolute inset-x-0 top-0 z-20 h-5 w-full disabled:cursor-default disabled:opacity-40" />
           {peakIndex >= 0 && <button type="button" onClick={() => choose(peakIndex)} aria-label={`Jump to peak estimate: ${frames[peakIndex].display_time}`} title={`${frames[peakIndex].display_time} · peak estimated flooded area`}
-            className="absolute top-5 whitespace-nowrap rounded px-1 text-[8px] font-bold leading-3 text-amber-800 hover:bg-amber-50"
+            className="absolute top-5 whitespace-nowrap rounded px-1 text-[8px] font-bold leading-3 text-warning-text hover:bg-warning-bg"
             style={{ left: `clamp(0px, calc((100% - 12px) * ${peakIndex / Math.max(1, maxIndex)} - 6px), calc(100% - 28px))` }}>Peak</button>}
           </div>
         </div>
         <button type="button" onClick={() => { setScrub(null); if (playback) playback.reset(); else { setPlaying(false); onSelect(live ? null : 0); } }} aria-label={live ? 'Return to live and follow updates' : 'Restart simulation'} title={live ? followingLive ? 'Following live' : 'Go live' : 'Restart simulation'} disabled={!frames.length}
-          className={`flex h-8 w-7 shrink-0 items-center justify-center rounded-lg hover:bg-slate-100 disabled:opacity-30 lg:w-auto lg:gap-1 lg:px-2 ${followingLive ? 'bg-emerald-50 text-emerald-700' : 'text-slate-500'}`}>
+          className={`flex h-8 w-7 shrink-0 items-center justify-center rounded-lg hover:bg-muted disabled:opacity-30 lg:w-auto lg:gap-1 lg:px-2 ${followingLive ? 'bg-success-bg text-success-text' : 'text-muted-foreground'}`}>
           {loading ? <Spinner size="xs" label="Loading simulation" /> : live ? <Radio size={15} /> : <RotateCcw size={15} />}
           {live && <span className="hidden text-[10px] font-bold lg:inline">Live</span>}
         </button>
-        <button type="button" aria-label="Toggle flood overview" aria-expanded={overviewOpen} aria-controls={overviewId} onClick={toggleOverview} className={`flex h-8 w-7 shrink-0 items-center justify-center rounded-lg hover:bg-slate-100 lg:w-auto lg:gap-1.5 lg:px-2 ${overviewOpen ? 'bg-slate-100 text-slate-800' : 'text-slate-500'}`}><ChartNoAxesColumnIncreasing size={14} /><span className="hidden text-[10px] lg:inline">Overview</span></button>
-        {onClose && <button type="button" aria-label="Close flood simulation" onClick={onClose} className="hidden shrink-0 p-1 text-slate-400 hover:text-slate-700 md:block"><X size={12} /></button>}
+        <button type="button" aria-label="Toggle flood overview" aria-expanded={overviewOpen} aria-controls={overviewId} onClick={toggleOverview} className={`flex h-8 w-7 shrink-0 items-center justify-center rounded-lg hover:bg-muted lg:w-auto lg:gap-1.5 lg:px-2 ${overviewOpen ? 'bg-muted text-primary' : 'text-muted-foreground'}`}><ChartNoAxesColumnIncreasing size={14} /><span className="hidden text-[10px] lg:inline">Overview</span></button>
+        {onClose && <button type="button" aria-label="Close flood simulation" onClick={onClose} className="hidden shrink-0 p-1 text-muted-foreground hover:text-secondary md:block"><X size={12} /></button>}
       </div>
     </section>
     {desktop && overviewOpen && overview}

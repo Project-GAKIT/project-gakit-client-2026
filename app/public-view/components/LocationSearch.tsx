@@ -169,12 +169,12 @@ export function LocationSearch({
       ref={containerRef}
       className={
         isCompact
-          ? `relative flex h-8 md:h-9 items-center rounded-full bg-slate-100/90 md:[background-color:var(--hud-inner-bg-desktop)] ${
+          ? `relative flex h-8 md:h-9 items-center rounded-full bg-muted/90 md:[background-color:var(--hud-inner-bg-desktop)] ${
               onLocate ? 'pl-3 md:pl-1.5' : 'pl-3'
-            } pr-1 py-1 ring-1 ring-slate-200/90 transition-all duration-150 focus-within:!bg-white focus-within:ring-2 focus-within:ring-gakit-maroon/50 focus-within:shadow-md ${className}`
+            } pr-1 py-1 ring-1 ring-default/90 transition-all duration-150 focus-within:!bg-panel focus-within:ring-2 focus-within:ring-focus/50 focus-within:shadow-md ${className}`
           : `relative flex h-[52px] items-center ${
               onLocate ? 'pl-1.5' : 'pl-4'
-            } pr-1.5 py-1.5 hud-pill focus-within:ring-2 focus-within:ring-gakit-maroon/40 ${className}`
+            } pr-1.5 py-1.5 hud-pill focus-within:ring-2 focus-within:ring-focus/40 ${className}`
       }
     >
       <form onSubmit={handleSearch} className="flex h-full w-full items-center gap-1 md:gap-2">
@@ -185,9 +185,9 @@ export function LocationSearch({
             disabled={activeLocating}
             title="Locate my position (GPS)"
             aria-label={activeLocating ? 'Locating your device…' : 'Locate my position'}
-            className={`flex shrink-0 items-center justify-center rounded-full text-slate-500 hover:text-slate-900 hover:bg-slate-200/80 active:scale-95 transition-all ${
+            className={`flex shrink-0 items-center justify-center rounded-full text-muted-foreground hover:text-primary hover:bg-muted/80 active:scale-95 transition-all ${
               isCompact ? 'hidden h-6 w-6 md:flex md:h-7 md:w-7' : 'h-8 w-8 md:h-9 md:w-9'
-            } ${activeLocating ? 'text-slate-700' : ''}`}
+            } ${activeLocating ? 'text-secondary' : ''}`}
           >
             {activeLocating ? (
               <Spinner label="Locating your position" />
@@ -207,14 +207,14 @@ export function LocationSearch({
           }}
           placeholder={isMobile && isCompact ? 'Search address or barangay' : placeholder}
           aria-label="Search for a location in Iligan City"
-          className="min-w-0 flex-1 bg-transparent py-0.5 text-left text-xs font-medium text-slate-900 outline-none placeholder:text-slate-400 truncate"
+          className="min-w-0 flex-1 bg-transparent py-0.5 text-left text-xs font-medium text-primary outline-none placeholder:text-muted-foreground truncate"
         />
         {searchQuery && (
           <button
             type="button"
             onClick={handleClear}
             aria-label="Clear search"
-            className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 active:scale-95"
+            className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-secondary active:scale-95"
           >
             <X className="h-3 w-3" />
           </button>
@@ -223,7 +223,7 @@ export function LocationSearch({
           type="submit"
           disabled={isSearching}
           aria-label="Submit search"
-          className={`flex shrink-0 items-center justify-center rounded-full bg-gakit-maroon text-white shadow-xs transition-colors hover:bg-maroon-800 active:scale-95 disabled:opacity-50 ${
+          className={`flex shrink-0 items-center justify-center rounded-full bg-accent text-on-accent shadow-xs transition-colors hover:bg-accent-hover active:scale-95 disabled:opacity-50 ${
             isCompact ? 'h-6 w-6 md:h-7 md:w-7' : 'h-8 w-8 md:h-9 md:w-9'
           }`}
         >
@@ -241,7 +241,7 @@ export function LocationSearch({
         }`}>
           {searchError && (
             <p
-              className="px-3.5 py-2.5 text-xs text-red-600 border-b border-slate-100"
+              className="px-3.5 py-2.5 text-xs text-error-text border-b border-default"
               role="status"
             >
               {searchError}
@@ -254,20 +254,20 @@ export function LocationSearch({
               onMouseDown={(e) => e.preventDefault()}
               onClick={handleLocateClick}
               disabled={activeLocating}
-              className={`flex w-full items-center gap-2.5 px-3.5 ${isCompact ? 'py-2 md:py-3' : 'py-3'} text-left font-medium transition-colors hover:bg-slate-50 border-b border-slate-100/80 group`}
+              className={`flex w-full items-center gap-2.5 px-3.5 ${isCompact ? 'py-2 md:py-3' : 'py-3'} text-left font-medium transition-colors hover:bg-page border-b border-default/80 group`}
             >
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600 group-hover:bg-slate-200">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-muted text-secondary group-hover:bg-muted">
                 {activeLocating ? (
                   <Spinner label="Locating your position" />
                 ) : (
-                  <Locate className="h-4 w-4 text-slate-600" strokeWidth={2.5} />
+                  <Locate className="h-4 w-4 text-secondary" strokeWidth={2.5} />
                 )}
               </div>
               <div className="flex flex-col min-w-0">
-                <span className="text-xs font-semibold text-slate-800 group-hover:text-slate-900">
+                <span className="text-xs font-semibold text-primary group-hover:text-primary">
                   {activeLocating ? 'Locating your device…' : 'Use your current location'}
                 </span>
-                <span className="text-[11px] text-slate-500">
+                <span className="text-[11px] text-muted-foreground">
                   Share GPS position on map
                 </span>
               </div>
@@ -276,22 +276,22 @@ export function LocationSearch({
 
           {showRecents && <div aria-label="Recent searches">
             <div className="flex items-center justify-between px-3.5 pt-2.5 pb-1">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Recent</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Recent</p>
               <button type="button" onMouseDown={event => event.preventDefault()} onClick={clearRecentSearches}
-                className="min-h-8 rounded-lg px-2 text-[11px] font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-900" aria-label="Clear recent searches">Clear</button>
+                className="min-h-8 rounded-lg px-2 text-[11px] font-medium text-muted-foreground hover:bg-muted hover:text-primary" aria-label="Clear recent searches">Clear</button>
             </div>
             {recentSearches.map(location => <button key={`${location.lat},${location.lng}`} type="button"
               onMouseDown={event => event.preventDefault()} onClick={() => selectLocation(location)}
-              className="flex min-h-11 w-full items-start gap-2.5 px-3.5 py-2.5 text-left transition-colors hover:bg-slate-50">
-              <Clock3 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden="true" />
-              <span className="min-w-0"><span className="block text-xs font-semibold text-slate-800">{location.address.split(',')[0]}</span>
-                {location.address.includes(',') && <span className="block truncate text-[11px] text-slate-500">{location.address.substring(location.address.indexOf(',') + 1).trim()}</span>}
+              className="flex min-h-11 w-full items-start gap-2.5 px-3.5 py-2.5 text-left transition-colors hover:bg-page">
+              <Clock3 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+              <span className="min-w-0"><span className="block text-xs font-semibold text-primary">{location.address.split(',')[0]}</span>
+                {location.address.includes(',') && <span className="block truncate text-[11px] text-muted-foreground">{location.address.substring(location.address.indexOf(',') + 1).trim()}</span>}
               </span>
             </button>)}
           </div>}
 
           {searchResults.length > 0 && (
-            <div className="max-h-56 divide-y divide-slate-100 overflow-y-auto">
+            <div className="max-h-56 divide-y divide-default overflow-y-auto">
               {searchResults.map((result) => (
                 <button
                   key={`${result.lat}-${result.lng}-${result.displayName}`}
@@ -304,21 +304,21 @@ export function LocationSearch({
                       address: result.displayName,
                     });
                   }}
-                  className="flex w-full items-start gap-2.5 px-3.5 py-2.5 text-left transition-colors hover:bg-slate-50"
+                  className="flex w-full items-start gap-2.5 px-3.5 py-2.5 text-left transition-colors hover:bg-page"
                 >
-                  <MapPin className="mt-1 h-3.5 w-3.5 shrink-0 text-gakit-maroon" />
+                  <MapPin className="mt-1 h-3.5 w-3.5 shrink-0 text-secondary" />
                   <div className="flex flex-col min-w-0 flex-1">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-xs font-semibold text-slate-800">
+                      <span className="text-xs font-semibold text-primary">
                         {result.displayName.split(',')[0]}
                       </span>
                       {result.category && (
-                        <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-600">
+                        <span className="rounded-md bg-muted px-1.5 py-0.5 text-[11px] font-semibold text-secondary">
                           {result.category}
                         </span>
                       )}
                     </div>
-                    <span className="text-[11px] text-slate-500 truncate">
+                    <span className="text-[11px] text-muted-foreground truncate">
                       {result.displayName.includes(',')
                         ? result.displayName.substring(result.displayName.indexOf(',') + 2)
                         : 'Iligan City'}
@@ -328,7 +328,7 @@ export function LocationSearch({
               ))}
             </div>
           )}
-          {searchResults.length > 0 && <p className="border-t border-slate-100 px-3.5 py-2 text-[11px] text-slate-500">
+          {searchResults.length > 0 && <p className="border-t border-default px-3.5 py-2 text-[11px] text-muted-foreground">
             Streets © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">OpenStreetMap contributors</a>
             {' · '}Places: <a href="https://docs.overturemaps.org/attribution/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">Overture Maps</a>
           </p>}

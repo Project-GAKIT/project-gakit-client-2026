@@ -6,6 +6,10 @@ const CUSTOM_LAYER_IDS = [
   'himawari-ir-layer',
   'iligan-buildings-2d',
   'iligan-buildings-3d',
+  'iligan-roads-casing',
+  'iligan-roads-minor-casing',
+  'iligan-roads-major',
+  'iligan-roads-minor',
   'flood-hazard-fill',
   'landslide-fill',
   'storm-surge-ssa1-fill',
@@ -50,4 +54,20 @@ export const getFirstBasemapSymbolLayerId = (map: any): string | undefined => {
     }
   }
   return undefined;
+};
+
+/** Some styles place water labels before buildings and road geometry. Road
+ * overlays belong above that geometry, before the remaining basemap labels. */
+export const getBasemapRoadOverlayAnchor = (map: any): string | undefined => {
+  const layers = map.getStyle?.()?.layers ?? [];
+  const custom = new Set(CUSTOM_LAYER_IDS);
+  const nativeSymbols = layers.filter((layer: any) => layer.type === 'symbol' && !custom.has(layer.id));
+  const nativeSources = new Set(nativeSymbols.map((layer: any) => layer.source).filter(Boolean));
+  let lastGeometry = -1;
+  layers.forEach((layer: any, index: number) => {
+    // Administrative lines can follow street labels; they do not cover road
+    // surfaces and must not push highlights above those labels.
+    if (layer.type !== 'symbol' && layer['source-layer'] !== 'boundary' && nativeSources.has(layer.source) && !custom.has(layer.id)) lastGeometry = index;
+  });
+  return layers.find((layer: any, index: number) => index > lastGeometry && nativeSymbols.includes(layer))?.id;
 };

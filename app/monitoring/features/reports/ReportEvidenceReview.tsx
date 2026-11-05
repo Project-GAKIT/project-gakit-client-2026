@@ -73,14 +73,14 @@ export function ReportEvidenceReview({ reportId }: { reportId: string }) {
     }
   };
 
-  return <div className="mt-2 border-t border-slate-100 pt-2">
+  return <div className="mt-2 border-t border-default pt-2">
     <button type="button" disabled={checking || message === 'Requesting evidence review…'} onClick={() => void requestReview()}
-      className="min-h-10 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-gakit-maroon transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon disabled:opacity-50">
+      className="min-h-10 rounded-lg border border-default bg-panel px-3 py-2 text-xs font-semibold text-secondary transition-colors hover:bg-page focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50">
       {checking ? 'Checking evidence…' : 'Request evidence review'}
     </button>
-    {!message && <p className="mt-1.5 text-xs leading-5 text-slate-500">Runs the evidence checks and shows a recommendation for staff review.</p>}
-    {message && <p role="status" className="mt-1 text-xs leading-5 text-slate-600">{message}</p>}
-    {recommendation && <div className="mt-2 rounded border border-amber-200 bg-amber-50 p-2 text-xs leading-5 text-slate-800">
+    {!message && <p className="mt-1.5 text-xs leading-5 text-muted-foreground">Runs the evidence checks and shows a recommendation for staff review.</p>}
+    {message && <p role="status" className="mt-1 text-xs leading-5 text-secondary">{message}</p>}
+    {recommendation && <div className="mt-2 rounded border border-warning-border bg-warning-bg p-2 text-xs leading-5 text-primary">
       <p className="font-medium">Assessment recommendation: {STATUS_META[recommendation.assigned_status].label}</p>
       <p>{recommendation.explanation}</p>
     </div>}

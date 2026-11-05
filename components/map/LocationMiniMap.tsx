@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { ThemedMapPreview } from './ThemedMapPreview';
 import { MapPin } from 'lucide-react';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { REPORT_MARKER_COLORS, satelliteTileUrl } from '@/constants/publicMap';
@@ -78,18 +78,10 @@ export const thumbnailTiles = (latitude: number, longitude: number): ReportThumb
 };
 
 /**
- * Satellite thumbnail shared by report details and public location confirmation.
+ * Theme-aware preview shared by report details and location confirmation.
  * A status colors submitted reports; an unsubmitted location uses a neutral pin.
  */
 export function LocationMiniMap({ latitude, longitude, status, onViewOnMap, actionLabel = 'Open this location on the incident map', disabled = false, attributionPosition = 'bottom' }: LocationMiniMapProps) {
-  const { rows, centerUrl, offsetX, offsetY } = thumbnailTiles(latitude, longitude);
-  // Tracks WHICH tile failed rather than a bare flag, so one outcome can't
-  // poison later locations in a reused instance — derived, no effect. Only
-  // the center tile (the one under the pin) can fail the whole thumbnail;
-  // a missing edge tile just leaves shimmer showing through its gap.
-  const [failedTiles, setFailedTiles] = useState<readonly string[]>([]);
-  const failed = failedTiles.includes(centerUrl);
-
   return (
     <button
       type="button"
@@ -97,49 +89,10 @@ export function LocationMiniMap({ latitude, longitude, status, onViewOnMap, acti
       disabled={disabled || !onViewOnMap}
       title={actionLabel}
       aria-label={actionLabel}
-      className="absolute inset-0 overflow-hidden rounded-xl border border-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon focus-visible:ring-offset-2 disabled:cursor-default"
+      className="absolute inset-0 overflow-hidden rounded-xl border border-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 disabled:cursor-default"
     >
-      {failed ? (
-        <span className="flex h-full w-full items-center justify-center bg-canvas-light text-xs font-medium text-slate-500">
-          Map unavailable
-        </span>
-      ) : (
-        <>
-          {/* The skeleton sits underneath and tiles pop in over it as the
-              CDN answers, so a slow fetch reads as loading, never blank. */}
-          <Skeleton className="absolute inset-0" />
-          {/* Plain <img>: these are already optimally-encoded CDN tiles, so
-              routing them through the Next image optimizer would only add a
-              server hop per tile. */}
-          <div
-            className="pointer-events-none absolute left-1/2 top-1/2"
-            style={{ transform: `translate(${offsetX}px, ${offsetY}px)` }}
-          >
-            {rows.map((row, index) => (
-              <div key={index} className="flex">
-                {row.map((tile) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    key={`${tile.x}-${tile.y}-${index}`}
-                    src={tile.url}
-                    alt=""
-                    draggable={false}
-                    decoding="async"
-                    onError={
-                      tile.isCenter
-                        ? () =>
-                            setFailedTiles((previous) =>
-                              previous.includes(tile.url) ? previous : [...previous, tile.url]
-                            )
-                        : undefined
-                    }
-                    className="block h-64 w-64 shrink-0"
-                  />
-                ))}
-              </div>
-            ))}
-          </div>
-          {/* The strip is translated so the report lands dead center. */}
+      <Skeleton className="absolute inset-0" />
+      <ThemedMapPreview latitude={latitude} longitude={longitude} />
           {/* Status disc matching the incident map's pins. */}
           <span
             aria-hidden
@@ -155,13 +108,11 @@ export function LocationMiniMap({ latitude, longitude, status, onViewOnMap, acti
                 stroke="#ffffff"
                 strokeWidth="9"
               />
-            </svg> : <MapPin className="h-7 w-7 fill-gakit-maroon text-white" strokeWidth={1.5} />}
+            </svg> : <MapPin className="h-7 w-7 fill-gakit-maroon text-on-accent" strokeWidth={1.5} />}
           </span>
-          <span className={`pointer-events-none absolute rounded bg-white/80 px-1 font-medium text-slate-600 ${attributionPosition === 'top' ? 'left-1.5 top-1.5 text-[8px]' : 'bottom-1 right-1 text-[9px]'}`}>
-            Imagery © Esri, Maxar, Earthstar
+          <span className={`pointer-events-none absolute rounded bg-panel/80 px-1 font-medium text-secondary ${attributionPosition === 'top' ? 'left-1.5 top-1.5 text-[8px]' : 'bottom-1 right-1 text-[9px]'}`}>
+            © OpenFreeMap · OpenMapTiles · OpenStreetMap
           </span>
-        </>
-      )}
     </button>
   );
 }

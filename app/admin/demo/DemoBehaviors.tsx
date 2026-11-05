@@ -11,7 +11,7 @@ const subscribe = (listener: () => void) => {
   return () => { window.removeEventListener(BEHAVIORS_EVENT, listener); window.removeEventListener('storage', listener); };
 };
 const read = () => { try { return localStorage.getItem(BEHAVIORS_KEY); } catch { return null; } };
-const buttonClass = 'rounded-md border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-700 disabled:opacity-50';
+const buttonClass = 'rounded-md border border-default px-2 py-1 text-xs font-semibold text-secondary disabled:opacity-50';
 
 interface Props {
   snapshot: DemoBehaviorSnapshot;
@@ -81,32 +81,32 @@ export function DemoBehaviors({ snapshot, statuses, busyId, error: preloadError,
     } catch (error) { setError(error instanceof Error ? error.message : 'Import paused. Remaining browser saves are still available.'); }
     finally { setWriting(false); }
   };
-  return <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+  return <section className="space-y-3 rounded-xl border border-default bg-panel p-4">
     <div className="flex items-center justify-between gap-2"><h2 className="text-sm font-bold">Saved behaviors</h2>
       <button type="button" className={buttonClass} disabled={loading || writing} onClick={() => { setLoading(true); void refresh(); }}>Refresh</button></div>
-    <p className="text-xs leading-5 text-slate-500">Save a scene to the shared admin library. Storm, timing and report settings are available on your other devices.</p>
+    <p className="text-xs leading-5 text-muted-foreground">Save a scene to the shared admin library. Storm, timing and report settings are available on your other devices.</p>
     <form className="flex gap-2" onSubmit={event => {
       event.preventDefault();
       void save();
     }}>
       <input aria-label="Behavior name" maxLength={80} value={name} onChange={event => { setName(event.target.value); setMessage(null); setError(null); }}
-        placeholder="e.g. Water spreads near the edge" className="h-9 min-w-0 flex-1 rounded-lg border border-slate-200 px-2 text-sm" />
+        placeholder="e.g. Water spreads near the edge" className="h-9 min-w-0 flex-1 rounded-lg border border-default px-2 text-sm" />
       <button type="submit" disabled={loading || writing || !snapshot.reports.length || !name.trim()} className={buttonClass}>{writing ? 'Saving…' : 'Save'}</button>
     </form>
-    <p className="text-[11px] text-slate-500">The same name updates the shared scene. Loading replaces the current demo reports.</p>
+    <p className="text-[11px] text-muted-foreground">The same name updates the shared scene. Loading replaces the current demo reports.</p>
     {browserBehaviors.length > 0 && <button type="button" className={buttonClass} disabled={loading || writing} onClick={() => void importBrowserBehaviors()}>Import browser saves ({browserBehaviors.length})</button>}
-    {message && <p role="status" className="text-xs text-emerald-700">{message}</p>}
-    {(error || preloadError) && <p role="alert" className="text-xs text-amber-700">{error || preloadError}</p>}
-    {loading && <p role="status" className="text-xs text-slate-500">Loading saved behaviors…</p>}
-    {!loading && !error && !behaviors.length && <p className="text-xs text-slate-500">No saved behaviors yet.</p>}
+    {message && <p role="status" className="text-xs text-success-text">{message}</p>}
+    {(error || preloadError) && <p role="alert" className="text-xs text-warning-text">{error || preloadError}</p>}
+    {loading && <p role="status" className="text-xs text-muted-foreground">Loading saved behaviors…</p>}
+    {!loading && !error && !behaviors.length && <p className="text-xs text-muted-foreground">No saved behaviors yet.</p>}
     <div className="max-h-72 space-y-2 overflow-y-auto">{behaviors.map(behavior => {
       const ready = statuses[behavior.id]?.signature === JSON.stringify(behavior) && statuses[behavior.id].ready;
       const busy = busyId === behavior.id;
       const storm = SCENARIO_PRESETS.find(item => item.id === behavior.preset)?.name;
-      return <div key={behavior.id} className="rounded-lg border border-slate-200 p-2">
+      return <div key={behavior.id} className="rounded-lg border border-default p-2">
         <h3 className="break-words text-xs font-semibold">{behavior.name}</h3>
-        <p className="mt-1 text-[11px] text-slate-500">{storm} · {demoClock(behavior.inspectionMinutes ?? behavior.minutes)} · {behavior.reports.length} reports</p>
-        {behavior.approveFixtures && <p className="text-[11px] text-amber-700">Auto-approve saved</p>}
+        <p className="mt-1 text-[11px] text-muted-foreground">{storm} · {demoClock(behavior.inspectionMinutes ?? behavior.minutes)} · {behavior.reports.length} reports</p>
+        {behavior.approveFixtures && <p className="text-[11px] text-warning-text">Auto-approve saved</p>}
         <div className="mt-2 flex flex-wrap gap-2">
           <button type="button" className={buttonClass} disabled={loading || writing || busy} onClick={() => { setMessage(null); onLoad(behavior); }}>Load<span className="sr-only"> {behavior.name}</span></button>
           <button type="button" className={buttonClass} disabled={loading || writing || busyId !== null || ready} onClick={() => onPreload(behavior)}>{busy ? 'Preloading…' : ready ? 'Ready' : 'Preload'}<span className="sr-only"> {behavior.name}</span></button>
@@ -122,6 +122,6 @@ export function DemoBehaviors({ snapshot, statuses, busyId, error: preloadError,
         </div>
       </div>;
     })}</div>
-    {behaviors.length > 0 && <p className="text-[11px] text-slate-500">Preload prepares the saved scene for instant loading. Later timeline steps calculate as usual. Preloads clear on refresh.</p>}
+    {behaviors.length > 0 && <p className="text-[11px] text-muted-foreground">Preload prepares the saved scene for instant loading. Later timeline steps calculate as usual. Preloads clear on refresh.</p>}
   </section>;
 }

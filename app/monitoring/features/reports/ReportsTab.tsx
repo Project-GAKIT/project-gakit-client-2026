@@ -38,7 +38,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import './ReportsWorkspace.css';
 
 const PublicMap = dynamic(() => import('@/components/PublicMap').then(mod => ({ default: mod.PublicMap })), {
-  loading: () => <div className="w-full h-full bg-canvas-grey flex items-center justify-center"><Spinner size="md" /></div>,
+  loading: () => <div className="w-full h-full bg-muted flex items-center justify-center"><Spinner size="md" /></div>,
   ssr: false,
 });
 
@@ -86,7 +86,7 @@ export function ReportsTab({
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const mapRef = useRef<PublicMapHandle | null>(null);
   const [mapControlsHost, setMapControlsHost] = useState<HTMLDivElement | null>(null);
-  const [mapDisplay, setMapDisplay] = useState<MapDisplaySettings & { showBarangayBoundaries: boolean; ready: boolean }>({ basemap: 'light', mode: '2d', showBuildings: true, showRoads: false, showBarangayBoundaries: false, ready: false });
+  const [mapDisplay, setMapDisplay] = useState<MapDisplaySettings & { showBarangayBoundaries: boolean; ready: boolean }>({ basemap: 'light', mode: '2d', showBuildings: true, showRoads: false, showBarangayBoundaries: false, showParBoundary: true, ready: false });
   const workspaceRef = useRef<HTMLDivElement | null>(null);
   const mapToolsRef = useRef<HTMLDivElement | null>(null);
   const workspaceBody = useRef<HTMLDivElement | null>(null);
@@ -517,32 +517,32 @@ export function ReportsTab({
     <>
       <div ref={workspaceRef} className="reports-workspace" data-map-workspace data-sheet={sheetPosition} data-panel-hidden={panelHidden} data-fullscreen={fullscreenMode}>
 {panelHidden && <button type="button" onClick={() => setPanelHidden(false)} aria-expanded={false} aria-controls={contentId}
-              className="absolute right-2 top-2 z-[1200] hidden h-8 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-600 shadow-sm lg:inline-flex">
+              className="absolute right-2 top-2 z-[1200] hidden h-8 items-center gap-1.5 rounded-full border border-default bg-panel px-2 text-xs font-semibold text-secondary shadow-sm lg:inline-flex">
               <PanelRightOpen className="h-4 w-4" />Show reports
             </button>}
         <div ref={mapToolsRef} className="reports-map-tools pointer-events-none absolute left-2 top-2 z-[1200] flex max-w-[calc(100%-1rem)]">
           <div className="pointer-events-auto flex flex-wrap items-center gap-1">
 
             <div ref={setMapControlsHost} className="flex items-center" />
-              <MapDisplayPopover {...mapDisplay} compact disabled={!mapDisplay.ready} className="rounded-full border border-slate-200 bg-white shadow-sm" align="start"
+              <MapDisplayPopover {...mapDisplay} compact disabled={!mapDisplay.ready} className="rounded-full border border-default bg-panel shadow-sm" align="start"
                 onBasemapChange={value => mapRef.current?.setBasemap(value)} onModeChange={value => mapRef.current?.setMapMode(value)}
-                onBarangayBoundariesChange={value => mapRef.current?.setBarangayBoundariesVisible(value)} onSmoothingChange={value => mapRef.current?.setPolygonSmoothing(value)}
+                onBarangayBoundariesChange={value => mapRef.current?.setBarangayBoundariesVisible(value)} onParBoundaryChange={value => mapRef.current?.setParBoundaryVisible(value)} onSmoothingChange={value => mapRef.current?.setPolygonSmoothing(value)}
                 onBuildingsChange={value => mapRef.current?.setBuildingsVisible(value)} onRoadsChange={value => mapRef.current?.setRoadsVisible(value)}
                 onFocusRoadsChange={value => mapRef.current?.setFocusRoads(value)} />
             <details className="relative" onKeyDown={event => { if (event.key === 'Escape') { event.currentTarget.open = false; event.currentTarget.querySelector('summary')?.focus(); } }}>
-              <summary aria-disabled={!mapDisplay.ready} onClick={event => { if (!mapDisplay.ready) event.preventDefault(); }} className="flex h-8 cursor-pointer list-none items-center gap-1 rounded-full border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 shadow-sm hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon aria-disabled:cursor-not-allowed aria-disabled:opacity-50">
+              <summary aria-disabled={!mapDisplay.ready} onClick={event => { if (!mapDisplay.ready) event.preventDefault(); }} className="flex h-8 cursor-pointer list-none items-center gap-1 rounded-full border border-default bg-panel px-3 text-xs font-semibold text-secondary shadow-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus aria-disabled:cursor-not-allowed aria-disabled:opacity-50">
                 Focus area <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
               </summary>
-              <div className="absolute left-0 top-full z-[1300] mt-1 w-full rounded-xl border border-slate-200 bg-white p-1 shadow-lg">
-                <button type="button" onClick={event => { mapRef.current?.setCampusFocus(true); const menu = event.currentTarget.closest('details'); if (menu) menu.open = false; }} className="w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon">MSU-IIT</button>
+              <div className="absolute left-0 top-full z-[1300] mt-1 w-full rounded-xl border border-default bg-panel p-1 shadow-lg">
+                <button type="button" onClick={event => { mapRef.current?.setCampusFocus(true); const menu = event.currentTarget.closest('details'); if (menu) menu.open = false; }} className="w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-secondary hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">MSU-IIT</button>
               </div>
             </details>
-            {onFullscreenModeChange && <button type="button" onClick={() => void toggleFullscreen()} aria-label={fullscreenMode ? 'Exit fullscreen' : 'Fullscreen'} title={fullscreenMode ? 'Exit fullscreen' : 'Fullscreen'} className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm hover:bg-slate-100">
+            {onFullscreenModeChange && <button type="button" onClick={() => void toggleFullscreen()} aria-label={fullscreenMode ? 'Exit fullscreen' : 'Fullscreen'} title={fullscreenMode ? 'Exit fullscreen' : 'Fullscreen'} className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-default bg-panel text-secondary shadow-sm hover:bg-muted">
               {fullscreenMode ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
             </button>}
           </div>
         </div>
-        {fullscreenMode && fullscreenError && <p role="status" className="pointer-events-none absolute left-2 top-12 z-[1200] max-w-xs rounded-lg bg-white/95 px-2 py-1 text-xs text-slate-600">{fullscreenError}</p>}
+        {fullscreenMode && fullscreenError && <p role="status" className="pointer-events-none absolute left-2 top-12 z-[1200] max-w-xs rounded-lg bg-panel/95 px-2 py-1 text-xs text-secondary">{fullscreenError}</p>}
         <div ref={workspaceBody} className="reports-workspace-body">
           <section aria-label="Flood report map" className="reports-workspace-map">
             {(hasEverBeenActive || active) ? <PublicMap
@@ -552,37 +552,37 @@ export function ReportsTab({
               hideAttribution={mapDisplay.basemap !== 'satellite'}
               enableAddressLookup={false} reportFilters={reportFilters} onReportClick={handleMapPinClick}
               showRejectedReports={statusFilter === 'REJECTED' || statusFilter === 'AllStatuses'}
-              defaultBasemap="light" hideBuildingsOnSatellite hideBarangayBoundariesToggle
+              basemapContext="reports" hideBuildingsOnSatellite hideBarangayBoundariesToggle
               rightInset={mapRightInset}
               bottomInset={desktop ? 0 : COLLAPSED_SHEET_HEIGHT}
             /> : <div className="flex h-full items-center justify-center"><Spinner size="md" /></div>}
           </section>
           <section ref={panelRef} aria-label="Reports panel" className="reports-workspace-panel">
-            <header className="flex shrink-0 items-center gap-2 border-b border-slate-100 px-3">
+            <header className="flex shrink-0 items-center gap-2 border-b border-default px-3">
               <button type="button" className="reports-sheet-handle flex min-h-[42px] min-w-0 flex-1 lg:min-h-12 flex-col items-start justify-center gap-1 text-left lg:cursor-default"
                 aria-label={desktop ? 'Reports' : sheetPosition === 'collapsed' ? 'Show reports' : sheetPosition === 'half' ? 'Expand reports' : 'Collapse reports'}
                 aria-expanded={desktop ? !panelHidden : sheetPosition !== 'collapsed'} aria-controls={contentId}
                 onClick={() => { if (suppressSheetClick.current) { suppressSheetClick.current = false; return; } if (!desktop) moveSheet(sheetPosition === 'collapsed' ? 'full' : 'collapsed'); }}
                 onPointerDown={startSheetDrag} onPointerMove={dragSheet} onPointerUp={endSheetDrag} onPointerCancel={event => endSheetDrag(event, true)}
                 onKeyDown={event => { const index = SHEET_POSITIONS.indexOf(sheetPosition); if (!desktop && ['ArrowUp','ArrowDown','Home','End'].includes(event.key)) { event.preventDefault(); moveSheet(SHEET_POSITIONS[event.key === 'Home' ? 0 : event.key === 'End' ? 2 : Math.max(0, Math.min(2,index+(event.key === 'ArrowUp'?1:-1)))]); } }}>
-                <span aria-hidden="true" className="mx-auto h-1 w-8 rounded-full bg-slate-300 lg:hidden" />
-                <span className="max-w-full truncate text-[11px] font-semibold text-slate-700" title={`${reportBarStatus} · ${mapSubtitle}`}>{reportBarStatus}</span>
+                <span aria-hidden="true" className="mx-auto h-1 w-8 rounded-full bg-hover lg:hidden" />
+                <span className="max-w-full truncate text-[11px] font-semibold text-secondary" title={`${reportBarStatus} · ${mapSubtitle}`}>{reportBarStatus}</span>
               </button>
               <button type="button" onClick={() => setPanelHidden(true)} aria-label="Hide reports" title="Hide reports" aria-expanded={!panelHidden} aria-controls={contentId}
-                className="hidden h-8 items-center justify-center gap-1 rounded-lg px-2 text-[11px] font-medium text-slate-500 hover:bg-slate-100 lg:inline-flex"><PanelRightClose className="h-4 w-4" />Hide</button>
-              <button type="button" className="rounded-lg p-2 text-slate-500 lg:hidden" aria-label={sheetPosition === 'full' ? 'Collapse reports panel' : 'Expand reports panel'} onClick={() => moveSheet(sheetPosition === 'full' ? 'collapsed' : 'full')}>
+                className="hidden h-8 items-center justify-center gap-1 rounded-lg px-2 text-[11px] font-medium text-muted-foreground hover:bg-muted lg:inline-flex"><PanelRightClose className="h-4 w-4" />Hide</button>
+              <button type="button" className="rounded-lg p-2 text-muted-foreground lg:hidden" aria-label={sheetPosition === 'full' ? 'Collapse reports panel' : 'Expand reports panel'} onClick={() => moveSheet(sheetPosition === 'full' ? 'collapsed' : 'full')}>
                 {sheetPosition === 'full' ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
               </button>
             </header>
             <div id={contentId} className="reports-workspace-content" inert={!desktop && sheetPosition === 'collapsed'}>
-              <div className="shrink-0 space-y-2 border-b border-slate-100 p-3">
+              <div className="shrink-0 space-y-2 border-b border-default p-3">
                 <form onSubmit={event => { event.preventDefault(); applySearch(); }} className="flex min-w-0 items-center gap-2">
-                  <label className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5">
-                    <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden="true" />
-                    <input aria-label="Search reports" value={queryDraft} onChange={event => setQueryDraft(event.target.value)} placeholder="Search UUID or address" className="min-w-0 w-full bg-transparent text-xs text-slate-700 outline-none" />
+                  <label className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-default bg-page px-2 py-1.5">
+                    <Search className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                    <input aria-label="Search reports" value={queryDraft} onChange={event => setQueryDraft(event.target.value)} placeholder="Search UUID or address" className="min-w-0 w-full bg-transparent text-xs text-secondary outline-none" />
                   </label>
                 </form>
-                <p className="text-[9px] text-slate-400 lg:hidden">Scroll sideways for all columns</p>
+                <p className="text-[9px] text-muted-foreground lg:hidden">Scroll sideways for all columns</p>
                 <div className="reports-filters" role="group" aria-label="Report filters">
                   <StatusFilterDropdown value={statusFilter} onChange={value => {
                     setStatusFilter(value);
@@ -599,16 +599,16 @@ export function ReportsTab({
                     setCurrentPage(1);
                     setActiveHighlightedId(null);
                   }} />
-                  <button type="button" onClick={resetFilters} disabled={!canReset} aria-label="Reset filters" title="Reset filters" className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 disabled:opacity-40"><RotateCcw className="h-3.5 w-3.5" /></button>
+                  <button type="button" onClick={resetFilters} disabled={!canReset} aria-label="Reset filters" title="Reset filters" className="inline-flex h-9 items-center justify-center rounded-lg border border-default text-secondary disabled:opacity-40"><RotateCcw className="h-3.5 w-3.5" /></button>
                 </div>
               </div>
               {error ? (
-                <div className="p-6 text-sm text-red-700">{error}</div>
+                <div className="p-6 text-sm text-error-text">{error}</div>
               ) : (
                 <>
                   <div className="relative min-h-0 flex-1 overflow-auto overscroll-contain">
-                  <div role={reports.length > 0 ? 'table' : undefined} aria-label={reports.length > 0 ? 'Flood reports' : undefined} className="reports-list divide-y divide-slate-100">
-                    {reports.length > 0 && <div role="row" className={`reports-table-header bg-slate-50 text-[10px] font-semibold uppercase tracking-wide text-slate-500 xl:gap-3 xl:border-b xl:border-slate-200 xl:px-4 xl:py-2 ${REPORT_TABLE_COLUMNS}`}>
+                  <div role={reports.length > 0 ? 'table' : undefined} aria-label={reports.length > 0 ? 'Flood reports' : undefined} className="reports-list divide-y divide-default">
+                    {reports.length > 0 && <div role="row" className={`reports-table-header bg-page text-[10px] font-semibold uppercase tracking-wide text-muted-foreground xl:gap-3 xl:border-b xl:border-default xl:px-4 xl:py-2 ${REPORT_TABLE_COLUMNS}`}>
                       {([
                         { label: 'Location', column: 'address' },
                         { label: 'Depth', column: 'depth' },
@@ -621,7 +621,7 @@ export function ReportsTab({
                         const SortIcon = sort.direction === 'asc' ? ArrowUp : ArrowDown;
                         return <span key={label} role="columnheader" aria-sort={column ? activeSort ? sort.direction === 'asc' ? 'ascending' : 'descending' : 'none' : undefined}>
                           {column ? <button type="button" onClick={() => { setCurrentPage(1); toggleSort(column); }}
-                            className={`relative flex w-full min-w-0 items-center rounded text-left focus-visible:outline-gakit-maroon hover:text-gakit-maroon ${activeSort ? 'pr-3 text-gakit-maroon' : ''}`}
+                            className={`relative flex w-full min-w-0 items-center rounded text-left focus-visible:outline-focus hover:text-primary ${activeSort ? 'pr-3 text-secondary' : ''}`}
                             title={`Sort ${label.toLowerCase()} ${activeSort && sort.direction === 'desc' ? 'ascending' : 'descending'}`}>
                             <span className="truncate">{label}</span>{activeSort && <SortIcon className="absolute right-0 h-2.5 w-2.5" aria-hidden="true" />}
                           </button> : label}
@@ -652,9 +652,9 @@ export function ReportsTab({
                       </>
                     )}
                     {reports.length === 0 && !loading && (
-                      <div className="px-5 py-12 text-center text-sm text-slate-500">
+                      <div className="px-5 py-12 text-center text-sm text-muted-foreground">
                         <p>No reports match the current filters.</p>
-                        {statusFilter === 'All' && <p className="mt-2 text-xs text-slate-400">Rejected reports are hidden by default. Select Rejected to show them.</p>}
+                        {statusFilter === 'All' && <p className="mt-2 text-xs text-muted-foreground">Rejected reports are hidden by default. Select Rejected to show them.</p>}
                       </div>
                     )}
                   </div>

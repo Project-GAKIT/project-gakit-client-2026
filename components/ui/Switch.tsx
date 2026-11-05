@@ -26,14 +26,14 @@ export function Switch({
 
   return (
     <div
-      className={`flex items-center justify-between gap-4 rounded-lg border border-canvas-grey px-3 py-2.5 ${className}`}
+      className={`flex items-center justify-between gap-4 rounded-lg border border-default px-3 py-2.5 ${className}`}
     >
       <span>
-        <span id={labelId} className="text-sm font-semibold text-slate-700">
+        <span id={labelId} className="text-sm font-semibold text-secondary">
           {label}
         </span>
         {description && (
-          <span className="mt-0.5 block text-xs font-normal text-slate-500">
+          <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
             {description}
           </span>
         )}
@@ -45,13 +45,13 @@ export function Switch({
         aria-labelledby={labelId}
         disabled={disabled}
         onClick={() => onChange(!checked)}
-        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-          checked ? 'bg-gakit-maroon' : 'bg-slate-200'
+        className={`relative h-6 w-11 shrink-0 rounded-full ring-1 ring-inset transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+          checked ? 'bg-accent ring-accent' : 'bg-switch-off ring-switch-edge'
         }`}
       >
         <span
           aria-hidden="true"
-          className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${
+          className={`absolute top-0.5 h-5 w-5 rounded-full bg-on-accent shadow transition-all ${
             checked ? 'left-[1.375rem]' : 'left-0.5'
           }`}
         />

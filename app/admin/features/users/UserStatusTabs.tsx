@@ -27,7 +27,7 @@ export function UserStatusTabs({
       role="group"
       aria-label="Filter users by status"
       aria-busy={busy || undefined}
-      className="flex items-center gap-3 border-b border-slate-200 px-1.5"
+      className="flex items-center gap-3 border-b border-default px-1.5"
     >
       <div className="flex min-w-0 items-center overflow-x-auto">
         {STATUS_TABS.map((tab) => {
@@ -41,10 +41,10 @@ export function UserStatusTabs({
               type="button"
               onClick={() => onChange(tab.value)}
               aria-pressed={active}
-              className={`inline-flex h-10 shrink-0 items-center gap-2 border-b-2 px-2.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gakit-maroon/30 ${
+              className={`inline-flex h-10 shrink-0 items-center gap-2 border-b-2 px-2.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus/30 ${
                 active
-                  ? 'border-gakit-maroon text-gakit-maroon'
-                  : 'border-transparent text-slate-500 hover:text-slate-800'
+                  ? 'border-strong text-secondary'
+                  : 'border-transparent text-muted-foreground hover:text-primary'
               }`}
             >
               {tab.label}
@@ -52,8 +52,8 @@ export function UserStatusTabs({
                 <span
                   className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold tabular-nums ${
                     active
-                      ? 'bg-maroon-50 text-gakit-maroon'
-                      : 'bg-slate-100 text-slate-500'
+                      ? 'bg-muted text-secondary'
+                      : 'bg-muted text-muted-foreground'
                   }`}
                 >
                   {count}

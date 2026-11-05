@@ -54,33 +54,33 @@ export function SessionsSection() {
   return (
     <>
       <div className="space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-canvas-grey px-3 py-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-default px-3 py-2.5">
           <div>
-            <p className="text-sm font-semibold text-slate-700">Other devices</p>
-            <p className="mt-0.5 text-xs text-slate-500">
+            <p className="text-sm font-semibold text-secondary">Other devices</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
               Keep this browser signed in and end every other session.
             </p>
           </div>
           <button
             type="button"
             onClick={() => setPending('others')}
-            className="rounded-lg border border-canvas-grey px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+            className="rounded-lg border border-default px-3 py-1.5 text-sm font-semibold text-secondary hover:bg-page"
           >
             Sign out others
           </button>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-100 bg-red-50/60 px-3 py-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-error-border bg-error-bg/60 px-3 py-2.5">
           <div>
-            <p className="text-sm font-semibold text-red-700">All devices</p>
-            <p className="mt-0.5 text-xs text-red-600/80">
+            <p className="text-sm font-semibold text-error-text">All devices</p>
+            <p className="mt-0.5 text-xs text-error-text/80">
               End every session, including this one, and return to sign in.
             </p>
           </div>
           <button
             type="button"
             onClick={() => setPending('global')}
-            className="rounded-lg border border-red-200 bg-white px-3 py-1.5 text-sm font-semibold text-red-600 hover:bg-red-50"
+            className="rounded-lg border border-error-border bg-panel px-3 py-1.5 text-sm font-semibold text-error-text hover:bg-error-bg"
           >
             Sign out everywhere
           </button>
@@ -95,16 +95,16 @@ export function SessionsSection() {
         ariaLabelledBy={titleId}
         maxWidthClass="max-w-sm"
       >
-        <h2 id={titleId} className="text-base font-semibold text-slate-900">
+        <h2 id={titleId} className="text-base font-semibold text-primary">
           {copy?.title}
         </h2>
-        <p className="mt-2 text-sm text-slate-600">{copy?.body}</p>
+        <p className="mt-2 text-sm text-secondary">{copy?.body}</p>
         <div className="mt-5 flex justify-end gap-2">
           <button
             type="button"
             onClick={() => setPending(null)}
             disabled={busy}
-            className="rounded-lg border border-canvas-grey px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+            className="rounded-lg border border-default px-4 py-2 text-sm font-semibold text-secondary hover:bg-page disabled:opacity-50"
           >
             Cancel
           </button>
@@ -112,7 +112,7 @@ export function SessionsSection() {
             type="button"
             onClick={() => pending && void run(pending)}
             disabled={busy}
-            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+            className="rounded-lg bg-error-solid px-4 py-2 text-sm font-semibold text-on-accent hover:bg-error-solid disabled:opacity-50"
           >
             {busy ? 'Working…' : copy?.confirm}
           </button>

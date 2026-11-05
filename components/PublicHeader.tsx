@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { cloneElement, isValidElement, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import { ChevronLeft, Info, MapPinPlus, MapPinned } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
@@ -76,7 +76,26 @@ export function PublicHeader({
   const infoRef = useRef<HTMLDivElement>(null);
   const mobileInfoRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
+  const brandRef = useRef<HTMLDivElement>(null);
+  const actionsRef = useRef<HTMLDivElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const header = headerRef.current;
+    const brand = brandRef.current;
+    const actions = actionsRef.current;
+    const row = header?.firstElementChild as HTMLElement | null;
+    if (!onSearchSelect || !header || !brand || !actions || !row) return;
+    const measure = () => {
+      const style = getComputedStyle(row);
+      const available = row.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+      const sideWidth = Math.max(brand.getBoundingClientRect().width, actions.getBoundingClientRect().width);
+      row.style.setProperty('--map-header-search-width', `${Math.max(0, Math.min(512, available - 2 * sideWidth))}px`);
+    };
+    const observer = new ResizeObserver(measure);
+    [header, brand, actions].forEach(element => observer.observe(element));
+    measure();
+    return () => observer.disconnect();
+  }, [onSearchSelect]);
   useEffect(() => {
     if (!isMenuOpen && !isInfoOpen) return;
     const handleClick = (e: MouseEvent | TouchEvent) => {
@@ -92,9 +111,18 @@ export function PublicHeader({
     };
     document.addEventListener('mousedown', handleClick);
     document.addEventListener('touchstart', handleClick, { passive: true });
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || !isInfoOpen) return;
+      event.stopPropagation();
+      setIsInfoOpen(false);
+      const visibleGuide = infoRef.current?.getBoundingClientRect().width ? infoRef.current : mobileInfoRef.current;
+      visibleGuide?.querySelector('button')?.focus();
+    };
+    window.addEventListener('keydown', handleEscape, true);
     return () => {
       document.removeEventListener('mousedown', handleClick);
       document.removeEventListener('touchstart', handleClick);
+      window.removeEventListener('keydown', handleEscape, true);
     };
   }, [isMenuOpen, isInfoOpen]);
 
@@ -239,14 +267,16 @@ export function PublicHeader({
     const shell = header?.closest<HTMLElement>('[data-map-shell]');
     if (!header || !toolbar || !shell) return;
     const measure = () => {
-      const top = Math.ceil(header.getBoundingClientRect().bottom + 6);
+      const gap = parseFloat(getComputedStyle(shell).getPropertyValue('--map-edge-gap')) || 6;
+      const top = Math.ceil(header.getBoundingClientRect().bottom + gap);
       toolbar.style.top = `${top}px`;
       shell.style.setProperty('--map-header-bottom', `${Math.ceil(header.getBoundingClientRect().bottom)}px`);
-      shell.style.setProperty('--map-mobile-controls-top', `${top + toolbar.offsetHeight + 6}px`);
+      shell.style.setProperty('--map-mobile-controls-top', `${top + toolbar.offsetHeight + gap}px`);
       header.style.setProperty('--map-header-menu-gap', `${(header.getBoundingClientRect().height - 36) / 2 + 8}px`);
     };
     const observer = new ResizeObserver(measure);
     observer.observe(header);
+    observer.observe(toolbar);
     window.addEventListener('resize', measure);
     measure();
     return () => { observer.disconnect(); window.removeEventListener('resize', measure); shell.style.removeProperty('--map-mobile-controls-top'); shell.style.removeProperty('--map-header-bottom'); header.style.removeProperty('--map-header-menu-gap'); };
@@ -276,19 +306,26 @@ export function PublicHeader({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showSectionNav, isMenuOpen, isInfoOpen, showSignOutConfirm, navigate]);
 
+  const mobileExtraAction = isValidElement<{ compact?: boolean; className?: string }>(extraAction)
+    ? cloneElement(extraAction, {
+        compact: true,
+        className: `${extraAction.props.className ?? ''} h-8 w-12 shrink-0 rounded-full border border-default bg-panel/95 shadow-sm [&>button]:h-full [&>button]:w-full`,
+      })
+    : extraAction;
+
   return (
     <>
-    <header ref={headerRef} data-map-header data-scenario-header={guideVariant === 'scenarios' || undefined} className={`fixed top-[max(0.375rem,env(safe-area-inset-top,0px))] inset-x-1.5 md:top-4 md:left-1/2 md:-translate-x-1/2 md:inset-x-auto md:w-[calc(100%-3rem)] md:max-w-6xl z-[1200] isolate rounded-full bg-white shadow-[0_4px_20px_rgba(15,23,42,0.08)] border border-slate-200/90 ring-1 ring-slate-900/5 md:[background-color:var(--hud-bg-desktop)] md:[backdrop-filter:blur(var(--hud-blur-desktop))] md:border-white/80 md:shadow-[0_12px_36px_rgba(15,23,42,0.1),inset_0_1px_0_0_rgba(255,255,255,0.9)]`}>
-      <div className={`flex h-12 md:h-14 items-center justify-between px-2 md:px-5`}>
+    <header ref={headerRef} data-map-header data-scenario-header={guideVariant === 'scenarios' || undefined} className={`fixed top-[max(0.375rem,env(safe-area-inset-top,0px))] inset-x-1.5 md:top-4 md:left-1/2 md:-translate-x-1/2 md:inset-x-auto md:w-[calc(100%-3rem)] md:max-w-7xl z-[1200] isolate rounded-full bg-panel shadow-panel border border-default/90 ring-1 ring-strong/5 md:[background-color:var(--hud-bg-desktop)] md:[backdrop-filter:blur(var(--hud-blur-desktop))] md:border-default/80 md:shadow-panel`}>
+      <div className={`flex h-12 md:h-14 items-center justify-between px-2 md:px-5 ${onSearchSelect ? 'md:grid md:grid-cols-[minmax(0,1fr)_var(--map-header-search-width,0px)_minmax(0,1fr)]' : ''}`}>
         {/* Left: Brand Logo & Title */}
-        <div className={`flex items-center min-w-0 md:gap-3 ${showSectionNav ? 'shrink-0 gap-2' : 'flex-1 gap-1 md:flex-none md:shrink-0'}`}>
+        <div ref={brandRef} className={`flex items-center min-w-0 md:justify-self-start md:gap-3 ${showSectionNav ? 'shrink-0 gap-2' : 'flex-1 gap-1 md:flex-none md:shrink-0'}`}>
           {!showSectionNav && (
             <button
               type="button"
               onClick={() => navigate('/')}
               aria-label="Back to Hazard Map"
               title="Back to Hazard Map"
-              className="flex h-10 min-w-10 shrink-0 flex-col items-center justify-center gap-0.5 rounded-full px-1 text-[9px] font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 md:h-9 md:flex-row md:gap-1.5 md:px-2.5 md:text-[11px]"
+              className="flex h-10 min-w-10 shrink-0 flex-col items-center justify-center gap-0.5 rounded-full px-1 text-[9px] font-semibold text-secondary transition-colors hover:bg-muted hover:text-primary md:h-9 md:flex-row md:gap-1.5 md:px-2.5 md:text-[11px]"
             >
               <ChevronLeft className="h-4 w-4 stroke-[2.5]" />
               <span>Back</span>
@@ -300,7 +337,7 @@ export function PublicHeader({
           <button
             type="button"
             onClick={() => (showSectionNav ? scrollToSection('hazard-map') : navigate('/'))}
-            className={`group shrink-0 items-center rounded-lg transition-transform duration-200 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon focus-visible:ring-offset-2 ${
+            className={`group shrink-0 items-center rounded-lg transition-transform duration-200 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 ${
               !showSectionNav && guideVariant !== 'scenarios' ? 'hidden md:flex' : 'flex'
             }`}
             aria-label="Go to the GAKIT hazard map"
@@ -308,13 +345,13 @@ export function PublicHeader({
           >
             <div className="relative flex h-8 w-8 items-center justify-center overflow-hidden md:h-9 md:w-auto md:overflow-visible">
               <Image
-                src="/images/logo-compact.png"
+                  src="/favicon.svg"
                 alt="GAKIT logo"
-                width={48}
-                height={48}
-                sizes="48px"
+                  width={32}
+                  height={32}
+                  sizes="32px"
                 priority
-                className="absolute h-12 w-12 max-w-none object-contain md:hidden"
+                  className="h-8 w-8 object-contain md:hidden"
               />
               <Image
                 src="/images/gakit_logo_adobe.svg"
@@ -325,15 +362,15 @@ export function PublicHeader({
                 className="hidden h-8 w-auto object-contain md:block"
               />
             </div>
-            <div className={`hidden h-9 pl-2 flex-col justify-center text-left font-heading text-[10px] font-bold uppercase tracking-wide leading-3 text-slate-600 ${guideVariant === 'scenarios' ? '' : '2xl:flex'}`}>
+            <div className={`hidden h-9 pl-2 flex-col justify-center text-left font-heading text-[11px] font-bold uppercase tracking-wide leading-[14px] text-secondary ${guideVariant === 'scenarios' ? '' : 'xl:flex'}`}>
               <div>Geohazard Assessment &amp;</div>
               <div>Knowledge Integration Tool</div>
             </div>
           </button>
           {guideVariant === 'scenarios' && (
             <div className="flex min-w-0 items-center gap-1 whitespace-nowrap">
-              <span className="max-w-[8rem] whitespace-normal font-heading text-[10px] font-bold uppercase leading-3 tracking-wide text-slate-600 md:max-w-none md:whitespace-nowrap">Flood Scenario Explorer</span>
-              <sup className="relative -top-1 shrink-0 select-none rounded bg-amber-50 px-1 py-0.5 text-[8px] font-semibold leading-none text-amber-800">BETA</sup>
+              <span className="max-w-[8rem] whitespace-normal font-heading text-[10px] font-bold uppercase leading-3 tracking-wide text-secondary md:max-w-none md:whitespace-nowrap">Flood Scenario Explorer</span>
+              <sup className="relative -top-1 shrink-0 select-none rounded bg-warning-bg px-1 py-0.5 text-[8px] font-semibold leading-none text-warning-text">BETA</sup>
             </div>
           )}
         </div>
@@ -353,17 +390,16 @@ export function PublicHeader({
         </div>
 
         {/* Desktop Navigation & Actions */}
-        <div className="hidden items-center justify-end gap-1.5 md:flex shrink-0">
+        <div ref={actionsRef} className="hidden items-center justify-end gap-1.5 md:flex md:justify-self-end shrink-0">
           {/* Right cluster: info, notifications, account */}
-          <div className="flex items-center gap-0.5">
+          <div className="flex items-center gap-0 xl:gap-1 [&>button]:px-1 [&>div>button]:px-1 xl:[&>button]:px-1.5 xl:[&>div>button]:px-1.5">
             {showSectionNav && <button type="button"
               onClick={() => scrollToSection(activeSection === 'about' ? 'hazard-map' : 'about')}
               title={activeSection === 'about' ? 'Back to hazard map' : 'About GAKIT'}
-              className="flex h-9 items-center justify-center gap-1.5 rounded-full px-2.5 text-[11px] font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
-              {activeSection === 'about' ? <MapPinned className="h-4 w-4" aria-hidden="true" /> : <Info className="h-4 w-4" aria-hidden="true" />}
+              className="flex h-9 items-center justify-center gap-1.5 rounded-full px-2.5 text-[11px] font-semibold text-secondary transition-colors hover:bg-muted hover:text-primary">
               {activeSection === 'about' ? 'Map' : 'About'}
             </button>}
-            {extraAction}
+            {showSectionNav && <span aria-hidden="true" className="mx-1 h-4 shrink-0 border-l border-default" />}
             <HowToReportPopover
               variant={guideVariant}
               isOpen={isInfoOpen}
@@ -381,6 +417,7 @@ export function PublicHeader({
               onMarkRead={markAlertRead}
               variant="header"
             />}
+            {extraAction}
             {showBentoMenu && (
               <BentoMenu
                 items={bentoTiles}
@@ -396,8 +433,8 @@ export function PublicHeader({
 
         {/* Mobile top-right cluster */}
         <div className="flex shrink-0 items-center gap-0.5 sm:gap-1 md:hidden [&>button]:h-8 [&>button]:min-w-8 [&>div>button]:h-8 [&>div>button]:min-w-8">
-          {extraAction}
-          {showBentoMenu && !showBottomNav && !hideMobileAlertsAndMenu && (
+          {activeSection === 'about' && mobileExtraAction}
+          {showBentoMenu && !showBottomNav && (!hideMobileAlertsAndMenu || guideVariant === 'scenarios') && (
             <BentoMenu
               items={bentoTiles}
               onOpenChange={setIsMenuOpen}
@@ -423,22 +460,23 @@ export function PublicHeader({
       </div>
     </header>
 
-    <div ref={toolbarRef} aria-label="Map toolbar"
-      className={`fixed inset-x-1.5 top-[calc(max(0.375rem,env(safe-area-inset-top,0px))+3.5rem)] z-[1150] ${activeSection === 'about' || hideMobileAlertsAndMenu ? 'hidden' : 'flex'} h-9 items-start gap-1.5 pr-1 md:hidden`}>
-      <div data-map-mobile-controls-slot className="min-w-0 empty:hidden" />
+    <div ref={toolbarRef} data-map-mobile-toolbar aria-label="Map toolbar"
+      className={`fixed inset-x-1.5 top-[calc(max(0.375rem,env(safe-area-inset-top,0px))+3.5rem)] z-[1150] ${activeSection === 'about' || (hideMobileAlertsAndMenu && guideVariant !== 'scenarios') ? 'hidden' : 'flex'} min-h-8 items-start gap-1.5 md:hidden`}>
+      <div data-map-mobile-controls-slot className="min-w-0 flex-1 empty:hidden" />
       {showAlerts && <NotificationBell notifications={weatherNotifications} onSelectAlert={setSelectedAlert}
         onMarkRead={markAlertRead} variant="toolbar" className="shrink-0" />}
+      {mobileExtraAction}
     </div>
     {showBottomNav && <nav aria-label="Map navigation" className="pointer-events-none fixed bottom-0 inset-x-0 z-[1200] px-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom,0px))] md:hidden">
-      <div className={`pointer-events-auto mx-auto grid ${hideReportButton ? 'max-w-[160px] grid-cols-2' : 'max-w-[240px] grid-cols-3'} items-center gap-1.5 rounded-full border border-slate-200/80 bg-white/95 p-1 shadow-lg backdrop-blur-md`}>
+      <div className={`pointer-events-auto mx-auto grid ${hideReportButton ? 'max-w-[160px] grid-cols-2' : 'max-w-[240px] grid-cols-3'} items-center gap-1.5 rounded-full border border-default/80 bg-panel/95 p-1 shadow-lg backdrop-blur-md`}>
         <button type="button" onClick={() => scrollToSection(activeSection === 'about' ? 'hazard-map' : 'about')}
-          className="flex h-10 flex-col items-center justify-center gap-0.5 rounded-full text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900">
+          className="flex h-10 flex-col items-center justify-center gap-0.5 rounded-full text-secondary transition-colors hover:bg-muted hover:text-primary">
           {activeSection === 'about' ? <MapPinned className="h-4 w-4" aria-hidden="true" /> : <Info className="h-4 w-4" aria-hidden="true" />}
           <span className="text-[10px] font-semibold">{activeSection === 'about' ? 'Map' : 'About'}</span>
         </button>
         {!hideReportButton && <button type="button" onClick={onStartReport} data-tour="report" aria-label="Report flooding"
-          className="group relative flex h-10 items-end justify-center rounded-full text-gakit-maroon transition-transform active:scale-95 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon">
-          <span className="absolute -top-5 left-1/2 flex h-12 w-12 -translate-x-1/2 items-center justify-center rounded-full border border-slate-200/80 bg-white shadow-[0_3px_12px_rgba(15,23,42,0.12)] transition-colors group-hover:bg-slate-100">
+          className="group relative flex h-10 items-end justify-center rounded-full text-accent-text transition-transform active:scale-95 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+          <span className="absolute -top-5 left-1/2 flex h-12 w-12 -translate-x-1/2 items-center justify-center rounded-full border border-default/80 bg-panel shadow-panel transition-colors group-hover:bg-muted">
             <MapPinPlus className="h-6 w-6" strokeWidth={1.8} aria-hidden="true" />
           </span>
           <span className="whitespace-nowrap pb-0.5 text-[10px] font-semibold leading-3">Report flood</span>

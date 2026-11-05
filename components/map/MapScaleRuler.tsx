@@ -94,17 +94,17 @@ export function MapScaleRuler({ mapRef }: { mapRef: RefObject<MapLibreMap | null
         <div className="absolute inset-x-0 bottom-0 flex flex-col items-center">
           <span
             ref={labelRef}
-            className="mb-1 whitespace-nowrap text-[10px] font-bold tabular-nums text-slate-700 [text-shadow:0_1px_2px_rgb(255_255_255_/_0.85),0_0_4px_rgb(255_255_255_/_0.75)]"
+            className="mb-1 whitespace-nowrap text-[10px] font-bold tabular-nums text-secondary map-label"
           >
             &nbsp;
           </span>
           <div
             ref={lineRef}
             style={{ height: 0 }}
-            className="relative w-px bg-slate-700 shadow-[0_0_0_1px_rgb(255_255_255_/_0.85)]"
+            className="relative w-px map-ruler-line"
           >
-            <span className="absolute -left-1 top-0 h-px w-2.5 bg-slate-700 shadow-[0_0_0_1px_rgb(255_255_255_/_0.85)]" />
-            <span className="absolute -left-1 bottom-0 h-px w-2.5 bg-slate-700 shadow-[0_0_0_1px_rgb(255_255_255_/_0.85)]" />
+            <span className="absolute -left-1 top-0 h-px w-2.5 map-ruler-line" />
+            <span className="absolute -left-1 bottom-0 h-px w-2.5 map-ruler-line" />
           </div>
         </div>
       </div>

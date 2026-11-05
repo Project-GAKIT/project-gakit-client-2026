@@ -65,6 +65,18 @@ describe('scenarioDisplayStore', () => {
     expect(listener).toHaveBeenCalledTimes(2);
   });
 
+  it('defaults PAR on and retains its independent choice through map changes', () => {
+    expect(scenarioDisplayStore.getSnapshot().showParBoundary).toBe(true);
+    scenarioDisplayStore.setShowParBoundary(false);
+    scenarioDisplayStore.setBasemap('dark');
+    scenarioDisplayStore.setMode('3d');
+    expect(scenarioDisplayStore.getSnapshot().showParBoundary).toBe(false);
+    expect(parseScenarioDisplay(serializeScenarioDisplay(scenarioDisplayStore.getSnapshot())).showParBoundary).toBe(false);
+    expect(parseScenarioDisplay('{"showParBoundary":"false"}')).toEqual({});
+    scenarioDisplayStore.reset();
+    expect(scenarioDisplayStore.getSnapshot().showParBoundary).toBe(true);
+  });
+
   it('persists road focus separately from the highlighted road overlay', () => {
     const listener = vi.fn();
     const unsubscribe = scenarioDisplayStore.subscribe(listener);
@@ -231,6 +243,7 @@ describe('serializeScenarioDisplay', () => {
       enableBuildings: true,
       enableRoads: false,
       focusRoads: false,
+      showParBoundary: true,
     };
     expect(parseScenarioDisplay(serializeScenarioDisplay(settings))).toEqual(settings);
   });
@@ -254,6 +267,7 @@ describe('scenarioDisplayStore persistence', () => {
 
   it('hydrates recognised persisted values over the defaults', () => {
     vi.stubGlobal('window', {
+      matchMedia: () => ({ matches: false }),
       localStorage: makeStorage({
         [SCENARIO_DISPLAY_STORAGE_KEY]: JSON.stringify({
           renderMode: 'nearest',
@@ -262,6 +276,7 @@ describe('scenarioDisplayStore persistence', () => {
         }),
       }),
     });
+    vi.stubGlobal('document', { documentElement: { dataset: {} } });
 
     // `beforeEach` already restored defaults with no storage present, so this
     // reads the seeded payload rather than overwriting it.
@@ -284,5 +299,25 @@ describe('scenarioDisplayStore persistence', () => {
     const raw = storage.getItem(SCENARIO_DISPLAY_STORAGE_KEY);
     expect(raw).not.toBeNull();
     expect(JSON.parse(raw as string)).toMatchObject({ renderMode: 'nearest' });
+  });
+
+  it.each([false, true])('restores a saved 3D view only on desktop (mobile=%s)', mobile => {
+    const storage = makeStorage({
+      [SCENARIO_DISPLAY_STORAGE_KEY]: JSON.stringify({ mode: '3d', enableRoads: true }),
+    });
+    vi.stubGlobal('window', {
+      localStorage: storage,
+      matchMedia: (query: string) => ({ matches: mobile && query === '(max-width: 767px)' }),
+    });
+    vi.stubGlobal('document', { documentElement: { dataset: {} } });
+    scenarioDisplayStore.hydrate();
+    expect(scenarioDisplayStore.getSnapshot().mode).toBe(mobile ? '2d' : '3d');
+    expect(scenarioDisplayStore.getSnapshot().enableRoads).toBe(true);
+    expect(JSON.parse(storage.getItem(SCENARIO_DISPLAY_STORAGE_KEY)!)).toMatchObject({ mode: '3d' });
+
+    // Mobile viewers can opt into 3D; late preference hydration must not undo it.
+    scenarioDisplayStore.setMode('3d');
+    scenarioDisplayStore.hydrate();
+    expect(scenarioDisplayStore.getSnapshot().mode).toBe('3d');
   });
 });

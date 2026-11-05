@@ -4,12 +4,12 @@
 // fetched when the popover opens).
 //
 // Every preview renders the exact basemap the app uses (the OpenFreeMap
-// Positron/Bright/Fiord style URLs and the Esri World Imagery tiles) through
+// Positron/Bright/Dark Matter style URLs and the Esri World Imagery tiles) through
 // MapLibre in a throwaway page, cropped around Iligan center at the app's
 // default zoom.
 //
 // Usage (MapLibre, sharp, and Playwright must be resolvable from this repo):
-//   node scripts/generate-basemap-previews.cjs
+//   node scripts/generate-basemap-previews.cjs [dark]
 //
 // Optional env:
 //   GAKIT_PLAYWRIGHT_MODULE  module name/path for Playwright's chromium
@@ -36,7 +36,7 @@ const esriTiles =
 const openfreemapStyles = {
   light: 'https://tiles.openfreemap.org/styles/positron',
   bright: 'https://tiles.openfreemap.org/styles/bright',
-  dark: 'https://tiles.openfreemap.org/styles/fiord',
+  dark: 'https://tiles.openfreemap.org/styles/dark',
 };
 
 const pageHtml = `<!doctype html>
@@ -128,7 +128,10 @@ const capture = async (page, base, basemap) => {
       deviceScaleFactor: 2,
     });
     const captured = [];
-    for (const basemap of Object.keys(openfreemapStyles).concat(['satellite'])) {
+    const available = Object.keys(openfreemapStyles).concat(['satellite']);
+    const requested = process.argv.slice(2);
+    for (const basemap of requested.length ? requested : available) {
+      if (!available.includes(basemap)) throw new Error(`Unknown basemap: ${basemap}`);
       const shot = await capture(page, base, basemap);
       await fs.promises.writeFile(path.join(outDir, `${basemap}.webp`), shot);
       captured.push(basemap);

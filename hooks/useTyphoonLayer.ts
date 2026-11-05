@@ -7,7 +7,6 @@ import {
   enrichTyphoonTrackGeoJson,
   fetchHistoricalStorms,
   fetchTyphoonTrack,
-  PAR_BOUNDARY_GEOJSON,
 } from '@/lib/map/typhoon';
 import {
   syncCurrentStormMarkers,
@@ -63,12 +62,6 @@ export function useTyphoonLayer(
     const map = mapRef.current;
     if (!map) return;
 
-    // 1. Update PAR outline source
-    const parSource = map.getSource('par-outline') as any;
-    if (parSource) {
-      parSource.setData(data.par || PAR_BOUNDARY_GEOJSON);
-    }
-
     // 2. Update Typhoon GeoJSON source directly with enriched official feed
     const isHistorical = Boolean(selectedHistoricalStormRef.current || data.isHistorical);
     const enrichedTrack = data.track ? enrichTyphoonTrackGeoJson(data.track, { isHistorical }) : null;
@@ -80,8 +73,6 @@ export function useTyphoonLayer(
     // 3. Ensure MapLibre layer visibility is in sync
     const vis = showTyphoonTrackRef.current ? 'visible' : 'none';
     const layers = [
-      'par-boundary-line',
-      'par-boundary-label',
       'typhoon-forecast-cone-fill',
       'typhoon-forecast-cone-outline',
       'typhoon-track-line-glow',
@@ -165,8 +156,6 @@ export function useTyphoonLayer(
 
     const vis = showTyphoonTrack ? 'visible' : 'none';
     const layers = [
-      'par-boundary-line',
-      'par-boundary-label',
       'typhoon-forecast-cone-fill',
       'typhoon-forecast-cone-outline',
       'typhoon-track-line-glow',

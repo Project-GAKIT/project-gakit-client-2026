@@ -74,7 +74,7 @@ export function FilterDropdown<T extends string>({
         onClick={toggle}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className={`flex items-center justify-between gap-1.5 rounded-lg border border-slate-200 bg-white font-medium text-slate-700 outline-none transition-colors hover:bg-canvas-light ${
+        className={`flex items-center justify-between gap-1.5 rounded-lg border border-default bg-panel font-medium text-secondary outline-none transition-colors hover:bg-page ${
           isSm ? 'h-9 w-auto px-2 text-[11px] [&_svg]:h-3.5 [&_svg]:w-3.5' : 'w-full px-3 py-2 text-sm'
         }`}
       >
@@ -82,7 +82,7 @@ export function FilterDropdown<T extends string>({
           {triggerIcon}
           <span className="truncate">{triggerLabel}</span>
         </span>
-        <ChevronDown className={`shrink-0 text-slate-400 transition-transform ${isSm ? 'h-3.5 w-3.5' : 'h-4 w-4'} ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`shrink-0 text-muted-foreground transition-transform ${isSm ? 'h-3.5 w-3.5' : 'h-4 w-4'} ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {open &&
@@ -91,7 +91,7 @@ export function FilterDropdown<T extends string>({
             ref={menuRef}
             role="listbox"
             style={{ position: 'fixed', top: menuPos.top, left: menuPos.left, width: menuPos.width, maxHeight: maxMenuHeight }}
-            className="z-[1400] max-h-60 overflow-y-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
+            className="z-[1400] max-h-60 overflow-y-auto rounded-lg border border-default bg-panel py-1 shadow-lg"
           >
             {options.map((option, index) => {
               const isSelected = option.value === value;
@@ -105,13 +105,13 @@ export function FilterDropdown<T extends string>({
                     onSelect(option.value);
                     setOpen(false);
                   }}
-                  className={`flex w-full items-center text-left font-medium hover:bg-canvas-light ${
+                  className={`flex w-full items-center text-left font-medium hover:bg-page ${
                     isSm ? 'min-h-9 gap-2 px-2.5 py-2 text-[11px] [&_svg]:h-3.5 [&_svg]:w-3.5' : 'gap-2.5 px-4 py-2.5 text-sm'
-                  } ${index > 0 ? 'border-t border-slate-100' : ''} ${isSelected ? 'bg-canvas-light text-gakit-maroon' : 'text-slate-700'}`}
+                  } ${index > 0 ? 'border-t border-default' : ''} ${isSelected ? 'bg-page text-secondary' : 'text-secondary'}`}
                 >
                   {option.icon}
                   <span className="flex-1 text-left">{option.label}</span>
-                  {isSelected && <CheckCircle2 className={`shrink-0 text-gakit-maroon ${isSm ? 'h-3.5 w-3.5' : 'h-4 w-4'}`} />}
+                  {isSelected && <CheckCircle2 className={`shrink-0 text-secondary ${isSm ? 'h-3.5 w-3.5' : 'h-4 w-4'}`} />}
                 </button>
               );
             })}

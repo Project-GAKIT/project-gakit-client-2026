@@ -127,22 +127,22 @@ const REVIEW_ITEMS_PER_PAGE = 3;
 // maroon ramp so it reads as ordered magnitude without competing hues, and
 // evidence strength reuses the status hues.
 const verdictStyles: Record<AIVerdict, string> = {
-  Verified: 'bg-blue-50 text-blue-700 border-blue-200',
-  Anomaly: 'bg-violet-50 text-violet-700 border-violet-200',
-  'Needs Review': 'bg-slate-50 text-slate-600 border-slate-200',
+  Verified: 'bg-info-bg text-info-text border-info-border',
+  Anomaly: 'bg-notice-bg text-notice-text border-notice-border',
+  'Needs Review': 'bg-page text-secondary border-default',
 };
 
 const priorityStyles: Record<Priority, string> = {
-  High: 'text-maroon-700',
-  Medium: 'text-maroon-500',
-  Low: 'text-maroon-300',
+  High: 'text-secondary',
+  Medium: 'text-secondary',
+  Low: 'text-secondary',
 };
 
 const supportStyles: Record<EvidenceSupport, string> = {
-  Strong: 'bg-blue-50 text-blue-700 border-blue-200',
-  Partial: 'bg-slate-100 text-slate-700 border-slate-200',
-  Weak: 'bg-slate-50 text-slate-500 border-slate-200',
-  Mismatch: 'bg-violet-50 text-violet-700 border-violet-200',
+  Strong: 'bg-info-bg text-info-text border-info-border',
+  Partial: 'bg-muted text-secondary border-default',
+  Weak: 'bg-page text-muted-foreground border-default',
+  Mismatch: 'bg-notice-bg text-notice-text border-notice-border',
 };
 
 export function ReviewQueueTab() {
@@ -191,8 +191,8 @@ export function ReviewQueueTab() {
     <FeaturePageShell
       toolbar={
         <div className="grid grid-cols-2 gap-3 xl:grid-cols-[minmax(16rem,1fr)_11rem_11rem_12rem_auto]">
-          <label className="flex items-center gap-2 rounded-lg border border-canvas-grey bg-canvas-light px-3 py-2 col-span-2 xl:col-span-1">
-            <Search className="w-4 h-4 text-slate-400" />
+          <label className="flex items-center gap-2 rounded-lg border border-default bg-page px-3 py-2 col-span-2 xl:col-span-1">
+            <Search className="w-4 h-4 text-muted-foreground" />
             <input
               value={query}
               onChange={(event) => {
@@ -200,7 +200,7 @@ export function ReviewQueueTab() {
                 setCurrentPage(1);
               }}
               placeholder="Search ID, location, or barangay"
-              className="w-full bg-transparent text-sm outline-none text-slate-700 placeholder:text-slate-400"
+              className="w-full bg-transparent text-sm outline-none text-secondary placeholder:text-muted-foreground"
             />
           </label>
 
@@ -210,7 +210,7 @@ export function ReviewQueueTab() {
               setVerdictFilter(event.target.value as 'All' | AIVerdict);
               setCurrentPage(1);
             }}
-            className="rounded-lg border border-canvas-grey bg-white px-3 py-2 text-sm font-medium text-slate-700 outline-none"
+            className="rounded-lg border border-default bg-panel px-3 py-2 text-sm font-medium text-secondary outline-none"
           >
             {verdicts.map((verdict) => (
               <option key={verdict}>{verdict}</option>
@@ -223,7 +223,7 @@ export function ReviewQueueTab() {
               setPriorityFilter(event.target.value as 'All' | Priority);
               setCurrentPage(1);
             }}
-            className="rounded-lg border border-canvas-grey bg-white px-3 py-2 text-sm font-medium text-slate-700 outline-none"
+            className="rounded-lg border border-default bg-panel px-3 py-2 text-sm font-medium text-secondary outline-none"
           >
             {priorities.map((priority) => (
               <option key={priority}>{priority}</option>
@@ -236,7 +236,7 @@ export function ReviewQueueTab() {
               setReasonFilter(event.target.value as 'All' | FlagReason);
               setCurrentPage(1);
             }}
-            className="rounded-lg border border-canvas-grey bg-white px-3 py-2 text-sm font-medium text-slate-700 outline-none"
+            className="rounded-lg border border-default bg-panel px-3 py-2 text-sm font-medium text-secondary outline-none"
           >
             {reasons.map((reason) => (
               <option key={reason}>{reason}</option>
@@ -249,29 +249,29 @@ export function ReviewQueueTab() {
             disabled={!canReset}
             className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
               canReset
-                ? 'border-canvas-grey bg-white text-slate-700 hover:bg-canvas-light hover:border-slate-300 cursor-pointer'
-                : 'border-canvas-grey/60 bg-canvas-light/60 text-slate-400 cursor-not-allowed opacity-60'
+                ? 'border-default bg-panel text-secondary hover:bg-page hover:border-default cursor-pointer'
+                : 'border-default/60 bg-page/60 text-muted-foreground cursor-not-allowed opacity-60'
             }`}
           >
-            <RefreshCw className={`w-4 h-4 transition-colors ${canReset ? 'text-gakit-maroon' : 'text-slate-400'}`} />
+            <RefreshCw className={`w-4 h-4 transition-colors ${canReset ? 'text-secondary' : 'text-muted-foreground'}`} />
             Reset
           </button>
         </div>
       }
     >
       <section className="grid grid-cols-1 2xl:grid-cols-[minmax(0,1fr)_26rem] gap-4">
-        <div className="bg-white border border-canvas-grey rounded-lg shadow-sm overflow-hidden">
-          <div className="p-4 border-b border-canvas-grey flex items-center justify-between">
+        <div className="bg-panel border border-default rounded-lg shadow-sm overflow-hidden">
+          <div className="p-4 border-b border-default flex items-center justify-between">
             <div>
-              <h3 className="font-bold text-slate-900">Flagged Reports</h3>
-              <p className="text-sm text-slate-500">{filteredItems.length} reports require staff decision</p>
+              <h3 className="font-bold text-primary">Flagged Reports</h3>
+              <p className="text-sm text-muted-foreground">{filteredItems.length} reports require staff decision</p>
             </div>
-            {/* <div className="text-xs font-semibold text-slate-500">AI/PIML verdict first</div> */}
+            {/* <div className="text-xs font-semibold text-muted-foreground">AI/PIML verdict first</div> */}
           </div>
 
           <div className="hidden lg:block overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-canvas-light text-slate-500">
+              <thead className="bg-page text-muted-foreground">
                 <tr>
                   <th className="text-left font-semibold px-5 py-3">Report</th>
                   <th className="text-left font-semibold px-5 py-3">Location</th>
@@ -281,19 +281,19 @@ export function ReviewQueueTab() {
                   <th className="text-left font-semibold px-5 py-3">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-canvas-grey">
+              <tbody className="divide-y divide-default">
                 {paginatedItems.map((item) => (
                   <tr
                     key={item.id}
-                    className={selectedItem.id === item.id ? 'bg-maroon-50/60' : 'hover:bg-canvas-light/70'}
+                    className={selectedItem.id === item.id ? 'bg-muted/60' : 'hover:bg-page/70'}
                   >
                     <td className="px-5 py-4">
-                      <div className="font-semibold text-slate-900">{item.id}</div>
+                      <div className="font-semibold text-primary">{item.id}</div>
                       <div className={`text-xs font-semibold ${priorityStyles[item.priority]}`}>{item.priority} priority</div>
                     </td>
                     <td className="px-5 py-4">
-                      <div className="text-slate-700">{item.location}</div>
-                      <div className="text-xs text-slate-500">{item.barangay}</div>
+                      <div className="text-secondary">{item.location}</div>
+                      <div className="text-xs text-muted-foreground">{item.barangay}</div>
                     </td>
                     <td className="px-5 py-4">
                       <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${verdictStyles[item.aiVerdict]}`}>
@@ -303,11 +303,11 @@ export function ReviewQueueTab() {
                     <td className="px-5 py-4">
                       <ConfidenceBar value={item.confidence} />
                     </td>
-                    <td className="px-5 py-4 text-slate-600">{item.flagReason}</td>
+                    <td className="px-5 py-4 text-secondary">{item.flagReason}</td>
                     <td className="px-5 py-4">
                       <button
                         onClick={() => setSelectedItemId(item.id)}
-                        className="rounded-lg border border-canvas-grey px-3 py-2 text-xs font-semibold text-slate-700 hover:border-gakit-maroon hover:text-gakit-maroon"
+                        className="rounded-lg border border-default px-3 py-2 text-xs font-semibold text-secondary hover:border-strong hover:text-primary"
                       >
                         Review
                       </button>
@@ -318,18 +318,18 @@ export function ReviewQueueTab() {
             </table>
           </div>
 
-          <div className="lg:hidden divide-y divide-canvas-grey">
+          <div className="lg:hidden divide-y divide-default">
             {paginatedItems.map((item) => (
               <button
                 key={item.id}
                 onClick={() => setSelectedItemId(item.id)}
-                className="w-full p-4 text-left hover:bg-canvas-light"
+                className="w-full p-4 text-left hover:bg-page"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <div className="font-semibold text-slate-900">{item.id}</div>
-                    <div className="text-sm text-slate-600 mt-1">{item.location}</div>
-                    <div className="text-xs text-slate-500 mt-1">{item.flagReason}</div>
+                    <div className="font-semibold text-primary">{item.id}</div>
+                    <div className="text-sm text-secondary mt-1">{item.location}</div>
+                    <div className="text-xs text-muted-foreground mt-1">{item.flagReason}</div>
                   </div>
                   <span className={`shrink-0 rounded-full border px-2.5 py-1 text-xs font-semibold ${verdictStyles[item.aiVerdict]}`}>
                     {item.aiVerdict}
@@ -356,12 +356,12 @@ export function ReviewQueueTab() {
 
 function ReviewDetails({ item }: { item: ReviewItem }) {
   return (
-    <aside className="bg-white border border-canvas-grey rounded-lg shadow-sm overflow-hidden">
-      <div className="p-5 border-b border-canvas-grey">
+    <aside className="bg-panel border border-default rounded-lg shadow-sm overflow-hidden">
+      <div className="p-5 border-b border-default">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="font-bold text-slate-900">AI/PIML Assessment</h3>
-            <p className="text-sm text-slate-500 mt-1">{item.id}</p>
+            <h3 className="font-bold text-primary">AI/PIML Assessment</h3>
+            <p className="text-sm text-muted-foreground mt-1">{item.id}</p>
           </div>
           <span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${verdictStyles[item.aiVerdict]}`}>
             {item.aiVerdict}
@@ -370,31 +370,31 @@ function ReviewDetails({ item }: { item: ReviewItem }) {
       </div>
 
       <div className="p-5 space-y-5">
-        <div className="rounded-lg bg-canvas-light border border-canvas-grey p-4">
-          <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-            <MapPinned className="w-4 h-4 text-gakit-maroon" />
+        <div className="rounded-lg bg-page border border-default p-4">
+          <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+            <MapPinned className="w-4 h-4 text-secondary" />
             {item.location}
           </div>
-          <div className="text-sm text-slate-600 mt-2">{item.barangay}</div>
-          <div className="text-xs text-slate-500 mt-1">
+          <div className="text-sm text-secondary mt-2">{item.barangay}</div>
+          <div className="text-xs text-muted-foreground mt-1">
             Reported depth: {item.reportedDepth} | Submitted {item.submittedAt}
           </div>
         </div>
 
         <div>
           <div className="flex items-center justify-between text-sm">
-            <span className="font-semibold text-slate-900">Confidence</span>
-            <span className="font-bold text-slate-900">{item.confidence}%</span>
+            <span className="font-semibold text-primary">Confidence</span>
+            <span className="font-bold text-primary">{item.confidence}%</span>
           </div>
           <ConfidenceBar value={item.confidence} />
         </div>
 
-        <div className="rounded-lg border border-canvas-grey p-4">
-          <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+        <div className="rounded-lg border border-default p-4">
+          <div className="flex items-center gap-2 text-sm font-semibold text-primary">
             <AlertTriangle className="w-4 h-4 text-hazard-pending" />
             Why this needs review
           </div>
-          <p className="text-sm text-slate-600 mt-2">{item.explanation}</p>
+          <p className="text-sm text-secondary mt-2">{item.explanation}</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -404,22 +404,22 @@ function ReviewDetails({ item }: { item: ReviewItem }) {
           <EvidenceCard icon={Layers} label="Interpolation" value={item.evidence.interpolation.value} support={item.evidence.interpolation.support} />
         </div>
 
-        <div className="rounded-lg bg-maroon-50 border border-maroon-100 p-4">
-          <div className="text-sm font-semibold text-slate-900">Recommended Decision</div>
-          <p className="text-sm text-slate-600 mt-2">{item.recommendedAction}</p>
+        <div className="rounded-lg bg-muted border border-default p-4">
+          <div className="text-sm font-semibold text-primary">Recommended Decision</div>
+          <p className="text-sm text-secondary mt-2">{item.recommendedAction}</p>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <button className="rounded-lg bg-gakit-maroon px-4 py-3 text-sm font-semibold text-white hover:bg-maroon-800">
+          <button className="rounded-lg bg-accent px-4 py-3 text-sm font-semibold text-on-accent hover:bg-accent-hover">
             Confirm Verdict
           </button>
-          <button className="rounded-lg border border-canvas-grey px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-canvas-light">
+          <button className="rounded-lg border border-default px-4 py-3 text-sm font-semibold text-secondary hover:bg-page">
             Override
           </button>
-          <button className="rounded-lg border border-canvas-grey px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-canvas-light">
+          <button className="rounded-lg border border-default px-4 py-3 text-sm font-semibold text-secondary hover:bg-page">
             Escalate
           </button>
-          <button className="rounded-lg border border-canvas-grey px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-canvas-light">
+          <button className="rounded-lg border border-default px-4 py-3 text-sm font-semibold text-secondary hover:bg-page">
             Keep Pending
           </button>
         </div>
@@ -440,12 +440,12 @@ function EvidenceCard({
   support: EvidenceSupport;
 }) {
   return (
-    <div className="rounded-lg border border-canvas-grey p-3">
-      <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-        <Icon className="w-4 h-4 text-gakit-maroon" />
+    <div className="rounded-lg border border-default p-3">
+      <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+        <Icon className="w-4 h-4 text-secondary" />
         {label}
       </div>
-      <p className="text-xs text-slate-600 mt-2 min-h-8">{value}</p>
+      <p className="text-xs text-secondary mt-2 min-h-8">{value}</p>
       <span className={`mt-3 inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold ${supportStyles[support]}`}>
         {support}
       </span>
@@ -456,10 +456,10 @@ function EvidenceCard({
 function ConfidenceBar({ value }: { value: number }) {
   return (
     <div className="mt-2">
-      <div className="h-2 rounded-full bg-canvas-grey overflow-hidden">
-        <div className="h-full rounded-full bg-gakit-maroon" style={{ width: `${value}%` }} />
+      <div className="h-2 rounded-full bg-muted overflow-hidden">
+        <div className="h-full rounded-full bg-accent" style={{ width: `${value}%` }} />
       </div>
-      <div className="text-xs text-slate-500 mt-1">{value}% confidence</div>
+      <div className="text-xs text-muted-foreground mt-1">{value}% confidence</div>
     </div>
   );
 }
@@ -481,8 +481,8 @@ function ReviewQueuePagination({
   const endItem = Math.min(currentPage * pageSize, totalItems);
 
   return (
-    <div className="border-t border-canvas-grey px-4 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="text-sm text-slate-500">
+    <div className="border-t border-default px-4 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="text-sm text-muted-foreground">
         Showing {startItem}-{endItem} of {totalItems} flagged reports
       </div>
 
@@ -490,20 +490,20 @@ function ReviewQueuePagination({
         <button
           onClick={() => onPageChange(Math.max(1, currentPage - 1))}
           disabled={currentPage === 1}
-          className="inline-flex items-center gap-2 rounded-lg border border-canvas-grey px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-canvas-light disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-lg border border-default px-3 py-2 text-sm font-semibold text-secondary hover:bg-page disabled:cursor-not-allowed disabled:opacity-50"
         >
           <ChevronLeft className="w-4 h-4" />
           Previous
         </button>
 
-        <div className="rounded-lg border border-canvas-grey bg-canvas-light px-3 py-2 text-sm font-semibold text-slate-700">
+        <div className="rounded-lg border border-default bg-page px-3 py-2 text-sm font-semibold text-secondary">
           Page {currentPage} of {totalPages}
         </div>
 
         <button
           onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
           disabled={currentPage === totalPages}
-          className="inline-flex items-center gap-2 rounded-lg border border-canvas-grey px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-canvas-light disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-lg border border-default px-3 py-2 text-sm font-semibold text-secondary hover:bg-page disabled:cursor-not-allowed disabled:opacity-50"
         >
           Next
           <ChevronRight className="w-4 h-4" />

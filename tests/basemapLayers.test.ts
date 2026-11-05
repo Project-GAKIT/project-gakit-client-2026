@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { getFirstBasemapSymbolLayerId } from '@/lib/map/basemapLayers';
+import { getBasemapRoadOverlayAnchor, getFirstBasemapSymbolLayerId } from '@/lib/map/basemapLayers';
 
 const styleWith = (layers: Array<{ id: string; type: string }>) => ({
   getStyle: () => ({ layers }),
@@ -50,5 +50,21 @@ describe('getFirstBasemapSymbolLayerId', () => {
   it('returns undefined when the style is not loaded yet', () => {
     expect(getFirstBasemapSymbolLayerId({})).toBeUndefined();
     expect(getFirstBasemapSymbolLayerId({ getStyle: () => undefined })).toBeUndefined();
+  });
+});
+
+describe('getBasemapRoadOverlayAnchor', () => {
+  it('places roads after native geometry even when an earlier label precedes it', () => {
+    const map = { getStyle: () => ({ layers: [
+      { id: 'water-label', type: 'symbol', source: 'openmaptiles' },
+      { id: 'building', type: 'fill', source: 'openmaptiles' },
+      { id: 'highway-inner', type: 'line', source: 'openmaptiles' },
+      { id: 'road-label', type: 'symbol', source: 'openmaptiles' },
+      { id: 'boundary-state', type: 'line', source: 'openmaptiles', 'source-layer': 'boundary' },
+      { id: 'place-label', type: 'symbol', source: 'openmaptiles' },
+      { id: 'flood-hazard-fill', type: 'fill', source: 'flood' },
+      { id: 'report-pins-point', type: 'symbol', source: 'reports' },
+    ] }) };
+    expect(getBasemapRoadOverlayAnchor(map)).toBe('road-label');
   });
 });

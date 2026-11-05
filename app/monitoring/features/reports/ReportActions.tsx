@@ -56,7 +56,7 @@ export function ReportActions({
           onClick={onInspect}
           aria-label={compact ? `View report ${report.id.slice(0, 8)} on map` : 'Inspect report on map'}
           title="View on map"
-          className={`inline-flex items-center justify-center rounded-lg border border-canvas-grey text-slate-700 hover:border-gakit-maroon hover:text-gakit-maroon ${compact ? 'h-7 w-7' : 'p-2'}`}
+          className={`inline-flex items-center justify-center rounded-lg border border-default text-secondary hover:border-strong hover:text-primary ${compact ? 'h-7 w-7' : 'p-2'}`}
         >
           <MapPinSearchIcon className="h-4 w-4" />
         </button>
@@ -66,7 +66,7 @@ export function ReportActions({
         onClick={onViewDetails}
         aria-label={`View report ${report.id.slice(0, 8)} details`}
         title="View report details"
-        className={`relative inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-md text-[11px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon focus-visible:ring-offset-2 ${compact ? 'h-7 w-7 border border-slate-200 text-slate-600 hover:bg-slate-100' : 'h-8 w-28 bg-gakit-maroon px-2.5 text-white hover:bg-maroon-800'}`}
+        className={`relative inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-md text-[11px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 ${compact ? 'h-7 w-7 border border-default text-secondary hover:bg-muted' : 'h-8 w-28 bg-accent px-2.5 text-on-accent hover:bg-accent-hover'}`}
       >
         <FileText className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
         <span className={compact ? 'sr-only' : ''}>View report</span>

@@ -29,8 +29,8 @@ export function LocationPromptModal({
   const isReport = mode === 'report';
 
   return (
-    <div className="fixed inset-0 z-[1400] bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
+    <div className="fixed inset-0 z-[1400] bg-contrast/40 backdrop-blur-xs flex items-center justify-center p-4">
+      <div className="bg-panel w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border border-default">
         <div className="flex items-center justify-between px-5 pt-4 pb-1">
           <div className="flex items-center gap-2">
             {isReport && (
@@ -43,10 +43,10 @@ export function LocationPromptModal({
               />
             )}
             <div>
-              <h3 className="text-base font-bold text-slate-900 font-heading">
+              <h3 className="text-base font-bold text-primary font-heading">
                 {isReport ? 'Report Flooded Location' : 'Select Location to Assess'}
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 {isReport
                   ? 'Choose where the flood is occurring to file a report.'
                   : 'Check geohazard risk, rainfall, and elevation.'}
@@ -58,7 +58,7 @@ export function LocationPromptModal({
             onClick={onClose}
             aria-label="Close location picker"
             disabled={isLocating}
-            className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors disabled:opacity-40 disabled:hover:bg-transparent"
+            className="rounded-lg p-1 text-muted-foreground hover:bg-muted hover:text-secondary transition-colors disabled:opacity-40 disabled:hover:bg-transparent"
           >
             <X className="h-4 w-4" />
           </button>
@@ -66,39 +66,39 @@ export function LocationPromptModal({
 
         <div className="p-5 pt-3 space-y-3">
           <div className={isLocating ? 'pointer-events-none opacity-50' : ''}>
-            <div className="mb-2 text-xs font-semibold text-slate-700">
+            <div className="mb-2 text-xs font-semibold text-secondary">
               {isReport ? 'Search flooded area or barangay' : 'Search for an address or barangay'}
             </div>
             <LocationSearch onSelect={onSearchLocationSelect} />
           </div>
 
           <div className="flex items-center gap-3 py-1">
-            <div className="h-px flex-1 bg-canvas-grey" />
-            <span className="text-xs font-medium text-slate-400">
+            <div className="h-px flex-1 bg-muted" />
+            <span className="text-xs font-medium text-muted-foreground">
               or choose another way
             </span>
-            <div className="h-px flex-1 bg-canvas-grey" />
+            <div className="h-px flex-1 bg-muted" />
           </div>
 
           <button
             onClick={onUseCurrentLocation}
             disabled={isLocating}
             aria-busy={isLocating}
-            className="w-full p-4 rounded-xl border-2 border-gakit-maroon bg-maroon-50/60 text-left hover:bg-maroon-100/70 transition-colors group disabled:cursor-wait disabled:hover:bg-maroon-50/60"
+            className="w-full p-4 rounded-xl border-2 border-strong bg-muted/60 text-left hover:bg-muted/70 transition-colors group disabled:cursor-wait disabled:hover:bg-muted/60"
           >
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white shadow-xs text-gakit-maroon">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-panel shadow-xs text-secondary">
                 {isLocating ? (
                   <Spinner size="sm" />
                 ) : (
-                  <Locate className="w-5 h-5 text-gakit-maroon" />
+                  <Locate className="w-5 h-5 text-secondary" />
                 )}
               </div>
               <div>
-                <div className="font-semibold text-slate-900 text-sm">
+                <div className="font-semibold text-primary text-sm">
                   {isLocating ? 'Getting your location…' : 'Use my current location'}
                 </div>
-                <div className="text-xs text-slate-600">
+                <div className="text-xs text-secondary">
                   {isReport ? 'Report flood at your GPS position.' : 'Assess hazards at your current GPS spot.'}
                 </div>
               </div>
@@ -108,17 +108,17 @@ export function LocationPromptModal({
           <button
             onClick={onChooseLocation}
             disabled={isLocating}
-            className="w-full p-4 rounded-xl border-2 border-slate-200 text-left hover:border-gakit-maroon hover:bg-slate-50 transition-colors group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-slate-200 disabled:hover:bg-transparent"
+            className="w-full p-4 rounded-xl border-2 border-default text-left hover:border-strong hover:bg-page transition-colors group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-default disabled:hover:bg-transparent"
           >
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-700 group-hover:bg-maroon-50 group-hover:text-gakit-maroon transition-colors">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted text-secondary group-hover:bg-muted group-hover:text-primary transition-colors">
                 <MapPin className="w-5 h-5" />
               </div>
               <div>
-                <div className="font-semibold text-slate-900 text-sm">
+                <div className="font-semibold text-primary text-sm">
                   Choose on the map
                 </div>
-                <div className="text-xs text-slate-600">
+                <div className="text-xs text-secondary">
                   {isReport ? 'Tap the flooded spot manually.' : 'Tap any point on the map to evaluate risk.'}
                 </div>
               </div>

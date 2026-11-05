@@ -38,17 +38,17 @@ export function SignOutConfirmDialog({
   return (
     <Dialog isOpen={isOpen} onClose={onCancel} ariaLabelledBy={titleId} maxWidthClass="max-w-sm">
       <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-50">
-          <LogOut className="h-5 w-5 text-red-600" />
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-error-bg">
+          <LogOut className="h-5 w-5 text-error-text" />
         </div>
         <div>
-          <h2 id={titleId} className="text-base font-semibold text-slate-900">
+          <h2 id={titleId} className="text-base font-semibold text-primary">
             Sign out
           </h2>
-          <p className="text-sm text-slate-500">End your portal session</p>
+          <p className="text-sm text-muted-foreground">End your portal session</p>
         </div>
       </div>
-      <p className="mt-4 text-sm text-slate-600">
+      <p className="mt-4 text-sm text-secondary">
         Are you sure you want to sign out? You will need to sign in again to
         access the portal.
       </p>
@@ -57,7 +57,7 @@ export function SignOutConfirmDialog({
           type="button"
           onClick={onCancel}
           disabled={isSigningOut}
-          className="rounded-lg border border-canvas-grey px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+          className="rounded-lg border border-default px-4 py-2 text-sm font-semibold text-secondary hover:bg-page disabled:opacity-50"
         >
           Cancel
         </button>
@@ -65,7 +65,7 @@ export function SignOutConfirmDialog({
           type="button"
           onClick={onConfirm}
           disabled={isSigningOut}
-          className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-lg bg-error-solid px-4 py-2 text-sm font-semibold text-on-accent hover:bg-error-solid disabled:opacity-50"
         >
           {isSigningOut ? 'Signing out…' : 'Sign out'}
         </button>
@@ -94,7 +94,7 @@ export function MobileSignOutButton({ compact = false }: { compact?: boolean }) 
       disabled={isSigningOut}
       title="Sign out"
       aria-label="Sign out"
-      className="rounded-lg border border-canvas-grey p-2 text-slate-600 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+      className="rounded-lg border border-default p-2 text-secondary hover:bg-error-bg hover:text-error-text disabled:opacity-50"
     >
       <LogOut className="h-5 w-5" />
     </button>
@@ -103,7 +103,7 @@ export function MobileSignOutButton({ compact = false }: { compact?: boolean }) 
       type="button"
       onClick={() => setShowConfirm(true)}
       disabled={isSigningOut}
-      className="flex flex-col items-center justify-center gap-1 rounded-lg px-1.5 py-2 text-[11px] font-semibold text-slate-500 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+      className="flex flex-col items-center justify-center gap-1 rounded-lg px-1.5 py-2 text-[11px] font-semibold text-muted-foreground hover:bg-error-bg hover:text-error-text disabled:opacity-50"
     >
       <LogOut className="h-5 w-5" />
       <span className="truncate">{isSigningOut ? '...' : 'Sign out'}</span>
@@ -168,22 +168,22 @@ export function SideBar<T extends string>({
   return (
     <>
     <aside
-      className={`relative z-10 hidden h-full shrink-0 flex-col overflow-visible border-r border-slate-200 bg-slate-50 text-slate-900 transition-[width] duration-300 lg:flex ${
+      className={`relative z-10 hidden h-full shrink-0 flex-col overflow-visible border-r border-default bg-page text-primary transition-[width] duration-300 lg:flex ${
         isCollapsed ? 'w-20' : 'w-60'
       }`}
     >
-      {showTopo && <TopoBackground className="-z-10 opacity-[0.15]" />}
+      {showTopo && <TopoBackground className="-z-10" />}
       <button
         type="button"
         onClick={() => setIsCollapsed((collapsed) => !collapsed)}
         aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        className="absolute right-[-1.25rem] top-7 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white text-gakit-maroon shadow-lg ring-4 ring-slate-100 transition-all duration-200 hover:scale-105 hover:bg-maroon-50"
+        className="absolute right-[-1.25rem] top-7 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-panel text-secondary shadow-lg ring-4 ring-default transition-all duration-200 hover:scale-105 hover:bg-muted"
       >
         {isCollapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
       </button>
 
-      <div className={`flex h-24 shrink-0 flex-col justify-center border-b border-slate-100 ${isCollapsed ? 'items-center px-3' : 'items-start px-7'}`}>
+      <div className={`flex h-24 shrink-0 flex-col justify-center border-b border-default ${isCollapsed ? 'items-center px-3' : 'items-start px-7'}`}>
         <div className={`flex h-9 items-center ${isCollapsed ? 'w-9' : 'w-28'}`}>
           <Image
             src="/images/gakit_logo_adobe.svg"
@@ -194,11 +194,11 @@ export function SideBar<T extends string>({
             className="h-full w-full object-contain"
           />
         </div>
-        <div className={`mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 ${isCollapsed ? 'sr-only' : ''}`}>{portalSubtitle}</div>
+        <div className={`mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground ${isCollapsed ? 'sr-only' : ''}`}>{portalSubtitle}</div>
       </div>
 
       <nav className={`flex-1 space-y-1 overflow-y-auto py-6 ${isCollapsed ? 'px-2' : 'px-4'}`}>
-        <div className={`pb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 ${isCollapsed ? 'sr-only' : 'px-4'}`}>
+        <div className={`pb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground ${isCollapsed ? 'sr-only' : 'px-4'}`}>
           Apps
         </div>
         <BentoMenu
@@ -207,8 +207,8 @@ export function SideBar<T extends string>({
           isCollapsed={isCollapsed}
         />
 
-        <div className={isCollapsed ? 'my-3 border-t border-slate-200/80 mx-1' : 'pt-6 pb-2'}>
-          <span className={`text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 ${isCollapsed ? 'sr-only' : 'px-4'}`}>
+        <div className={isCollapsed ? 'my-3 border-t border-default/80 mx-1' : 'pt-6 pb-2'}>
+          <span className={`text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground ${isCollapsed ? 'sr-only' : 'px-4'}`}>
             Console
           </span>
         </div>
@@ -223,28 +223,28 @@ export function SideBar<T extends string>({
               title={feature.badge ? `${feature.label} (${feature.badge})` : feature.label}
               className={`group flex w-full items-center rounded-2xl text-sm font-semibold transition-all duration-200 ${
                 isActive
-                  ? 'bg-slate-200 text-slate-900'
-                  : 'text-slate-600 hover:bg-white hover:text-gakit-maroon hover:shadow-sm'
+                  ? 'bg-muted text-accent-text'
+                  : 'text-secondary hover:bg-panel hover:text-primary hover:shadow-sm'
               } ${
                 isCollapsed ? 'justify-center px-3 py-2.5' : 'gap-3 px-4 py-3'
               }`}
             >
               <div className="relative shrink-0">
                 <Icon
-                  className={`h-5 w-5 transition-colors ${isActive ? 'text-gakit-maroon' : 'text-slate-400 group-hover:text-gakit-maroon'}`}
+                  className={`h-5 w-5 transition-colors ${isActive ? 'text-accent-text' : 'text-muted-foreground group-hover:text-primary'}`}
                 />
-                {isCollapsed && !!feature.unreadCount && <sup aria-label={`${feature.unreadCount} unread alerts`} className="absolute -right-2 -top-1 rounded-full bg-gakit-maroon px-1 py-0.5 text-[10px] font-bold leading-none text-white">{feature.unreadCount > 99 ? '99+' : feature.unreadCount}</sup>}
+                {isCollapsed && !!feature.unreadCount && <sup aria-label={`${feature.unreadCount} unread alerts`} className="absolute -right-2 -top-1 rounded-full bg-muted px-1 py-0.5 text-[10px] font-bold leading-none text-primary">{feature.unreadCount > 99 ? '99+' : feature.unreadCount}</sup>}
                 {feature.badge && isCollapsed && (
                   <span className="absolute -top-1 -right-1 flex h-2 w-2">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500 ring-2 ring-white" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500 ring-2 ring-default" />
                   </span>
                 )}
               </div>
               <span className={`truncate whitespace-nowrap ${isCollapsed ? 'sr-only' : ''}`}>
                 {feature.label}
               </span>
-              {feature.unreadCount !== undefined && !isCollapsed && <sup aria-label={`${feature.unreadCount} unread alerts`} className="relative -top-1 ml-1 shrink-0 rounded-full bg-gakit-maroon px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">{feature.unreadCount > 99 ? '99+' : feature.unreadCount}</sup>}
+              {feature.unreadCount !== undefined && !isCollapsed && <sup aria-label={`${feature.unreadCount} unread alerts`} className="relative -top-1 ml-1 shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-bold leading-none text-primary">{feature.unreadCount > 99 ? '99+' : feature.unreadCount}</sup>}
               {feature.badge && !isCollapsed && (
                 <span
                   title="Beta feature"
@@ -252,7 +252,7 @@ export function SideBar<T extends string>({
                 >
                   <span className="relative flex h-2 w-2">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500 ring-2 ring-white" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500 ring-2 ring-default" />
                   </span>
                 </span>
               )}
@@ -261,14 +261,14 @@ export function SideBar<T extends string>({
         })}
       </nav>
 
-      <div className={`border-t border-slate-100 ${isCollapsed ? 'p-2' : 'p-4'}`}>
-        <div className={`mb-3 flex items-center rounded-2xl border border-slate-200 bg-slate-50 ${isCollapsed ? 'justify-center p-2.5' : 'gap-3 p-3'}`}>
-          <UserRound className="h-5 w-5 shrink-0 text-gakit-maroon" />
+      <div className={`border-t border-default ${isCollapsed ? 'p-2' : 'p-4'}`}>
+        <div className={`mb-3 flex items-center rounded-2xl border border-default bg-page ${isCollapsed ? 'justify-center p-2.5' : 'gap-3 p-3'}`}>
+          <UserRound className="h-5 w-5 shrink-0 text-secondary" />
           <div className={isCollapsed ? 'hidden' : 'min-w-0'}>
-            <div className="truncate text-xs font-semibold text-slate-900">
+            <div className="truncate text-xs font-semibold text-primary">
               {name || email || '—'}
             </div>
-            <div className="text-[11px] capitalize text-slate-500">
+            <div className="text-[11px] capitalize text-muted-foreground">
               {role || 'Loading role...'}
             </div>
           </div>
@@ -277,7 +277,7 @@ export function SideBar<T extends string>({
           onClick={() => setShowConfirm(true)}
           disabled={isSigningOut}
           title="Sign Out"
-          className={`flex w-full items-center rounded-2xl py-2.5 text-sm font-semibold text-slate-600 transition-all duration-200 hover:bg-white hover:text-red-600 hover:shadow-sm disabled:opacity-50 ${
+          className={`flex w-full items-center rounded-2xl py-2.5 text-sm font-semibold text-secondary transition-all duration-200 hover:bg-panel hover:text-error-text hover:shadow-sm disabled:opacity-50 ${
             isCollapsed ? 'justify-center px-3' : 'gap-3 px-3'
           }`}
         >

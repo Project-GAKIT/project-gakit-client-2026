@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link';
 import { createPortal } from 'react-dom';
 import { useRouter, usePathname } from 'next/navigation';
-import { LayoutGrid, LogOut } from 'lucide-react';
+import { ChevronDown, LayoutGrid, LogOut } from 'lucide-react';
 import type { BentoTile } from '@/lib/navigation/bentoMenu';
 import { useRouteLoader } from './RouteLoader';
 
@@ -215,16 +215,16 @@ export function BentoMenu({
                 title={tile.badge ? `${tile.label} (${tile.badge})` : tile.label}
                 className={`group flex w-full items-center justify-center rounded-xl py-2 text-sm font-semibold transition-colors duration-150 ${
                   isCurrent
-                    ? 'bg-slate-200 text-slate-900 cursor-default font-bold'
-                    : 'text-slate-600 hover:bg-white hover:text-gakit-maroon'
+                    ? 'bg-muted text-primary cursor-default font-bold'
+                    : 'text-secondary hover:bg-panel hover:text-primary'
                 }`}
               >
-                <div className="relative shrink-0 text-gakit-maroon">
+                <div className="relative shrink-0 text-secondary">
                   {getTileIcon(tile.id)}
                   {tile.badge && (
                     <span className="absolute -top-1 -right-1 flex h-2 w-2">
                       <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
-                      <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500 ring-2 ring-white" />
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500 ring-2 ring-default" />
                     </span>
                   )}
                 </div>
@@ -247,8 +247,8 @@ export function BentoMenu({
               title={tile.badge ? `${tile.label} (${tile.badge})` : tile.label}
               className={`group relative flex flex-col items-center justify-center rounded-xl border py-2 px-1 text-center transition-colors duration-150 ${
                 isCurrent
-                  ? 'bg-slate-200 text-slate-900 border-slate-300/80 shadow-xs cursor-default font-bold'
-                  : 'bg-white/80 border-slate-200/80 text-slate-600 hover:bg-white hover:border-slate-300 hover:text-gakit-maroon'
+                  ? 'bg-muted text-primary border-default/80 shadow-xs cursor-default font-bold'
+                  : 'bg-panel/80 border-default/80 text-secondary hover:bg-panel hover:border-default hover:text-primary'
               }`}
             >
               <div className="relative">
@@ -256,12 +256,12 @@ export function BentoMenu({
                   {getTileIcon(tile.id, true)}
                 </div>
                 {tile.badge && (
-                  <sup className="absolute -top-1 -right-2 select-none rounded bg-amber-100/90 px-1 py-0.5 text-[6.5px] font-extrabold uppercase tracking-wider text-amber-800 ring-1 ring-inset ring-amber-200/70 leading-none shadow-xs">
+                  <sup className="absolute -top-1 -right-2 select-none rounded bg-warning-bg/90 px-1 py-0.5 text-[6.5px] font-extrabold uppercase tracking-wider text-warning-text ring-1 ring-inset ring-warning-border/70 leading-none shadow-xs">
                     {tile.badge}
                   </sup>
                 )}
               </div>
-              <span className="mt-1 font-heading text-[10px] font-bold leading-tight transition-colors line-clamp-2 text-slate-700 group-hover:text-gakit-maroon">
+              <span className="mt-1 font-heading text-[10px] font-bold leading-tight transition-colors line-clamp-2 text-secondary group-hover:text-primary">
                 {tile.label}
               </span>
             </Link>
@@ -277,13 +277,13 @@ export function BentoMenu({
           data-header-dropdown={!isMobileNav || undefined}
           className={
             isMobileNav
-              ? 'fixed inset-x-1.5 bottom-[calc(max(0.375rem,env(safe-area-inset-bottom,0px))+3.75rem)] z-[1300] mx-auto max-h-[calc(100dvh-6rem-env(safe-area-inset-bottom,0px))] max-w-[280px] overflow-y-auto overscroll-contain rounded-2xl border border-slate-200/90 bg-white/95 p-3 shadow-2xl backdrop-blur-xl ring-1 ring-slate-900/10 md:hidden animate-in fade-in slide-in-from-bottom-2 duration-150'
-              : 'map-header-dropdown fixed inset-x-1.5 top-16 z-[1300] mx-auto max-h-[calc(100dvh-5rem)] max-w-[280px] overflow-y-auto overscroll-contain rounded-2xl border border-slate-200/90 bg-white/95 p-3 shadow-xl backdrop-blur-xl ring-1 ring-slate-900/10 md:absolute md:inset-x-auto md:right-0 md:top-auto md:mt-2 md:w-72 md:max-w-none animate-in fade-in zoom-in-95 duration-100'
+              ? 'fixed inset-x-1.5 bottom-[calc(max(0.375rem,env(safe-area-inset-bottom,0px))+4.5rem)] z-[1300] mx-auto max-h-[calc(100dvh-6rem-env(safe-area-inset-bottom,0px))] max-w-[280px] overflow-y-auto overscroll-contain rounded-2xl border border-default/90 bg-panel/95 p-3 shadow-2xl backdrop-blur-xl ring-1 ring-strong/10 md:hidden animate-in fade-in slide-in-from-bottom-2 duration-150'
+              : 'map-header-dropdown fixed inset-x-1.5 top-16 z-[1300] mx-auto max-h-[calc(100dvh-5rem)] max-w-[280px] overflow-y-auto overscroll-contain rounded-2xl border border-default/90 bg-panel/95 p-3 shadow-xl backdrop-blur-xl ring-1 ring-strong/10 md:absolute md:inset-x-auto md:right-0 md:top-auto md:mt-2 md:w-72 md:max-w-none animate-in fade-in zoom-in-95 duration-100'
           }
         >
           {/* Bento Header */}
-          <div className="px-1 pb-1.5 mb-1.5 border-b border-slate-100 flex items-center justify-between">
-            <span className="font-heading text-[9px] font-bold uppercase tracking-wider text-slate-400">
+          <div className="px-1 pb-1.5 mb-1.5 border-b border-default flex items-center justify-between">
+            <span className="font-heading text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
               MENU
             </span>
           </div>
@@ -300,8 +300,8 @@ export function BentoMenu({
                   title={tile.badge ? `${tile.label} (${tile.badge})` : tile.label}
                   className={`group relative flex aspect-square min-h-[108px] flex-col items-center justify-center gap-2 rounded-lg border px-2 py-3 text-center transition-colors duration-150 ${
                     isCurrent
-                      ? 'bg-slate-200 border-slate-300 text-slate-900 shadow-xs cursor-default font-bold'
-                      : 'bg-white/80 border-slate-200/80 text-slate-600 hover:bg-white hover:border-slate-300 hover:text-slate-900'
+                      ? 'bg-muted border-default text-primary shadow-xs cursor-default font-bold'
+                      : 'bg-panel/80 border-default/80 text-secondary hover:bg-panel hover:border-default hover:text-primary'
                   }`}
                 >
                   <div className="relative">
@@ -309,23 +309,23 @@ export function BentoMenu({
                       {getTileIcon(tile.id, true)}
                     </div>
                     {tile.badge && (
-                      <sup className="absolute -top-1 -right-2 select-none rounded bg-amber-100/90 px-1 py-0.5 text-[7px] font-extrabold uppercase tracking-wider text-amber-800 ring-1 ring-inset ring-amber-200/70 leading-none shadow-xs">
+                      <sup className="absolute -top-1 -right-2 select-none rounded bg-warning-bg/90 px-1 py-0.5 text-[7px] font-extrabold uppercase tracking-wider text-warning-text ring-1 ring-inset ring-warning-border/70 leading-none shadow-xs">
                         {tile.badge}
                       </sup>
                     )}
                   </div>
 
-                  <span className="font-heading text-[11px] font-bold leading-tight transition-colors line-clamp-2 text-slate-800 group-hover:text-slate-900">
+                  <span className="font-heading text-[11px] font-bold leading-tight transition-colors line-clamp-2 text-primary group-hover:text-primary">
                     {tile.label}
                   </span>
                 </Link>
               );
             })}
           </div>
-          {onSignOut && <div className="mt-2 border-t border-slate-200/70 pt-1">
+          {onSignOut && <div className="mt-2 border-t border-default/70 pt-1">
             <button type="button" disabled={isSigningOut}
               onClick={() => { setIsOpen(false); onSignOut(); }}
-              className="flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 disabled:opacity-50">
+              className="flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-secondary transition-colors hover:bg-muted hover:text-primary disabled:opacity-50">
               <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
               {isSigningOut ? 'Signing out…' : 'Sign out'}
             </button>
@@ -351,12 +351,12 @@ export function BentoMenu({
           isMobileNav
             ? `relative flex h-10 w-full flex-col items-center justify-center gap-0.5 rounded-full px-2 transition-colors duration-150 ${
                 isOpen
-                  ? 'bg-slate-200 text-slate-900 font-bold'
-                  : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 active:bg-slate-100'
+                  ? 'bg-muted text-primary font-bold'
+                  : 'text-muted-foreground hover:bg-page hover:text-primary active:bg-muted'
               }`
-            : `flex h-10 min-w-10 flex-col items-center justify-center gap-0.5 rounded-full px-1 text-[9px] font-semibold text-slate-600 transition-colors duration-150 hover:bg-slate-100 hover:text-slate-900 md:h-9 md:flex-row md:gap-1.5 md:px-2.5 md:text-[11px] ${
+            : `flex h-10 min-w-10 flex-col items-center justify-center gap-0.5 rounded-full px-1 text-[9px] font-semibold text-secondary transition-colors duration-150 hover:bg-muted hover:text-primary md:h-9 md:flex-row md:gap-1.5 md:px-2.5 md:text-[11px] ${
                 isOpen
-                  ? 'bg-slate-200 text-slate-900 ring-1 ring-slate-300/80'
+                  ? 'bg-muted text-primary ring-1 ring-default/80'
                   : ''
               }`
         }
@@ -368,16 +368,17 @@ export function BentoMenu({
             isMobileNav
               ? `h-5 w-5 ${
                   isOpen
-                    ? 'text-slate-900'
-                    : 'text-slate-500'
+                    ? 'text-primary'
+                    : 'text-muted-foreground'
                 }`
-              : `h-4 w-4 ${isOpen ? 'text-slate-900' : ''}`
+              : `h-4 w-4 ${variant === 'header' ? 'md:hidden' : ''} ${isOpen ? 'text-primary' : ''}`
           }
         />
         {isMobileNav && (
           <span className="text-[10px] font-semibold">Menu</span>
         )}
         {!isMobileNav && <span>Menu</span>}
+        {variant === 'header' && <ChevronDown className={`hidden h-3.5 w-3.5 shrink-0 transition-transform md:block ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true" />}
       </button>
 
       {isMobileNav && typeof document !== 'undefined' ? createPortal(popup, document.body) : popup}

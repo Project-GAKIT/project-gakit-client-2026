@@ -1,0 +1,102 @@
+@layer components {
+  .about-topography {
+    background-color: rgb(var(--text-secondary));
+    opacity: .12;
+    -webkit-mask: url('/images/backgrounds/about-topography.svg') center / cover no-repeat;
+    mask: url('/images/backgrounds/about-topography.svg') center / cover no-repeat;
+  }
+  .topo-background { color: rgb(var(--text-secondary)); opacity: var(--topo-opacity); }
+  .map-label { color: rgb(var(--text-primary)); text-shadow: 0 1px 2px rgb(var(--surface-panel) / .9), 0 0 4px rgb(var(--surface-panel) / .8); }
+  .map-ruler-line { background: rgb(var(--text-primary)); box-shadow: 0 0 0 1px rgb(var(--surface-panel) / .85); }
+  .ui-surface { background: rgb(var(--surface-panel)); color: rgb(var(--text-primary)); border: 1px solid rgb(var(--border-default)); border-radius: var(--radius-panel); }
+  .ui-button { border: 1px solid rgb(var(--border-default)); border-radius: var(--radius-control); background: rgb(var(--surface-panel)); color: rgb(var(--text-primary)); padding: 0.5rem 0.75rem; }
+  .ui-button:hover { background: rgb(var(--surface-hover)); }
+  .ui-field { background: rgb(var(--surface-panel)); color: rgb(var(--text-primary)); border: 1px solid rgb(var(--border-default)); border-radius: var(--radius-control); }
+  .theme-choice { background: rgb(var(--surface-panel)); border-color: rgb(var(--border-default)); color: rgb(var(--text-secondary)); }
+  .theme-choice:has(:focus-visible) { outline: 2px solid rgb(var(--focus-ring)); outline-offset: 2px; }
+}
+
+/* Animate current observations without moving labels or forecast icons. */
+@keyframes weather-sun-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.16) rotate(8deg); opacity: .7; }
+}
+@keyframes weather-rain-fall {
+  0% { transform: translateY(-2px); opacity: 0; }
+  20% { opacity: .9; }
+  75% { opacity: .9; }
+  100% { transform: translateY(2px); opacity: 0; }
+}
+/* Two-tone weather glyphs (outlook hero): amber for sun/moon/bolt, blue for rain
+   strokes, slate cloud mass. `.weather-hero-dark` flips the palette for
+   the dark summary card; light uses deeper tones for contrast on the info tint. */
+.weather-two-tone {
+  --wx-warm: 245 158 11;    /* amber-500 */
+  --wx-strong: 234 88 12;   /* orange-600 */
+  --wx-cool: 71 85 105;     /* slate-600 */
+  --wx-rain: 37 99 235;     /* blue-600 */
+  color: rgb(var(--wx-cool));
+  overflow: visible;
+}
+.weather-hero-dark .weather-two-tone {
+  --wx-warm: 251 191 36;    /* amber-400 */
+  --wx-strong: 253 186 116; /* orange-300 */
+  --wx-cool: 203 213 225;   /* slate-300 */
+  --wx-rain: 147 197 253;   /* blue-300 */
+}
+/* Sun: amber disc, orange rays */
+.weather-two-tone.lucide-sun circle { stroke: rgb(var(--wx-warm)); fill: rgb(var(--wx-warm) / .25); }
+.weather-two-tone.lucide-sun > path { stroke: rgb(var(--wx-strong)); }
+/* Moon: amber crescent with a soft fill */
+.weather-two-tone.lucide-moon > path { stroke: rgb(var(--wx-warm)); fill: rgb(var(--wx-warm) / .18); }
+/* Sun/moon facets inside mixed glyphs stay warm */
+.weather-two-tone.lucide-cloud-sun > path:nth-child(-n+5),
+.weather-two-tone.lucide-cloud-sun-rain > path:nth-child(-n+5) { stroke: rgb(var(--wx-warm)); }
+.weather-two-tone.lucide-cloud-moon > path:nth-child(2),
+.weather-two-tone.lucide-cloud-moon-rain > path:nth-child(2) { stroke: rgb(var(--wx-warm)); }
+/* Cloud mass: slate stroke with a soft fill, lone/front cloud filled for two tones */
+.weather-two-tone.lucide-cloud > path,
+.weather-two-tone.lucide-cloudy > path:first-child,
+.weather-two-tone.lucide-cloud-fog > path:first-child,
+.weather-two-tone.lucide-cloud-rain > path:first-child,
+.weather-two-tone.lucide-cloud-drizzle > path:first-child,
+.weather-two-tone.lucide-cloud-lightning > path:first-child,
+.weather-two-tone.lucide-cloud-sun > path:last-child,
+.weather-two-tone.lucide-cloud-sun-rain > path:nth-child(6),
+.weather-two-tone.lucide-cloud-moon > path:first-child,
+.weather-two-tone.lucide-cloud-moon-rain > path:nth-child(3) { fill: rgb(var(--wx-cool) / .14); }
+/* Precipitation strokes use blue; the thunder bolt keeps the warm accent */
+.weather-two-tone.lucide-cloud-rain > path:not(:first-child),
+.weather-two-tone.lucide-cloud-drizzle > path:not(:first-child),
+.weather-two-tone.lucide-cloud-sun-rain > path:nth-child(n+7),
+.weather-two-tone.lucide-cloud-moon-rain > path:is(:first-child, :last-child) { stroke: rgb(var(--wx-rain)); }
+.weather-two-tone.lucide-cloud-lightning > path:last-child { stroke: rgb(var(--wx-warm)); }
+.weather-two-tone.lucide-cloud-lightning > path:last-child { fill: rgb(var(--wx-warm) / .22); }
+/* Secondary cloud layer and fog lines recede */
+.weather-two-tone.lucide-cloudy > path:last-child,
+.weather-two-tone.lucide-cloud-fog > path:not(:first-child) { stroke: rgb(var(--wx-cool) / .65); }
+
+/* Thunderstorm: the bolt gently dims in place instead of the cloud drifting. */
+@keyframes weather-bolt-flash {
+  0%, 100% { opacity: 1; }
+  10% { opacity: .55; }
+  20% { opacity: .92; }
+  30% { opacity: .7; }
+  40% { opacity: 1; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .current-weather-icon { transform-origin: center; overflow: visible; }
+  /* No horizontal drift: partly cloudy / cloudy / fog / clear-night icons stay still. */
+  .current-weather-icon[data-weather-motion="sun"] { animation: weather-sun-pulse 1.6s ease-in-out infinite; }
+  /* Keep the cloud still while the existing Lucide rain strokes move. */
+  .current-weather-icon:is(.lucide-cloud-rain, .lucide-cloud-drizzle) > path:not(:first-child),
+  .current-weather-icon.lucide-cloud-sun-rain > path:nth-last-child(-n+2),
+  .current-weather-icon.lucide-cloud-moon-rain > path:is(:first-child, :last-child) {
+    animation: weather-rain-fall 1s linear infinite;
+  }
+  .current-weather-icon.lucide-cloud-drizzle > path:not(:first-child) { animation-duration: 1.3s; }
+  .current-weather-icon[data-weather-motion="rain"] > path:nth-child(even) { animation-delay: -.35s; }
+  .current-weather-icon[data-weather-motion="rain"] > path:nth-child(3n) { animation-delay: -.7s; }
+  /* Keep the cloud still; only the bolt flickers. */
+  .current-weather-icon[data-weather-motion="storm"] > path:last-child { animation: weather-bolt-flash 4.5s ease-in-out infinite; }
+}

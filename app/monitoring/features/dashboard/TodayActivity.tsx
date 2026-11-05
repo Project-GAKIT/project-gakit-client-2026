@@ -14,9 +14,9 @@ interface TodayActivityProps {
 }
 
 const TREND_CHIP: Record<Trend, string> = {
-  rising: 'bg-orange-50 text-orange-700 border-orange-200',
-  steady: 'bg-slate-100 text-slate-600 border-slate-200',
-  falling: 'bg-sky-50 text-sky-700 border-sky-200',
+  rising: 'bg-caution-bg text-caution-text border-caution-border',
+  steady: 'bg-muted text-secondary border-default',
+  falling: 'bg-info-bg text-info-text border-info-border',
 };
 
 function trendLabel(comparison: PeriodComparison): string {
@@ -45,10 +45,10 @@ export function TodayActivity({ hourly, comparison, deepSpots, spots }: TodayAct
       >
         <div className="flex items-end justify-between gap-2">
           <p className="flex items-baseline gap-1.5">
-            <span className="text-2xl font-bold tabular-nums tracking-[-0.02em] text-slate-900">
+            <span className="text-2xl font-bold tabular-nums tracking-[-0.02em] text-primary">
               {totalInWindow}
             </span>
-            <span className="text-xs font-medium text-slate-500">reports in last 24h</span>
+            <span className="text-xs font-medium text-muted-foreground">reports in last 24h</span>
           </p>
           <span
             className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${TREND_CHIP[comparison.trend]}`}
@@ -98,7 +98,7 @@ export function TodayActivity({ hourly, comparison, deepSpots, spots }: TodayAct
             </div>
           </div>
         ) : (
-          <p className="mt-4 py-8 text-center text-sm text-slate-500">
+          <p className="mt-4 py-8 text-center text-sm text-muted-foreground">
             No incident reports recorded in the last 24 hours.
           </p>
         )}
@@ -110,26 +110,26 @@ export function TodayActivity({ hourly, comparison, deepSpots, spots }: TodayAct
         subtitle="Highest reported water levels by location, last 24h"
       >
         {deepSpots.length === 0 ? (
-          <p className="py-8 text-center text-sm text-slate-500">
+          <p className="py-8 text-center text-sm text-muted-foreground">
             No incident reports recorded in the last 24 hours.
           </p>
         ) : (
           <>
-            <ol className="divide-y divide-slate-100">
+            <ol className="divide-y divide-default">
               {deepSpots.map((spot, index) => (
                 <li key={spot.label} className="flex items-center justify-between gap-3 py-1.5 sm:py-2">
                   <span className="flex min-w-0 items-center gap-2.5">
                     <span
-                      className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-[10px] font-bold text-white"
+                      className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-[10px] font-bold text-on-accent"
                       style={{ backgroundColor: DEPTH_BAR_COLOR[spot.code] }}
                     >
                       {index + 1}
                     </span>
                     <span className="min-w-0">
-                      <span className="block truncate text-xs font-semibold text-slate-800">
+                      <span className="block truncate text-xs font-semibold text-primary">
                         {spot.label}
                       </span>
-                      <span className="block text-[11px] text-slate-500">
+                      <span className="block text-[11px] text-muted-foreground">
                         {spot.count} report{spot.count === 1 ? '' : 's'} · up to{' '}
                         {spot.maxDepthCm > 0 ? `${spot.maxDepthCm} cm` : spot.depthLabel}
                       </span>
@@ -147,11 +147,11 @@ export function TodayActivity({ hourly, comparison, deepSpots, spots }: TodayAct
                 </li>
               ))}
             </ol>
-            <div className="mt-2.5 flex flex-wrap gap-x-2.5 gap-y-1 border-t border-slate-100 pt-2">
+            <div className="mt-2.5 flex flex-wrap gap-x-2.5 gap-y-1 border-t border-default pt-2">
               {DISPLAY_DEPTHS.map((code) => (
                 <span
                   key={code}
-                  className="flex items-center gap-1 text-[10px] font-medium text-slate-500"
+                  className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground"
                 >
                   <span
                     className="h-1.5 w-2.5 rounded-full"
@@ -171,22 +171,22 @@ export function TodayActivity({ hourly, comparison, deepSpots, spots }: TodayAct
         subtitle="Locations with highest report density, last 24h"
       >
         {spots.length === 0 ? (
-          <p className="py-8 text-center text-sm text-slate-500">
+          <p className="py-8 text-center text-sm text-muted-foreground">
             No incident reports recorded in the last 24 hours.
           </p>
         ) : (
-          <ol className="divide-y divide-slate-100">
+          <ol className="divide-y divide-default">
             {spots.map((spot, index) => (
               <li key={spot.label} className="flex items-center justify-between gap-3 py-2 sm:py-2.5">
                 <span className="flex min-w-0 items-center gap-2.5">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-slate-100 text-[10px] font-bold text-slate-500">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-muted text-[10px] font-bold text-muted-foreground">
                     {index + 1}
                   </span>
-                  <span className="truncate text-xs font-medium text-slate-700">
+                  <span className="truncate text-xs font-medium text-secondary">
                     {spot.label}
                   </span>
                 </span>
-                <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-700">
+                <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-bold text-secondary">
                   {spot.count}
                 </span>
               </li>
@@ -210,13 +210,13 @@ function ActivityCard({
   children: ReactNode;
 }) {
   return (
-    <div className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
-      <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 sm:px-5 sm:py-3.5">
+    <div className="flex flex-col overflow-hidden rounded-2xl border border-default bg-panel shadow-panel">
+      <div className="flex items-center justify-between border-b border-default px-4 py-3 sm:px-5 sm:py-3.5">
         <div>
-          <h3 className="text-sm font-bold text-slate-900 sm:text-base">{title}</h3>
-          <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p>
+          <h3 className="text-sm font-bold text-primary sm:text-base">{title}</h3>
+          <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>
         </div>
-        <span className="rounded-lg bg-maroon-50 p-2 text-gakit-maroon">
+        <span className="rounded-lg bg-muted p-2 text-secondary">
           <Icon className="h-4 w-4" />
         </span>
       </div>

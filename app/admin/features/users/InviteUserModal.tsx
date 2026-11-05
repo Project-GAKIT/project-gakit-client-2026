@@ -59,18 +59,18 @@ export function InviteUserModal({
     <Dialog isOpen onClose={dismiss} ariaLabelledBy={titleId} maxWidthClass="max-w-md">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-maroon-50">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted">
               {result ? (
-                <Check className="h-5 w-5 text-emerald-600" />
+                <Check className="h-5 w-5 text-success-text" />
               ) : (
-                <Mail className="h-5 w-5 text-gakit-maroon" />
+                <Mail className="h-5 w-5 text-secondary" />
               )}
             </div>
             <div>
-              <h2 id={titleId} className="text-base font-semibold text-slate-900">
+              <h2 id={titleId} className="text-base font-semibold text-primary">
                 {result ? 'Invitation sent' : 'Invite a user'}
               </h2>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-muted-foreground">
                 {result
                   ? `An invitation was created for ${result.name?.trim() || result.email || 'the user'}.`
                   : 'An invitation email will be sent to the address below.'}
@@ -81,7 +81,7 @@ export function InviteUserModal({
             type="button"
             onClick={dismiss}
             aria-label="Close"
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-canvas-light hover:text-slate-600"
+            className="rounded-lg p-1.5 text-muted-foreground hover:bg-page hover:text-secondary"
           >
             <X className="h-5 w-5" />
           </button>
@@ -99,7 +99,7 @@ export function InviteUserModal({
               <button
                 type="button"
                 onClick={onInvited}
-                className="rounded-lg bg-gakit-maroon px-4 py-2 text-sm font-semibold text-white hover:bg-maroon-800"
+                className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-on-accent hover:bg-accent-hover"
               >
                 Done
               </button>
@@ -108,14 +108,14 @@ export function InviteUserModal({
         ) : (
           <>
             {serverError && (
-              <div className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+              <div className="mt-4 rounded-lg bg-error-bg px-3 py-2 text-sm text-error-text">
                 {serverError}
               </div>
             )}
 
             <div className="mt-5 space-y-4">
               <label className="block">
-                <span className="text-sm font-semibold text-slate-700">Name</span>
+                <span className="text-sm font-semibold text-secondary">Name</span>
                 <input
                   type="text"
                   value={name}
@@ -123,27 +123,27 @@ export function InviteUserModal({
                   placeholder="e.g. Juan Dela Cruz"
                   maxLength={120}
                   autoFocus
-                  className="mt-1.5 w-full rounded-lg border border-canvas-grey bg-canvas-light px-3 py-2.5 text-sm text-slate-700 outline-none transition-colors placeholder:text-slate-400 focus:border-gakit-maroon/40 focus:bg-white focus:ring-2 focus:ring-gakit-maroon/10"
+                  className="mt-1.5 w-full rounded-lg border border-default bg-page px-3 py-2.5 text-sm text-secondary outline-none transition-colors placeholder:text-muted-foreground focus:border-strong/40 focus:bg-panel focus:ring-2 focus:ring-focus/10"
                 />
               </label>
 
               <label className="block">
-                <span className="text-sm font-semibold text-slate-700">Email</span>
+                <span className="text-sm font-semibold text-secondary">Email</span>
                 <input
                   type="email"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   placeholder="name@organization.gov.ph"
-                  className="mt-1.5 w-full rounded-lg border border-canvas-grey bg-canvas-light px-3 py-2.5 text-sm text-slate-700 outline-none transition-colors placeholder:text-slate-400 focus:border-gakit-maroon/40 focus:bg-white focus:ring-2 focus:ring-gakit-maroon/10"
+                  className="mt-1.5 w-full rounded-lg border border-default bg-page px-3 py-2.5 text-sm text-secondary outline-none transition-colors placeholder:text-muted-foreground focus:border-strong/40 focus:bg-panel focus:ring-2 focus:ring-focus/10"
                 />
               </label>
 
               <label className="block">
-                <span className="text-sm font-semibold text-slate-700">Role</span>
+                <span className="text-sm font-semibold text-secondary">Role</span>
                 <select
                   value={role}
                   onChange={(event) => setRole(event.target.value)}
-                  className="mt-1.5 w-full rounded-lg border border-canvas-grey bg-canvas-light px-3 py-2.5 text-sm text-slate-700 outline-none transition-colors focus:border-gakit-maroon/40 focus:bg-white focus:ring-2 focus:ring-gakit-maroon/10"
+                  className="mt-1.5 w-full rounded-lg border border-default bg-page px-3 py-2.5 text-sm text-secondary outline-none transition-colors focus:border-strong/40 focus:bg-panel focus:ring-2 focus:ring-focus/10"
                 >
                   <option value="">Select a role…</option>
                   {roles
@@ -156,7 +156,7 @@ export function InviteUserModal({
                 </select>
               </label>
 
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 The user&apos;s name is shown in User Management. Custom roles
                 have the same access as staff; only the built-in{' '}
                 <span className="font-semibold">admin</span> role unlocks the
@@ -169,7 +169,7 @@ export function InviteUserModal({
                 type="button"
                 onClick={onClose}
                 disabled={submitting}
-                className="rounded-lg border border-canvas-grey px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+                className="rounded-lg border border-default px-4 py-2 text-sm font-semibold text-secondary hover:bg-page disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -177,7 +177,7 @@ export function InviteUserModal({
                 type="button"
                 onClick={handleSubmit}
                 disabled={!canSubmit}
-                className="inline-flex items-center gap-2 rounded-lg bg-gakit-maroon px-4 py-2 text-sm font-semibold text-white hover:bg-maroon-800 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-on-accent hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {submitting && <Spinner size="sm" />}
                 {submitting ? 'Sending…' : 'Send invitation'}

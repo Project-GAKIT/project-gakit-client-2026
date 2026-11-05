@@ -27,7 +27,7 @@ export function FeaturePageShell({
   const header = (
     <>
       {eyebrow && (
-        <div className="text-xs font-semibold uppercase tracking-wide text-gakit-maroon">
+        <div className="text-xs font-semibold uppercase tracking-wide text-secondary">
           {eyebrow}
         </div>
       )}
@@ -39,8 +39,8 @@ export function FeaturePageShell({
         >
           {(title || description) && (
             <div>
-              {title && <h2 className="text-2xl font-bold text-slate-900">{title}</h2>}
-              {description && <p className="text-sm text-slate-600 mt-1">{description}</p>}
+              {title && <h2 className="text-2xl font-bold text-primary">{title}</h2>}
+              {description && <p className="text-sm text-secondary mt-1">{description}</p>}
             </div>
           )}
           {actions && (
@@ -57,7 +57,7 @@ export function FeaturePageShell({
             bare
               ? 'mt-5'
               : title || description || actions
-                ? 'mt-5 border-t border-canvas-grey pt-5'
+                ? 'mt-5 border-t border-default pt-5'
                 : ''
           }
         >
@@ -73,7 +73,7 @@ export function FeaturePageShell({
         (bare ? (
           header
         ) : (
-          <section className="rounded-2xl border border-canvas-grey bg-white p-5 shadow-sm">
+          <section className="rounded-2xl border border-default bg-panel p-5 shadow-sm">
             {header}
           </section>
         ))}

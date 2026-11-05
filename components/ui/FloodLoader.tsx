@@ -42,7 +42,7 @@ export function FloodLoader({ active = true, label = 'Loading', compact = false,
           {!compact && <path d="M65 23h5M67 33h3M65 43h5M67 53h3" stroke="#f0f9ff" strokeOpacity=".65" strokeLinecap="round" />}
         </g>
       </svg>
-      {!compact && <span className="max-w-xs px-4 text-center text-xs font-medium leading-5 text-white">{label}</span>}
+      {!compact && <span className="max-w-xs px-4 text-center text-xs font-medium leading-5 text-on-accent">{label}</span>}
     </span>
   );
 }

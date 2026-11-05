@@ -1,8 +1,10 @@
 'use client';
 
+import { syncParBoundary } from '@/lib/map/parBoundary';
+import { getSessionBasemap } from '@/lib/theme/store';
+import { useBasemapStyle } from '@/hooks/useBasemapStyle';
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
-import 'maplibre-gl/dist/maplibre-gl.css';
 import { LiveRasterController } from '@/lib/map/liveRasterController';
 import {
   BASEMAP_STYLES,
@@ -11,14 +13,11 @@ import {
   TERRAIN_TILES,
   TERRAIN_ATTRIBUTION,
   TERRAIN_MAX_ZOOM,
+  getHillshadePaint,
   TERRAIN_ENCODING,
   BUILDINGS_PMTILES_URL,
   ROADS_PMTILES_URL,
   FLAT_EXTRUSION_LIGHT,
-  HILLSHADE_ACCENT_COLOR,
-  HILLSHADE_EXAGGERATION,
-  HILLSHADE_HIGHLIGHT_COLOR,
-  HILLSHADE_SHADOW_COLOR,
   TERRAIN_EXAGGERATION,
   REPORT_MARKER_COLORS,
   REPORT_MARKER_IMAGE_IDS,
@@ -86,7 +85,7 @@ export function ScenarioMap({ scenarioId, currentFrame, bounds, onRasterStateCha
   useLiveReportObservations(mapRef, reportObservations, currentFrame?.live?.kind === 'latest');
 
   const [mapLoaded, setMapLoaded] = useState(false);
-  const { basemap, mode, renderMode, enableBuildings, enableRoads, focusRoads } = useScenarioDisplay();
+  const { basemap, mode, renderMode, enableBuildings, enableRoads, focusRoads, showParBoundary } = useScenarioDisplay();
   useFloodDepthHover(mapRef, rasterController, 'simulation-flood-layer', mapLoaded && !focusRoads);
   useRoadFloodFocus(mapRef, rasterController, 'simulation-flood-layer', mapLoaded && !!currentFrame && focusRoads);
   useEffect(() => {
@@ -178,7 +177,10 @@ export function ScenarioMap({ scenarioId, currentFrame, bounds, onRasterStateCha
     map.on('click', pick);
     return () => { map.off('style.load', sync); map.off('idle', sync); map.off('click', pick); };
   }, [demoReports, demoReportPinsHidden, mapLoaded, onDemoLocationPick, bounds, demoTerrainBounds, demoDraftLocation]);
-  const appliedBasemap = useRef(basemap);
+  const { changeStyle, errorNotice } = useBasemapStyle();
+  const parVisibleRef = useRef(showParBoundary);
+  useEffect(() => { parVisibleRef.current = showParBoundary; }, [showParBoundary]);
+  const appliedBasemap = useRef(getSessionBasemap('scenario'));
   const modeRef = useRef(mode);
   useEffect(() => { modeRef.current = mode; }, [mode]);
 
@@ -217,6 +219,7 @@ export function ScenarioMap({ scenarioId, currentFrame, bounds, onRasterStateCha
     // handler below awaits it before adding any pmtiles:// source.
     void ensurePmtilesProtocol(maplibregl).catch(() => {});
 
+    appliedBasemap.current = getSessionBasemap('scenario');
     const map = new maplibregl.Map({
       container: mapContainer.current,
       style: BASEMAP_STYLES[appliedBasemap.current],
@@ -228,6 +231,7 @@ export function ScenarioMap({ scenarioId, currentFrame, bounds, onRasterStateCha
       attributionControl: false,
     });
 
+    mapRef.current = map;
     map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
     // MapLibre opens compact attribution initially; start closed while keeping
     // its native information button and attribution links available.
@@ -246,6 +250,8 @@ export function ScenarioMap({ scenarioId, currentFrame, bounds, onRasterStateCha
       // hillshade -> flood -> footprints -> extrusions.
       const firstSymbolLayerId = getFirstBasemapSymbolLayerId(map);
 
+      syncParBoundary(map, parVisibleRef.current);
+
       // 1. Add 3D Terrain DEM source (Mapterhorn Terrarium DEM)
       map.addSource('terrain-source', {
         type: 'raster-dem',
@@ -262,12 +268,8 @@ export function ScenarioMap({ scenarioId, currentFrame, bounds, onRasterStateCha
           id: 'terrain-hillshade-layer',
           type: 'hillshade',
           source: 'terrain-source',
-          paint: {
-            'hillshade-exaggeration': HILLSHADE_EXAGGERATION,
-            'hillshade-shadow-color': HILLSHADE_SHADOW_COLOR,
-            'hillshade-highlight-color': HILLSHADE_HIGHLIGHT_COLOR,
-            'hillshade-accent-color': HILLSHADE_ACCENT_COLOR,
-          },
+          layout: { visibility: modeRef.current === '3d' && appliedBasemap.current !== 'satellite' ? 'visible' : 'none' },
+          paint: getHillshadePaint(appliedBasemap.current),
         },
         firstSymbolLayerId
       );
@@ -338,7 +340,7 @@ export function ScenarioMap({ scenarioId, currentFrame, bounds, onRasterStateCha
           const roadsAnchor =
             firstSymbolLayerId ??
             ['demo-draft-point', 'demo-observation-points'].find((layerId) => map.getLayer(layerId));
-          addRoadLayers(map, 'iligan-roads-source', roadsAnchor, enableRoadsRef.current);
+          addRoadLayers(map, 'iligan-roads-source', roadsAnchor, enableRoadsRef.current, appliedBasemap.current);
         }
       })();
     });
@@ -353,13 +355,16 @@ export function ScenarioMap({ scenarioId, currentFrame, bounds, onRasterStateCha
   // Recreate project layers and the selected frame after replacing the style.
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapLoaded || appliedBasemap.current === basemap) return;
-    rasterController.current.cancel();
-    setMapLoaded(false);
-    appliedBasemap.current = basemap;
-    map.setTerrain(null);
-    map.setStyle(BASEMAP_STYLES[basemap], { diff: false });
-  }, [basemap, mapLoaded]);
+    if (!map) return;
+    changeStyle(basemap, style => {
+      if (appliedBasemap.current === basemap) return;
+      rasterController.current.cancel();
+      setMapLoaded(false);
+      appliedBasemap.current = basemap;
+      map.setTerrain(null);
+      map.setStyle(style, { diff: false });
+    });
+  }, [basemap, changeStyle]);
 
   const imageUrl = currentFrame?.raster_uri;
   const coordinateKey = JSON.stringify(bounds ?? []);
@@ -419,7 +424,11 @@ export function ScenarioMap({ scenarioId, currentFrame, bounds, onRasterStateCha
     if (mode === '3d') {
       map.setTerrain({ source: 'terrain-source', exaggeration: TERRAIN_EXAGGERATION });
       if (map.getLayer('terrain-hillshade-layer')) {
-        map.setLayoutProperty('terrain-hillshade-layer', 'visibility', 'visible');
+        map.setLayoutProperty('terrain-hillshade-layer', 'visibility', appliedBasemap.current === 'satellite' ? 'none' : 'visible');
+        const paint = getHillshadePaint(appliedBasemap.current);
+        for (const property of Object.keys(paint) as Array<keyof typeof paint>) {
+          map.setPaintProperty('terrain-hillshade-layer', property, paint[property]);
+        }
       }
     } else {
       map.setTerrain(null);
@@ -427,7 +436,7 @@ export function ScenarioMap({ scenarioId, currentFrame, bounds, onRasterStateCha
         map.setLayoutProperty('terrain-hillshade-layer', 'visibility', 'none');
       }
     }
-  }, [mode, mapLoaded]);
+  }, [mode, mapLoaded, basemap]);
 
   // Turning buildings off hides both flat footprints and extrusions.
   useEffect(() => {
@@ -443,6 +452,10 @@ export function ScenarioMap({ scenarioId, currentFrame, bounds, onRasterStateCha
     }
   }, [basemap, buildingMode, enableBuildings, mapLoaded]);
 
+  useEffect(() => {
+    if (mapLoaded && mapRef.current) syncParBoundary(mapRef.current, showParBoundary);
+  }, [showParBoundary, mapLoaded]);
+
   // Toggling roads shows or hides the highlighted road network.
   useEffect(() => {
     const map = mapRef.current;
@@ -451,8 +464,9 @@ export function ScenarioMap({ scenarioId, currentFrame, bounds, onRasterStateCha
   }, [enableRoads, mapLoaded]);
 
   return (
-    <div className="relative w-full h-full min-h-[500px] overflow-hidden rounded-2xl border border-slate-200 shadow-sm bg-slate-100">
+    <div className="relative w-full h-full min-h-[500px] overflow-hidden rounded-2xl border border-default shadow-sm bg-muted">
       <div ref={mapContainer} className="w-full h-full" />
+      {errorNotice}
     </div>
   );
 }

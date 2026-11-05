@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import {
   SCENARIO_PRESETS,
   type ScenarioPreset,
@@ -22,6 +23,14 @@ interface ScenariosTabProps {
 }
 
 export function ScenariosTab({ active }: ScenariosTabProps) {
+  const [mobileControlsHost, setMobileControlsHost] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) setMobileControlsHost(document.querySelector<HTMLElement>('[data-map-mobile-controls-slot]'));
+    });
+    return () => { cancelled = true; };
+  }, []);
   const [activePreset, setActivePreset] = useState<ScenarioPreset>(SCENARIO_PRESETS.find(p => p.id === 'sendong') || SCENARIO_PRESETS[0]);
   const [scenarioData, setScenarioData] = useState<ScenarioData | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -243,6 +252,13 @@ export function ScenariosTab({ active }: ScenariosTabProps) {
         <LoadingOverlay message={loadError === 'Preparing live estimates' ? 'Preparing live flood estimates…' : rasterState === 'Loading flood image' ? 'Loading flood simulation map…' : `Loading ${activePreset.name}…`} className="pointer-events-none" />
       )}
 
+      {mobileControlsHost && createPortal(
+        <div data-scenario-controls className="pointer-events-auto min-w-0 md:hidden">
+          <ScenarioSelector activePreset={activePreset} onSelectPreset={selectPreset} isLoading={isLoading} />
+        </div>,
+        mobileControlsHost,
+      )}
+
       {/* Educational Disclaimer Modal for first-time visitors */}
       <ScenarioDisclaimerModal />
 
@@ -256,14 +272,7 @@ export function ScenariosTab({ active }: ScenariosTabProps) {
         {/* Scenario selection stays on the left; frame details live in the overview. */}
         <div className="absolute inset-0 z-[1020] pointer-events-none">
           <ScenarioSidebar activePreset={activePreset} onSelectPreset={selectPreset} isLoading={isLoading} />
-          <div data-scenario-controls className="pointer-events-auto absolute left-3 right-3 top-[calc(max(0.375rem,env(safe-area-inset-top,0px))+3.5rem)] sm:right-auto sm:w-80 md:hidden">
-            <ScenarioSelector
-              activePreset={activePreset}
-              onSelectPreset={selectPreset}
-              isLoading={isLoading}
-            />
 
-          </div>
         </div>
 
         {/* Bottom Center: Timeline Scrubber & Controls */}

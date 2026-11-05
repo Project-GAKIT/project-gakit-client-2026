@@ -54,13 +54,13 @@ const base = process.env.GAKIT_BASE_URL || 'http://localhost:3000';
       assert.equal(await page.evaluate(() => localStorage.getItem('gakit:recent-locations:v1')),null);
       await page.getByRole('button',{name:'Platform Guide',exact:true}).click();
       await measure('Guide');
-      await page.getByRole('button',{name:'Close guide',exact:true}).click();
-      await page.getByRole('button',{name:'Map display settings',exact:true}).click();
+      await page.keyboard.press('Escape');
+      await page.getByRole('button',{name:'Display settings',exact:true}).click();
       await measure('Display');
-      await page.getByRole('button',{name:'Close display settings',exact:true}).click();
+      await page.keyboard.press('Escape');
       await page.getByRole('button',{name:width < 768 ? 'Advisories' : 'Notifications',exact:true}).click();
       await measure('Alerts');
-      await page.getByRole('button',{name:'Close notifications',exact:true}).click();
+      await page.keyboard.press('Escape');
       if (width >= 768) {
         await page.getByRole('button',{name:'Open menu',exact:true}).click();
         await measure('Menu');

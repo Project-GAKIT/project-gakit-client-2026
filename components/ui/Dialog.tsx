@@ -68,7 +68,7 @@ export function Dialog({
   return createPortal(
     <div
       style={suspended ? { display: 'none' } : undefined}
-      className="fixed inset-0 z-[2100] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[2100] flex items-center justify-center bg-scrim/40 p-4 backdrop-blur-sm"
       onClick={onClose}
       role="presentation"
     >
@@ -79,7 +79,7 @@ export function Dialog({
         aria-label={ariaLabel}
         aria-labelledby={ariaLabelledBy}
         tabIndex={-1}
-        className={`w-full rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200 outline-none ${maxWidthClass} ${panelClassName}`}
+        className={`ui-surface w-full shadow-2xl outline-none ${maxWidthClass} ${panelClassName}`}
         onClick={(event) => event.stopPropagation()}
       >
         {children}

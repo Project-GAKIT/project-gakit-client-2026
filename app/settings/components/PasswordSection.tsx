@@ -90,7 +90,7 @@ export function PasswordSection({ email }: { email: string | null }) {
       <button
         type="button"
         onClick={() => setShow((visible) => !visible)}
-        className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-gakit-maroon"
+        className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary"
         aria-pressed={show}
       >
         {show ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
@@ -98,7 +98,7 @@ export function PasswordSection({ email }: { email: string | null }) {
       </button>
 
       {error && (
-        <div role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+        <div role="alert" className="rounded-lg bg-error-bg px-3 py-2 text-sm text-error-text">
           {error}
         </div>
       )}
@@ -111,7 +111,7 @@ export function PasswordSection({ email }: { email: string | null }) {
         <button
           type="submit"
           disabled={saving}
-          className="rounded-lg bg-gakit-maroon px-4 py-2 text-sm font-semibold text-white hover:bg-maroon-800 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-on-accent hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
         >
           {saving ? 'Updating…' : 'Update password'}
         </button>
@@ -137,11 +137,11 @@ function PasswordField({
 }) {
   return (
     <div>
-      <label htmlFor={id} className="mb-2 block text-sm font-semibold text-slate-700">
+      <label htmlFor={id} className="mb-2 block text-sm font-semibold text-secondary">
         {label}
       </label>
       <div className="relative">
-        <KeyRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <KeyRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <input
           id={id}
           type={show ? 'text' : 'password'}
@@ -149,7 +149,7 @@ function PasswordField({
           onChange={(event) => onChange(event.target.value)}
           autoComplete={autoComplete}
           placeholder="At least 8 characters"
-          className="w-full rounded-lg border border-canvas-grey bg-canvas-light py-2.5 pl-10 pr-3 text-sm text-slate-700 outline-none transition-colors placeholder:text-slate-400 focus:border-gakit-maroon/40 focus:bg-white focus:ring-2 focus:ring-gakit-maroon/10"
+          className="w-full rounded-lg border border-default bg-page py-2.5 pl-10 pr-3 text-sm text-secondary outline-none transition-colors placeholder:text-muted-foreground focus:border-strong/40 focus:bg-panel focus:ring-2 focus:ring-focus/10"
         />
       </div>
     </div>

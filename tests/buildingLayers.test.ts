@@ -14,6 +14,8 @@ import {
   BUILDING_EXTRUSION_COLOR_DARK,
   BUILDING_FILL_COLOR,
   BUILDING_FILL_COLOR_DARK,
+  BUILDING_FILL_OPACITY,
+  BUILDING_FILL_OPACITY_DARK,
   BUILDING_FILL_OUTLINE_COLOR,
   BUILDING_FILL_OUTLINE_COLOR_DARK,
 } from '@/constants/publicMap';
@@ -49,6 +51,7 @@ describe('applyBuildingBasemapPaint', () => {
         prop: 'fill-outline-color',
         value: BUILDING_FILL_OUTLINE_COLOR,
       },
+      { id: BUILDING_FOOTPRINT_LAYER_ID, prop: 'fill-opacity', value: BUILDING_FILL_OPACITY },
       {
         id: BUILDING_EXTRUSION_LAYER_ID,
         prop: 'fill-extrusion-color',
@@ -65,6 +68,7 @@ describe('applyBuildingBasemapPaint', () => {
         prop: 'fill-outline-color',
         value: BUILDING_FILL_OUTLINE_COLOR_DARK,
       },
+      { id: BUILDING_FOOTPRINT_LAYER_ID, prop: 'fill-opacity', value: BUILDING_FILL_OPACITY_DARK },
       {
         id: BUILDING_EXTRUSION_LAYER_ID,
         prop: 'fill-extrusion-color',
@@ -76,6 +80,23 @@ describe('applyBuildingBasemapPaint', () => {
   it('treats satellite like the other dark palettes and ignores missing layers', () => {
     const { map, paintCalls } = createRecordingMap();
     applyBuildingBasemapPaint(map, 'satellite');
+    expect(paintCalls).toEqual([]);
+  });
+
+  it('fills native dark basemap buildings even outside local footprint coverage', () => {
+    const { map, paintCalls } = createRecordingMap();
+    map.getStyle = () => ({ layers: [
+      { id: 'building', type: 'fill', 'source-layer': 'building' },
+      { id: 'water', type: 'fill', 'source-layer': 'water' },
+    ] });
+    applyBuildingBasemapPaint(map, 'dark');
+    expect(paintCalls).toEqual([
+      { id: 'building', prop: 'fill-color', value: BUILDING_FILL_COLOR_DARK },
+      { id: 'building', prop: 'fill-outline-color', value: BUILDING_FILL_OUTLINE_COLOR_DARK },
+      { id: 'building', prop: 'fill-opacity', value: BUILDING_FILL_OPACITY_DARK },
+    ]);
+    paintCalls.length = 0;
+    applyBuildingBasemapPaint(map, 'light');
     expect(paintCalls).toEqual([]);
   });
 });

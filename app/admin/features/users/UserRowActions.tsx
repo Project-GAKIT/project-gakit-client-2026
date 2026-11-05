@@ -95,7 +95,7 @@ export function UserRowActions({
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={`Actions for ${userLabel}`}
-        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon/40 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-default bg-panel text-muted-foreground transition-colors hover:border-default hover:bg-page hover:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus/40 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {busy ? (
           <Spinner size="sm" />
@@ -112,15 +112,15 @@ export function UserRowActions({
             role="menu"
             aria-label={`Actions for ${userLabel}`}
             style={{ top: position.top, left: position.left, width: MENU_WIDTH }}
-            className="fixed z-[2200] overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-xl ring-1 ring-slate-900/5"
+            className="fixed z-[2200] overflow-hidden rounded-xl border border-default bg-panel py-1 shadow-xl ring-1 ring-strong/5"
           >
             <button
               type="button"
               role="menuitem"
               onClick={choose(onEditRole)}
-              className="flex w-full items-center gap-2 whitespace-nowrap px-3 py-2 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gakit-maroon/30"
+              className="flex w-full items-center gap-2 whitespace-nowrap px-3 py-2 text-left text-sm font-medium text-secondary transition-colors hover:bg-page focus-visible:bg-page focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus/30"
             >
-              <ShieldCheck className="h-4 w-4 text-slate-400" aria-hidden="true" />
+              <ShieldCheck className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
               Edit role
             </button>
             {isPending && (
@@ -128,9 +128,9 @@ export function UserRowActions({
                 type="button"
                 role="menuitem"
                 onClick={choose(onResendInvite)}
-                className="flex w-full items-center gap-2 whitespace-nowrap px-3 py-2 text-left text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gakit-maroon/30"
+                className="flex w-full items-center gap-2 whitespace-nowrap px-3 py-2 text-left text-sm font-medium text-secondary transition-colors hover:bg-page focus-visible:bg-page focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus/30"
               >
-                <MailPlus className="h-4 w-4 text-slate-400" aria-hidden="true" />
+                <MailPlus className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                 Resend invitation
               </button>
             )}
@@ -138,8 +138,8 @@ export function UserRowActions({
               type="button"
               role="menuitem"
               onClick={choose(onToggleStatus)}
-              className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium transition-colors hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gakit-maroon/30 ${
-                isSuspended ? 'text-emerald-700' : 'text-red-700'
+              className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium transition-colors hover:bg-page focus-visible:bg-page focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus/30 ${
+                isSuspended ? 'text-success-text' : 'text-error-text'
               }`}
             >
               {isSuspended ? (

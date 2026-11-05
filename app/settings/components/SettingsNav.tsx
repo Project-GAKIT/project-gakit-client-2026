@@ -16,7 +16,7 @@ export function SettingsNav({ active, isAdmin = false }: { active: SectionId; is
     <nav
       role="navigation"
       aria-label="Settings sections"
-      className="rounded-2xl border border-canvas-grey bg-white p-2 shadow-sm md:p-1.5"
+      className="rounded-2xl border border-default bg-panel p-2 shadow-sm md:p-1.5"
     >
       <ul className="flex flex-wrap gap-1 md:flex-col">
         {items.map((item) => {
@@ -28,8 +28,8 @@ export function SettingsNav({ active, isAdmin = false }: { active: SectionId; is
                 aria-current={isActive ? 'page' : undefined}
                 className={`block rounded-xl px-3 py-2 text-sm font-semibold transition-colors ${
                   isActive
-                    ? 'bg-maroon-50 text-gakit-maroon'
-                    : 'text-slate-600 hover:bg-canvas-light hover:text-slate-900'
+                    ? 'bg-accent-subtle text-accent-text'
+                    : 'text-secondary hover:bg-page hover:text-primary'
                 }`}
               >
                 {item.label}

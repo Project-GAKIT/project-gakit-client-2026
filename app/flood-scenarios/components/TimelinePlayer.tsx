@@ -87,7 +87,7 @@ export function TimelinePlayer({
   const hasPeak = showPeakJump && peakIndex >= 0 && (frames[peakIndex].inundated_km2 ?? 0) > 0;
   const peakFraction = peakIndex / Math.max(1, maxIndex);
   const hasFrames = frames.length > 0;
-  const controlClass = 'flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 disabled:cursor-default disabled:opacity-30 disabled:hover:bg-transparent sm:h-9 sm:w-9';
+  const controlClass = 'flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-secondary transition-colors hover:bg-muted hover:text-primary disabled:cursor-default disabled:opacity-30 disabled:hover:bg-transparent sm:h-9 sm:w-9';
   const selectedTime = currentFrame && isLive ? new Date(currentFrame.raw_time) : null;
   const compactTime = selectedTime && Number.isFinite(selectedTime.getTime())
     ? new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', hour: 'numeric',
@@ -104,7 +104,7 @@ export function TimelinePlayer({
 
   return (
     <div ref={containerRef} role="region" aria-label="Flood simulation timeline" data-scenario-player={compactDesktop || undefined}
-      className={`rounded-xl border border-slate-200 bg-white ${className ?? 'absolute bottom-3 sm:bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 z-10 w-[calc(100%-1.25rem)] sm:w-[95%] max-w-3xl'} ${compactDesktop ? 'md:bottom-4 md:max-w-[640px]' : ''} px-3 py-1.5 text-slate-800 pointer-events-auto sm:px-4 sm:py-2.5 ${compactDesktop ? 'md:py-2 md:[&_button]:h-8 md:[&_button]:min-h-8 md:[&_button]:max-h-8' : ''} [&_button:focus-visible]:outline-none [&_button:focus-visible]:ring-2 [&_button:focus-visible]:ring-gakit-maroon [&_button:focus-visible]:ring-offset-2`}>
+      className={`rounded-xl border border-default bg-panel ${className ?? 'absolute bottom-3 sm:bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 z-10 w-[calc(100%-1.25rem)] sm:w-[95%] max-w-3xl'} ${compactDesktop ? 'md:bottom-4 md:max-w-[640px]' : ''} px-3 py-1.5 text-primary pointer-events-auto sm:px-4 sm:py-2.5 ${compactDesktop ? 'md:py-2 md:[&_button]:h-8 md:[&_button]:min-h-8 md:[&_button]:max-h-8' : ''} [&_button:focus-visible]:outline-none [&_button:focus-visible]:ring-2 [&_button:focus-visible]:ring-focus [&_button:focus-visible]:ring-offset-2`}>
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
         {isLive ? <div className="flex items-center gap-0.5 sm:gap-1" role="group" aria-label="Flood estimate period">
           {[
@@ -113,17 +113,17 @@ export function TimelinePlayer({
             { kind: 'forecast', label: 'Forecast', index: forecastIndex },
           ].map(period => <button key={period.kind} type="button" disabled={period.index < 0}
             aria-pressed={selectedPeriod === period.kind} onClick={() => onIndexChange(period.index)}
-            className={`flex min-h-7 items-center gap-1 border-b-2 px-1.5 text-[10px] font-semibold transition-colors disabled:opacity-30 sm:min-h-8 sm:gap-1.5 sm:px-2 sm:text-[11px] ${compactDesktop ? 'md:!min-h-6 md:!h-6' : ''} ${selectedPeriod === period.kind ? 'border-gakit-maroon text-gakit-maroon' : 'border-transparent text-slate-500 hover:text-slate-900'}`}>
+            className={`flex min-h-7 items-center gap-1 border-b-2 px-1.5 text-[10px] font-semibold transition-colors disabled:opacity-30 sm:min-h-8 sm:gap-1.5 sm:px-2 sm:text-[11px] ${compactDesktop ? 'md:!min-h-6 md:!h-6' : ''} ${selectedPeriod === period.kind ? 'border-accent-text text-accent-text' : 'border-transparent text-muted-foreground hover:text-primary'}`}>
             {period.kind === 'latest' && <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-emerald-600" />}
             {period.label}
           </button>)}
-        </div> : <span className="text-xs font-semibold text-slate-800">Flood simulation</span>}
+        </div> : <span className="text-xs font-semibold text-primary">Flood simulation</span>}
         <div className="flex min-w-0 items-center gap-1.5 text-right tabular-nums">
-          <p title={currentFrame?.display_time} className="text-[11px] font-semibold leading-5 text-slate-900 sm:text-xs">
+          <p title={currentFrame?.display_time} className="text-[11px] font-semibold leading-5 text-primary sm:text-xs">
             <span className="sm:hidden">{compactTime || (loading ? 'Preparing timeline…' : 'No frames available')}</span>
             <span className="hidden sm:inline">{currentFrame?.display_time || (loading ? 'Preparing timeline…' : 'No frames available')}</span>
           </p>
-          {isLive && <span className="text-[10px] text-slate-500">PHT</span>}
+          {isLive && <span className="text-[10px] text-muted-foreground">PHT</span>}
         </div>
       </div>
 
@@ -133,26 +133,26 @@ export function TimelinePlayer({
           aria-valuetext={currentFrame ? `${currentFrame.display_time}${isLive ? ' PHT' : ''}${currentFrame.is_forecast ? ', forecast' : ''}` : 'No frames available'}
           style={timelineBackground ? { '--flood-timeline-track': timelineBackground } as React.CSSProperties : undefined}
           onChange={event => onIndexChange(Number(event.target.value))}
-          className={`flood-timeline-slider block h-6 w-full cursor-pointer appearance-none bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon focus-visible:ring-offset-2 disabled:cursor-default disabled:opacity-40 sm:h-8 ${compactDesktop ? 'md:h-6' : ''}`} />
+          className={`flood-timeline-slider block h-6 w-full disabled:cursor-default disabled:opacity-40 sm:h-8 ${compactDesktop ? 'md:h-6' : ''}`} />
         {hasPeak && <button type="button" onClick={() => onIndexChange(peakIndex)} aria-label={`Jump to peak estimated flood area: ${frames[peakIndex].display_time}`}
           title={`Peak estimated flood area · ${frames[peakIndex].display_time}`}
-          style={{ left: `calc(6px + (100% - 12px) * ${peakFraction})` }}
-          className={`absolute top-0 flex h-5 w-6 -translate-x-1/2 items-center justify-center rounded text-amber-800 hover:text-gakit-maroon ${compactDesktop ? 'md:hidden' : ''}`}>
+          style={{ left: `calc(9px + (100% - 18px) * ${peakFraction})` }}
+          className={`absolute top-0 flex h-5 w-6 -translate-x-1/2 items-center justify-center rounded text-warning-text hover:text-accent-text ${compactDesktop ? 'md:hidden' : ''}`}>
           <Flag className="h-3.5 w-3.5" aria-hidden="true" />
         </button>}
-        <div aria-hidden="true" className={`hidden justify-between gap-2 text-[10px] leading-4 text-slate-500 tabular-nums sm:flex ${compactDesktop ? 'md:hidden' : ''}`}>
+        <div aria-hidden="true" className={`hidden justify-between gap-2 text-[10px] leading-4 text-muted-foreground tabular-nums sm:flex ${compactDesktop ? 'md:hidden' : ''}`}>
           {hasFrames ? tickIndices.map(index => <span key={index} title={frames[index].display_time}>{tickLabel(frames[index])}</span>) : <span>Timeline unavailable</span>}
         </div>
       </div>
 
-      <div data-timeline-controls className={`flex flex-wrap items-center justify-between gap-x-2 gap-y-1 sm:mt-2 sm:border-t sm:border-slate-100 sm:pt-2 ${compactDesktop ? 'md:mt-0 md:border-0 md:pt-0' : ''}`}>
+      <div data-timeline-controls className={`flex flex-wrap items-center justify-between gap-x-2 gap-y-1 sm:mt-2 sm:border-t sm:border-default sm:pt-2 ${compactDesktop ? 'md:mt-0 md:border-0 md:pt-0' : ''}`}>
         <div className="flex items-center gap-0.5" role="group" aria-label="Playback controls">
           <button type="button" onClick={handleStepBack} disabled={!hasFrames || currentIndex <= 0} title="Previous hour" aria-label="Previous hour" className={controlClass}>
             <SkipBack className="h-4 w-4" aria-hidden="true" />
           </button>
           <button type="button" onClick={onTogglePlay} disabled={frames.length < 2}
             title={isPlaying ? 'Pause simulation' : 'Play simulation'} aria-label={isPlaying ? 'Pause simulation' : 'Play simulation'}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gakit-maroon text-white transition-colors hover:bg-gakit-maroon-light disabled:cursor-default disabled:opacity-40 sm:h-9 sm:w-9">
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent text-on-accent transition-colors hover:bg-accent disabled:cursor-default disabled:opacity-40 sm:h-9 sm:w-9">
             {isPlaying ? <Pause className="h-4 w-4 fill-current" aria-hidden="true" /> : <Play className="ml-0.5 h-4 w-4 fill-current" aria-hidden="true" />}
           </button>
           <button type="button" onClick={handleStepForward} disabled={!hasFrames || currentIndex >= maxIndex} title="Next hour" aria-label="Next hour" className={controlClass}>
@@ -163,26 +163,26 @@ export function TimelinePlayer({
           {compactDesktop && hasPeak && <button type="button" onClick={() => onIndexChange(peakIndex)}
             aria-label={`Jump to peak estimated flood area: ${frames[peakIndex].display_time}`}
             title={`Peak estimated flood area · ${frames[peakIndex].display_time}`}
-            className="hidden h-8 items-center gap-1 rounded-md px-2 text-[11px] font-semibold text-amber-800 hover:bg-amber-50 md:flex">
+            className="hidden h-8 items-center gap-1 rounded-md px-2 text-[11px] font-semibold text-warning-text hover:bg-warning-bg md:flex">
             <Flag className="h-3.5 w-3.5" aria-hidden="true" />Peak
           </button>}
           {forecastCount > 0 && onToggleForecast && <button type="button" onClick={() => onToggleForecast(!showForecast)} aria-pressed={showForecast}
             aria-label={showForecast ? `Hide forecasts up to ${forecastMaxHours} hours ahead` : `Show forecasts up to ${forecastMaxHours} hours ahead`}
             title={showForecast ? 'Hide forecast hours' : 'Include forecast hours'}
-            className={`flex min-h-8 items-center gap-1 rounded-md px-2 text-[11px] font-semibold transition-colors sm:min-h-9 ${showForecast ? 'text-amber-800 hover:bg-amber-50' : 'text-slate-500 hover:bg-slate-100'}`}>
+            className={`flex min-h-8 items-center gap-1 rounded-md px-2 text-[11px] font-semibold transition-colors sm:min-h-9 ${showForecast ? 'text-warning-text hover:bg-warning-bg' : 'text-muted-foreground hover:bg-muted'}`}>
             <CloudLightning className="h-3.5 w-3.5" aria-hidden="true" /><span>+{forecastMaxHours}h</span>
           </button>}
           <button type="button" onClick={onReset} disabled={!hasFrames} title={resetText ? `${resetAction} · ${resetText}` : resetAction}
             aria-label={resetAction}
-            className="flex min-h-8 items-center gap-1.5 rounded-md px-2 text-[11px] font-semibold text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-default disabled:opacity-40 sm:min-h-9">
+            className="flex min-h-8 items-center gap-1.5 rounded-md px-2 text-[11px] font-semibold text-secondary transition-colors hover:bg-muted disabled:cursor-default disabled:opacity-40 sm:min-h-9">
             {loading ? <Spinner size="xs" label="Loading simulation" />
-              : isLive ? <Radio aria-hidden="true" className={`h-3.5 w-3.5 ${resetText === 'Following live' ? 'text-emerald-700' : ''}`} /> : <RotateCcw aria-hidden="true" className="h-3.5 w-3.5" />}
+              : isLive ? <Radio aria-hidden="true" className={`h-3.5 w-3.5 ${resetText === 'Following live' ? 'text-success-text' : ''}`} /> : <RotateCcw aria-hidden="true" className="h-3.5 w-3.5" />}
             <span>{resetText ?? (isLive ? 'Go live' : 'Restart')}</span>
           </button>
         </div>
       </div>
       <span role="status" className="sr-only">{loading ? 'Loading flood estimate' : ''}</span>
-      {status && <p role="status" className={`${routineStatus ? 'sr-only sm:not-sr-only sm:mt-1.5' : 'mt-1 sm:mt-1.5'} text-[11px] leading-4 text-slate-600`}>{status}</p>}
+      {status && <p role="status" className={`${routineStatus ? 'sr-only sm:not-sr-only sm:mt-1.5' : 'mt-1 sm:mt-1.5'} text-[11px] leading-4 text-secondary`}>{status}</p>}
     </div>
   );
 }

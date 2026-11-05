@@ -1,0 +1,15 @@
+/* Foundation values. Themes own every semantic color. */
+@layer base {
+  :root {
+    --brand-maroon: 122 0 25;
+    --space-unit: 0.25rem;
+    --radius-control: 0.5rem;
+    --radius-panel: 1rem;
+    --font-ui: 'Cal Sans', system-ui, sans-serif;
+    --shadow-panel: 0 12px 32px -4px rgb(0 0 0 / 18%);
+    --shadow-control: 0 4px 14px -2px rgb(0 0 0 / 12%);
+    --z-dialog: 2000;
+    --z-toast: 9999;
+    --hud-blur-desktop: 12px;
+  }
+}

@@ -2,11 +2,14 @@
 
 import React, { useEffect } from 'react';
 import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import { RouteLoaderProvider } from '@/components/RouteLoader';
+import { themeStore, useTheme } from '@/lib/theme/store';
 import { scenarioDisplayStore } from '@/lib/map/scenarioDisplayStore';
 
 export function ClientProviders({ children }: { children?: React.ReactNode }) {
+  const { resolved } = useTheme();
+  useEffect(() => themeStore.start(), []);
+
   // Restore persisted map-display preferences once, on the client, where
   // `localStorage` exists. Done here so the map honours them whichever route
   // the user lands on, not only after visiting Settings.
@@ -27,7 +30,7 @@ export function ClientProviders({ children }: { children?: React.ReactNode }) {
         pauseOnFocusLoss
         draggable
         pauseOnHover
-        theme="light"
+        theme={resolved}
       />
     </RouteLoaderProvider>
   );

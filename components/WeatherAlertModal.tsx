@@ -14,21 +14,21 @@ const SEVERITY_CONFIG: Record<
   { text: string; badge: string; icon: string; dot: string }
 > = {
   critical: {
-    text: 'text-red-700',
-    badge: 'bg-red-50 text-red-700',
-    icon: 'text-red-500',
+    text: 'text-error-text',
+    badge: 'bg-error-bg text-error-text',
+    icon: 'text-error-text',
     dot: 'bg-red-500',
   },
   warning: {
-    text: 'text-orange-700',
-    badge: 'bg-orange-50 text-orange-700',
-    icon: 'text-orange-500',
+    text: 'text-caution-text',
+    badge: 'bg-caution-bg text-caution-text',
+    icon: 'text-caution-text',
     dot: 'bg-orange-500',
   },
   info: {
-    text: 'text-blue-700',
-    badge: 'bg-blue-50 text-blue-700',
-    icon: 'text-blue-500',
+    text: 'text-info-text',
+    badge: 'bg-info-bg text-info-text',
+    icon: 'text-info-text',
     dot: 'bg-blue-500',
   },
 };
@@ -106,17 +106,17 @@ function AdvisoryWeatherAlertModal({ alert, highlightDate, onClose }: WeatherAle
   // The projected bulletin title identifies the warning level for Iligan.
   const rainfallLevel = rainfallWarningLevel(activeAlert);
   const rainfallStyle = rainfallLevel === 'yellow'
-    ? { badge: 'bg-yellow-100 text-yellow-900', border: 'border-l-yellow-500', header: 'bg-yellow-50', label: 'Yellow advisory' }
+    ? { badge: 'bg-warning-bg text-warning-text', border: 'border-l-yellow-500', header: 'bg-warning-bg', label: 'Yellow advisory' }
     : rainfallLevel === 'orange'
-      ? { badge: 'bg-orange-100 text-orange-900', border: 'border-l-orange-500', header: 'bg-orange-50', label: 'Orange warning' }
+      ? { badge: 'bg-caution-bg text-caution-text', border: 'border-l-orange-500', header: 'bg-caution-bg', label: 'Orange warning' }
       : rainfallLevel === 'red'
-        ? { badge: 'bg-red-100 text-red-900', border: 'border-l-red-500', header: 'bg-red-50', label: 'Red warning' }
+        ? { badge: 'bg-error-bg text-error-text', border: 'border-l-red-500', header: 'bg-error-bg', label: 'Red warning' }
         : undefined;
   const thunderstormType = thunderstormBulletinType(activeAlert);
   const bulletinStyle = rainfallStyle ?? (thunderstormType === 'watch'
-    ? { badge: 'bg-blue-50 text-blue-800', border: 'border-l-blue-500', header: 'bg-blue-50', label: 'Thunderstorm Watch' }
+    ? { badge: 'bg-info-bg text-info-text', border: 'border-l-blue-500', header: 'bg-info-bg', label: 'Thunderstorm Watch' }
     : thunderstormType === 'advisory'
-      ? { badge: 'bg-amber-50 text-amber-900', border: 'border-l-amber-500', header: 'bg-amber-50', label: 'Thunderstorm Advisory' }
+      ? { badge: 'bg-warning-bg text-warning-text', border: 'border-l-amber-500', header: 'bg-warning-bg', label: 'Thunderstorm Advisory' }
       : undefined);
   const config = bulletinStyle ?? SEVERITY_CONFIG[activeAlert.severity];
   const localTowns = activeAlert.data?.coverageLabel ? [activeAlert.data.coverageLabel] : pagasa ? parseLocalTowns(activeAlert) : [];
@@ -138,29 +138,29 @@ function AdvisoryWeatherAlertModal({ alert, highlightDate, onClose }: WeatherAle
       onClose={onClose}
       ariaLabelledBy={titleId}
       maxWidthClass="max-w-xl"
-      panelClassName="relative flex max-h-[90dvh] flex-col overflow-hidden border border-canvas-grey"
+      panelClassName="relative flex max-h-[90dvh] flex-col overflow-hidden border border-default"
     >
-        <div className={`flex shrink-0 items-start justify-between gap-3 border-b border-slate-100 px-4 py-3 sm:px-5 ${bulletinStyle?.header ?? ''}`}>
+        <div className={`flex shrink-0 items-start justify-between gap-3 border-b border-default px-4 py-3 sm:px-5 ${bulletinStyle?.header ?? ''}`}>
           <div className="flex min-w-0 items-start gap-2.5">
             <span className={`mt-0.5 shrink-0 rounded-xl p-2 ${config.badge}`}><Icon className="h-5 w-5" /></span>
             <div className="min-w-0">
               <div className="mb-1 flex flex-wrap items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide">
-                <span className="text-slate-500">{ALERT_TYPE_LABELS[activeAlert.alertType]}</span>
+                <span className="text-muted-foreground">{ALERT_TYPE_LABELS[activeAlert.alertType]}</span>
                 <span className={`rounded px-1.5 py-0.5 ${config.badge}`}>{bulletinStyle?.label ?? activeAlert.severity}</span>
-                {activeAlert.data?.bulletinNumber != null && <span className="text-slate-500">Bulletin #{activeAlert.data.bulletinNumber}</span>}
+                {activeAlert.data?.bulletinNumber != null && <span className="text-muted-foreground">Bulletin #{activeAlert.data.bulletinNumber}</span>}
               </div>
-              <h3 id={titleId} className="text-sm font-bold leading-5 text-slate-900">{heading}</h3>
+              <h3 id={titleId} className="text-sm font-bold leading-5 text-primary">{heading}</h3>
             </div>
           </div>
-          <button type="button" onClick={onClose} className="shrink-0 rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700" aria-label="Close weather alert"><X className="h-4 w-4" /></button>
+          <button type="button" onClick={onClose} className="shrink-0 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-secondary" aria-label="Close weather alert"><X className="h-4 w-4" /></button>
         </div>
 
         <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-4 sm:p-5">
-          <dl className="grid grid-cols-2 divide-x divide-slate-200 rounded-xl border border-slate-200 bg-slate-50 py-2.5">
-            <div className="px-3"><dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-600">Issued · PHT</dt><dd className="mt-1 text-[11px] font-semibold text-slate-700">{alertDateTime(activeAlert.data?.issuedAt || activeAlert.createdAt)}</dd></div>
-            <div className="px-3"><dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-600">Valid until · PHT</dt><dd className="mt-1 text-[11px] font-semibold text-slate-700">{alertDateTime(activeAlert.validTo)}</dd></div>
+          <dl className="grid grid-cols-2 divide-x divide-default rounded-xl border border-default bg-page py-2.5">
+            <div className="px-3"><dt className="text-[11px] font-semibold uppercase tracking-wide text-secondary">Issued · PHT</dt><dd className="mt-1 text-[11px] font-semibold text-secondary">{alertDateTime(activeAlert.data?.issuedAt || activeAlert.createdAt)}</dd></div>
+            <div className="px-3"><dt className="text-[11px] font-semibold uppercase tracking-wide text-secondary">Valid until · PHT</dt><dd className="mt-1 text-[11px] font-semibold text-secondary">{alertDateTime(activeAlert.validTo)}</dd></div>
           </dl>
-          {activeAlert.alertType === 'daily_digest' && digestPeriod(activeAlert) && <p className="text-[11px] font-medium text-slate-500">{digestPeriod(activeAlert)}</p>}
+          {activeAlert.alertType === 'daily_digest' && digestPeriod(activeAlert) && <p className="text-[11px] font-medium text-muted-foreground">{digestPeriod(activeAlert)}</p>}
 
           {days.length > 0 ? (
             <div className="space-y-3">
@@ -179,22 +179,22 @@ function AdvisoryWeatherAlertModal({ alert, highlightDate, onClose }: WeatherAle
                       onClick={() => setSelectedDate(day.date)}
                       className={`flex flex-col items-center justify-between rounded-xl p-2 text-center transition-colors duration-150 ${
                         isSelected
-                          ? 'bg-white text-slate-900 shadow-md ring-2 ring-gakit-maroon font-bold'
-                          : 'bg-canvas-light text-slate-600 hover:bg-slate-100/80 ring-1 ring-canvas-grey'
+                          ? 'bg-panel text-primary shadow-md ring-2 ring-focus font-bold'
+                          : 'bg-page text-secondary hover:bg-muted/80 ring-1 ring-default'
                       }`}
                     >
-                      <span className={`text-[11px] font-bold uppercase tracking-wider transition-colors ${isSelected ? 'text-gakit-maroon' : 'text-slate-600'}`}>
+                      <span className={`text-[11px] font-bold uppercase tracking-wider transition-colors ${isSelected ? 'text-secondary' : 'text-secondary'}`}>
                         {shortName}
                       </span>
-                      <div className={`my-1.5 flex h-7 w-7 items-center justify-center rounded-lg transition-colors ${isSelected ? 'bg-maroon-50/80 ring-1 ring-maroon-200/60' : 'bg-white shadow-2xs ring-1 ring-canvas-grey'}`}>
-                        <DayIcon className={`h-4 w-4 ${isSelected ? 'text-gakit-maroon' : 'text-slate-600'}`} />
+                      <div className={`my-1.5 flex h-7 w-7 items-center justify-center rounded-lg transition-colors ${isSelected ? 'bg-muted/80 ring-1 ring-focus/60' : 'bg-panel shadow-2xs ring-1 ring-default'}`}>
+                        <DayIcon className={`h-4 w-4 ${isSelected ? 'text-secondary' : 'text-secondary'}`} />
                       </div>
                       <div className="flex items-center gap-0.5 text-[11px] tabular-nums font-bold leading-none">
-                        <span className="text-slate-900">{day.tempMax}°</span>
-                        <span className="text-slate-500 font-normal text-[11px]">{day.tempMin}°</span>
+                        <span className="text-primary">{day.tempMax}°</span>
+                        <span className="text-muted-foreground font-normal text-[11px]">{day.tempMin}°</span>
                       </div>
-                      <span className={`mt-1 flex items-center justify-center gap-0.5 text-[11px] font-semibold tabular-nums leading-none ${(day.rainChance ?? 0) > 0 ? 'text-sky-700' : 'text-slate-500'}`}>
-                        {(day.rainChance ?? 0) > 0 && <Droplet className="h-3 w-3 text-sky-500 fill-sky-500/30 shrink-0" />}
+                      <span className={`mt-1 flex items-center justify-center gap-0.5 text-[11px] font-semibold tabular-nums leading-none ${(day.rainChance ?? 0) > 0 ? 'text-info-text' : 'text-muted-foreground'}`}>
+                        {(day.rainChance ?? 0) > 0 && <Droplet className="h-3 w-3 text-info-text fill-sky-500/30 shrink-0" />}
                         <span>{day.rainChance == null ? 'Unavailable' : `${day.rainChance}%`}</span>
                       </span>
                     </button>
@@ -204,25 +204,25 @@ function AdvisoryWeatherAlertModal({ alert, highlightDate, onClose }: WeatherAle
 
               {/* Active Day Detail Card */}
               {activeDay && (
-                <div className="rounded-xl bg-canvas-light p-3.5 ring-1 ring-canvas-grey space-y-3">
+                <div className="rounded-xl bg-page p-3.5 ring-1 ring-default space-y-3">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-xs ring-1 ring-canvas-grey">
-                        <ActiveIcon className="h-5 w-5 text-gakit-maroon" />
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-panel shadow-xs ring-1 ring-default">
+                        <ActiveIcon className="h-5 w-5 text-secondary" />
                       </span>
                       <div>
-                        <span className="block text-sm font-bold text-slate-900">
+                        <span className="block text-sm font-bold text-primary">
                           {friendlyDay(`${activeDay.date}T00:00:00+08:00`)}
                         </span>
-                        <span className="block text-xs font-medium text-slate-500">
+                        <span className="block text-xs font-medium text-muted-foreground">
                           {activeDetail}
                         </span>
                       </div>
                     </div>
                     <div className="text-right tabular-nums">
-                      <div className="text-base font-bold text-slate-900">
+                      <div className="text-base font-bold text-primary">
                         {activeDay.tempMax}°
-                        <span className="ml-1 text-xs font-normal text-slate-400">/ {activeDay.tempMin}°</span>
+                        <span className="ml-1 text-xs font-normal text-muted-foreground">/ {activeDay.tempMin}°</span>
                       </div>
                     </div>
                   </div>
@@ -230,8 +230,8 @@ function AdvisoryWeatherAlertModal({ alert, highlightDate, onClose }: WeatherAle
                   {/* Hourly Rain Timeline */}
                   {((activeDay.hourlyProbabilities && activeDay.hourlyProbabilities.length > 0) ||
                     (activeDay.hours && activeDay.hours.length > 0)) && (
-                    <div className="pt-2 border-t border-slate-200/60">
-                      <div className="text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
+                    <div className="pt-2 border-t border-default/60">
+                      <div className="text-[11px] font-bold text-secondary uppercase tracking-wider mb-1">
                         Hourly Precipitation Chance
                       </div>
                       <RainStrip
@@ -242,18 +242,18 @@ function AdvisoryWeatherAlertModal({ alert, highlightDate, onClose }: WeatherAle
                   )}
 
                   {/* Key Day Metrics */}
-                  <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-200/60 text-center">
-                    <div className="rounded-lg bg-white p-2 shadow-2xs ring-1 ring-canvas-grey">
-                      <span className="block text-[11px] text-slate-500 font-medium">Rain chance</span>
-                      <span className="text-xs font-bold text-slate-800 tabular-nums">{activeDay.rainChance}%</span>
+                  <div className="grid grid-cols-3 gap-2 pt-2 border-t border-default/60 text-center">
+                    <div className="rounded-lg bg-panel p-2 shadow-2xs ring-1 ring-default">
+                      <span className="block text-[11px] text-muted-foreground font-medium">Rain chance</span>
+                      <span className="text-xs font-bold text-primary tabular-nums">{activeDay.rainChance}%</span>
                     </div>
-                    <div className="rounded-lg bg-white p-2 shadow-2xs ring-1 ring-canvas-grey">
-                      <span className="block text-[11px] text-slate-500 font-medium">Precipitation</span>
-                      <span className="text-xs font-bold text-slate-800 tabular-nums">~{activeDay.rainMm.toFixed(1)} mm</span>
+                    <div className="rounded-lg bg-panel p-2 shadow-2xs ring-1 ring-default">
+                      <span className="block text-[11px] text-muted-foreground font-medium">Precipitation</span>
+                      <span className="text-xs font-bold text-primary tabular-nums">~{activeDay.rainMm.toFixed(1)} mm</span>
                     </div>
-                    <div className="rounded-lg bg-white p-2 shadow-2xs ring-1 ring-canvas-grey">
-                      <span className="block text-[11px] text-slate-500 font-medium">Peak Wind</span>
-                      <span className="text-xs font-bold text-slate-800 tabular-nums">{activeDay.windMax} km/h</span>
+                    <div className="rounded-lg bg-panel p-2 shadow-2xs ring-1 ring-default">
+                      <span className="block text-[11px] text-muted-foreground font-medium">Peak Wind</span>
+                      <span className="text-xs font-bold text-primary tabular-nums">{activeDay.windMax} km/h</span>
                     </div>
                   </div>
                 </div>
@@ -262,29 +262,29 @@ function AdvisoryWeatherAlertModal({ alert, highlightDate, onClose }: WeatherAle
           ) : (
             <div className="space-y-3">
               {summary && (
-                <div className={`rounded-xl border border-slate-200 border-l-[3px] bg-slate-50/70 p-3 ${bulletinStyle?.border ?? (activeAlert.severity === 'critical' ? 'border-l-red-500' : activeAlert.severity === 'warning' ? 'border-l-orange-500' : 'border-l-blue-500')}`}>
-                  <h4 className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-500">Advisory summary</h4>
-                  <p className="whitespace-pre-line text-xs leading-5 text-slate-700">{summary}</p>
+                <div className={`rounded-xl border border-default border-l-[3px] bg-page/70 p-3 ${bulletinStyle?.border ?? (activeAlert.severity === 'critical' ? 'border-l-red-500' : activeAlert.severity === 'warning' ? 'border-l-orange-500' : 'border-l-blue-500')}`}>
+                  <h4 className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Advisory summary</h4>
+                  <p className="whitespace-pre-line text-xs leading-5 text-secondary">{summary}</p>
                 </div>
               )}
               {towns.length > 0 && (
-                <div className="rounded-xl bg-slate-50 p-3 border border-slate-200/70 text-xs">
-                  <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-500"><MapPin className="h-3 w-3" />{activeAlert.data?.coverageLabel ? 'Local coverage' : 'Affected areas'}</h4>
-                  {activeAlert.data?.coverageLabel && <p className="mb-2 text-[11px] leading-4 text-slate-600">This advisory applies to Iligan City. The original regional bulletin may also name other towns or warning levels.</p>}
+                <div className="rounded-xl bg-page p-3 border border-default/70 text-xs">
+                  <h4 className="mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-muted-foreground"><MapPin className="h-3 w-3" />{activeAlert.data?.coverageLabel ? 'Local coverage' : 'Affected areas'}</h4>
+                  {activeAlert.data?.coverageLabel && <p className="mb-2 text-[11px] leading-4 text-secondary">This advisory applies to Iligan City. The original regional bulletin may also name other towns or warning levels.</p>}
                   <div className="flex flex-wrap gap-1.5">
                     {visibleTowns.map((town) =>
                       /iligan/i.test(town) ? (
                         <span
                           key={town}
                           title="Your area"
-                          className="inline-block rounded-md bg-maroon-50 px-2 py-0.5 text-xs font-bold text-gakit-maroon border border-maroon-200/80 shadow-2xs"
+                          className="inline-block rounded-md bg-muted px-2 py-0.5 text-xs font-bold text-secondary border border-default/80 shadow-2xs"
                         >
                           {town}
                         </span>
                       ) : (
                         <span
                           key={town}
-                          className="inline-block rounded-md bg-white px-2 py-0.5 text-xs font-medium text-slate-700 border border-slate-200 shadow-2xs"
+                          className="inline-block rounded-md bg-panel px-2 py-0.5 text-xs font-medium text-secondary border border-default shadow-2xs"
                         >
                           {town}
                         </span>
@@ -294,7 +294,7 @@ function AdvisoryWeatherAlertModal({ alert, highlightDate, onClose }: WeatherAle
                       <button
                         type="button"
                         onClick={() => setTownsExpanded(true)}
-                        className="inline-block rounded-md bg-white px-2 py-0.5 text-xs font-semibold text-gakit-maroon border border-maroon-200/70 hover:bg-maroon-50 transition-colors"
+                        className="inline-block rounded-md bg-panel px-2 py-0.5 text-xs font-semibold text-secondary border border-default/70 hover:bg-muted transition-colors"
                       >
                         +{towns.length - visibleTowns.length} more
                       </button>
@@ -303,7 +303,7 @@ function AdvisoryWeatherAlertModal({ alert, highlightDate, onClose }: WeatherAle
                       <button
                         type="button"
                         onClick={() => setTownsExpanded(false)}
-                        className="inline-block rounded-md px-2 py-0.5 text-xs font-semibold text-slate-500 hover:text-slate-700 transition-colors"
+                        className="inline-block rounded-md px-2 py-0.5 text-xs font-semibold text-muted-foreground hover:text-secondary transition-colors"
                       >
                         Show less
                       </button>
@@ -312,16 +312,16 @@ function AdvisoryWeatherAlertModal({ alert, highlightDate, onClose }: WeatherAle
                 </div>
               )}
               {otherCount > 0 && (
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[11px] text-muted-foreground">
                   + also covering {otherCount} other province{otherCount === 1 ? '' : 's'}.
                 </p>
               )}
               {showFull && (
-                <details className="rounded-xl bg-slate-50 border border-slate-200/70 px-3 py-2">
-                  <summary className="cursor-pointer text-xs font-semibold text-slate-600 hover:text-slate-900">
+                <details className="rounded-xl bg-page border border-default/70 px-3 py-2">
+                  <summary className="cursor-pointer text-xs font-semibold text-secondary hover:text-primary">
                     Full bulletin
                   </summary>
-                  <p className="mt-2 whitespace-pre-line text-xs text-slate-600 leading-relaxed">
+                  <p className="mt-2 whitespace-pre-line text-xs text-secondary leading-relaxed">
                     {fullText.trim()}
                   </p>
                 </details>
@@ -331,11 +331,11 @@ function AdvisoryWeatherAlertModal({ alert, highlightDate, onClose }: WeatherAle
         </div>
 
         {/* Footer */}
-        <div className="flex shrink-0 items-center justify-between gap-3 border-t border-slate-100 px-4 py-2.5 sm:px-5">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-t border-default px-4 py-2.5 sm:px-5">
           <WeatherAttribution source={activeAlert.data?.source ?? (activeAlert.alertType === 'daily_digest' ? 'Open-Meteo' : 'DOST-PAGASA MINPRSD')} />
           <button
             onClick={onClose}
-            className="rounded-lg bg-gakit-maroon px-3 py-1.5 text-xs font-semibold text-white hover:bg-maroon-800 transition-colors"
+            className="rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-on-accent hover:bg-accent-hover transition-colors"
           >
             Close
           </button>

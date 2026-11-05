@@ -116,8 +116,8 @@ export default function ResetPasswordPage() {
 
   if (status === 'checking') {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-canvas-light p-4">
-        <div className="flex items-center gap-2 text-sm font-semibold text-slate-500">
+      <main className="flex min-h-screen items-center justify-center bg-page p-4">
+        <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
           <Spinner size="md" />
           Checking your reset link...
         </div>
@@ -126,30 +126,30 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-maroon-50 via-white to-canvas-light px-6 py-12">
-      <section className="w-full max-w-md rounded-2xl border border-white bg-white p-6 shadow-xl shadow-slate-950/5 sm:p-8">
+    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-accent-subtle via-panel to-page px-6 py-12">
+      <section className="w-full max-w-md rounded-2xl border border-default bg-panel p-6 shadow-xl shadow-scrim/5 sm:p-8">
         <Link
           href="/login"
-          className="mb-8 inline-flex items-center gap-2 text-sm font-semibold text-slate-600 transition-colors hover:text-gakit-maroon"
+          className="mb-8 inline-flex items-center gap-2 text-sm font-semibold text-secondary transition-colors hover:text-primary"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to sign in
         </Link>
 
         {done ? (
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5">
-            <CheckCircle2 className="h-8 w-8 text-emerald-600" />
-            <h1 className="mt-4 font-heading text-2xl font-bold text-slate-950">Password updated</h1>
-            <p className="mt-2 text-sm leading-6 text-slate-600">Taking you back to sign in...</p>
+          <div className="rounded-xl border border-success-border bg-success-bg p-5">
+            <CheckCircle2 className="h-8 w-8 text-success-text" />
+            <h1 className="mt-4 font-heading text-2xl font-bold text-primary">Password updated</h1>
+            <p className="mt-2 text-sm leading-6 text-secondary">Taking you back to sign in...</p>
           </div>
         ) : status === 'error' ? (
-          <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
-            <AlertTriangle className="h-8 w-8 text-amber-600" />
-            <h1 className="mt-4 font-heading text-2xl font-bold text-slate-950">Link can&apos;t be used</h1>
-            <p className="mt-2 text-sm leading-6 text-slate-600">{errorMessage}</p>
+          <div className="rounded-xl border border-warning-border bg-warning-bg p-5">
+            <AlertTriangle className="h-8 w-8 text-warning-text" />
+            <h1 className="mt-4 font-heading text-2xl font-bold text-primary">Link can&apos;t be used</h1>
+            <p className="mt-2 text-sm leading-6 text-secondary">{errorMessage}</p>
             <Link
               href="/login"
-              className="mt-6 inline-flex rounded-lg bg-gakit-maroon px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-maroon-800"
+              className="mt-6 inline-flex rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover"
             >
               Request another link
             </Link>
@@ -157,11 +157,11 @@ export default function ResetPasswordPage() {
         ) : (
           <>
             <div className="mb-8">
-              <div className="mb-4 inline-flex rounded-full bg-maroon-50 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-gakit-maroon">
+              <div className="mb-4 inline-flex rounded-full bg-muted px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-secondary">
                 Secure recovery
               </div>
-              <h1 className="font-heading text-3xl font-bold tracking-tight text-slate-950">Choose a new password</h1>
-              <p className="mt-2 text-sm leading-6 text-slate-600">Use at least 8 characters and keep it private.</p>
+              <h1 className="font-heading text-3xl font-bold tracking-tight text-primary">Choose a new password</h1>
+              <p className="mt-2 text-sm leading-6 text-secondary">Use at least 8 characters and keep it private.</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -185,7 +185,7 @@ export default function ResetPasswordPage() {
               />
 
               {localError && (
-                <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <div role="alert" className="rounded-xl border border-error-border bg-error-bg px-4 py-3 text-sm text-error-text">
                   {localError}
                 </div>
               )}
@@ -193,7 +193,7 @@ export default function ResetPasswordPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full rounded-xl bg-gakit-maroon px-6 py-3 font-semibold text-white shadow-lg shadow-gakit-maroon/20 transition-colors hover:bg-maroon-800 disabled:cursor-not-allowed disabled:opacity-60"
+                className="w-full rounded-xl bg-accent px-6 py-3 font-semibold text-on-accent shadow-lg shadow-gakit-maroon/20 transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isSubmitting ? 'Updating password...' : 'Update password'}
               </button>
@@ -224,11 +224,11 @@ function PasswordField({
 }) {
   return (
     <div>
-      <label htmlFor={id} className="mb-2 block text-sm font-semibold text-slate-900">
+      <label htmlFor={id} className="mb-2 block text-sm font-semibold text-primary">
         {label}
       </label>
       <div className="relative">
-        <KeyRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <KeyRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <input
           id={id}
           type={show ? 'text' : 'password'}
@@ -238,12 +238,12 @@ function PasswordField({
           value={value}
           onChange={(event) => onChange(event.target.value)}
           placeholder="At least 8 characters"
-          className="w-full rounded-xl border border-canvas-grey py-3 pl-10 pr-11 placeholder:text-slate-400 focus:border-gakit-maroon focus:outline-none focus:ring-2 focus:ring-gakit-maroon/20"
+          className="w-full rounded-xl border border-default py-3 pl-10 pr-11 placeholder:text-muted-foreground focus:border-strong focus:outline-none focus:ring-2 focus:ring-focus/20"
         />
         <button
           type="button"
           onClick={onToggle}
-          className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 transition-colors hover:text-slate-600"
+          className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground transition-colors hover:text-secondary"
           aria-label={show ? `Hide ${label.toLowerCase()}` : `Show ${label.toLowerCase()}`}
         >
           {show ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}

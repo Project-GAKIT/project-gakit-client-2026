@@ -106,56 +106,56 @@ export function ArchiveSection({
   };
 
   return (
-    <section className="overflow-hidden rounded-xl border border-slate-200 bg-white" aria-label="Submission archive">
+    <section className="overflow-hidden rounded-xl border border-default bg-panel" aria-label="Submission archive">
       <div className="flex items-center gap-3 px-3 py-1.5">
         <button type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open}
           aria-controls="dashboard-archive-content"
-          className="flex min-w-0 flex-1 items-center justify-between gap-3 text-left hover:text-gakit-maroon">
+          className="flex min-w-0 flex-1 items-center justify-between gap-3 text-left hover:text-primary">
           <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-            <History className="h-3.5 w-3.5 text-gakit-maroon" />
-            <span className="text-xs font-semibold text-slate-700">Submission Archive</span>
-            <span className="hidden text-[10px] text-slate-400 sm:inline">{total.toLocaleString('en-PH')} received · {MONTHS[month - 1]} {selectedYear}</span>
+            <History className="h-3.5 w-3.5 text-secondary" />
+            <span className="text-xs font-semibold text-secondary">Submission Archive</span>
+            <span className="hidden text-[10px] text-muted-foreground sm:inline">{total.toLocaleString('en-PH')} received · {MONTHS[month - 1]} {selectedYear}</span>
             {open && loading && <Spinner size="xs" label="Refreshing archive" />}
           </span>
-          <ChevronDown className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+          <ChevronDown className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`} />
         </button>
         <label htmlFor="archive-year" className="sr-only">Select year</label>
         <select id="archive-year" value={selectedYear} onChange={(event) => {
           setSelectedDate(null);
           setHoveredDate(null);
           onYearChange(event.target.value);
-        }} className="rounded-md border border-slate-200 bg-white px-2 py-1 text-[10px] font-semibold text-slate-700 outline-none focus:border-gakit-maroon">
+        }} className="rounded-md border border-default bg-panel px-2 py-1 text-[10px] font-semibold text-secondary outline-none focus:border-strong">
           {years.map((year) => <option key={year}>{year}</option>)}
         </select>
       </div>
       {open && (
-        <div id="dashboard-archive-content" className="border-t border-slate-100 p-3 sm:px-4">
-          {error && <div role="alert" className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-md bg-amber-50 px-3 py-2 text-[11px] text-amber-800">
+        <div id="dashboard-archive-content" className="border-t border-default p-3 sm:px-4">
+          {error && <div role="alert" className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-md bg-warning-bg px-3 py-2 text-[11px] text-warning-text">
             <span>{archive ? 'Archive refresh failed. Showing the last available daily counts.' : 'Daily submission archive could not load.'}</span>
             <button type="button" onClick={() => setRetry((value) => value + 1)} className="font-semibold underline underline-offset-2">Retry archive</button>
           </div>}
-          {!archive && !error && <div className="flex h-44 items-center justify-center text-xs text-slate-500" aria-busy="true">Loading daily submissions…</div>}
+          {!archive && !error && <div className="flex h-44 items-center justify-center text-xs text-muted-foreground" aria-busy="true">Loading daily submissions…</div>}
           {archive && calendar && <div className="grid gap-4 lg:grid-cols-2">
             <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
               <div className="flex items-center gap-2">
                 <button type="button" onClick={() => changeMonth(month - 1)} disabled={month === 1}
-                  aria-label="Previous month" className="rounded p-1 text-slate-500 hover:bg-slate-100 disabled:opacity-25"><ChevronLeft className="h-3.5 w-3.5" /></button>
+                  aria-label="Previous month" className="rounded p-1 text-muted-foreground hover:bg-muted disabled:opacity-25"><ChevronLeft className="h-3.5 w-3.5" /></button>
                 <label htmlFor="archive-month" className="sr-only">Select month</label>
                 <select id="archive-month" value={month} onChange={(event) => changeMonth(Number(event.target.value))}
-                  className="min-w-0 rounded border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-700 outline-none focus:border-gakit-maroon">
+                  className="min-w-0 rounded border border-default bg-panel px-2 py-1 text-xs font-semibold text-secondary outline-none focus:border-strong">
                   {MONTHS.map((label, index) => <option key={label} value={index + 1}>{label}</option>)}
                 </select>
-                <span className="text-[11px] text-slate-400">{selectedYear}</span>
+                <span className="text-[11px] text-muted-foreground">{selectedYear}</span>
                 <button type="button" onClick={() => changeMonth(month + 1)} disabled={month === 12}
-                  aria-label="Next month" className="rounded p-1 text-slate-500 hover:bg-slate-100 disabled:opacity-25"><ChevronRight className="h-3.5 w-3.5" /></button>
+                  aria-label="Next month" className="rounded p-1 text-muted-foreground hover:bg-muted disabled:opacity-25"><ChevronRight className="h-3.5 w-3.5" /></button>
               </div>
             </div>
             <p id="archive-keyboard-help" className="sr-only">Use left and right arrows to move one day, up and down to move one week. Select a day for its submission count.</p>
             <div className="grid gap-3 sm:grid-cols-[224px_minmax(0,1fr)] sm:items-start">
             <div role="group" aria-label={`Daily submissions in ${MONTHS[month - 1]} ${selectedYear}`} aria-describedby="archive-keyboard-help"
               onMouseLeave={() => setHoveredDate(null)} className="mx-auto grid w-full max-w-[224px] grid-cols-7 gap-1">
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => <span key={day} aria-hidden className="pb-0.5 text-center text-[9px] text-slate-400">{day}</span>)}
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => <span key={day} aria-hidden className="pb-0.5 text-center text-[9px] text-muted-foreground">{day}</span>)}
               {calendar.cells.map((cell, index) => cell.date ? (
                 <button key={cell.date} type="button" data-date={cell.date}
                   ref={(element) => { if (element) buttons.current.set(cell.date!, element); else buttons.current.delete(cell.date!); }}
@@ -165,30 +165,30 @@ export function ArchiveSection({
                   aria-pressed={!cell.future && cell.date === activeDate}
                   onClick={() => setSelectedDate(cell.date)} onFocus={() => setSelectedDate(cell.date)}
                   onMouseEnter={() => setHoveredDate(cell.date)} onKeyDown={(event) => navigate(event, index)}
-                  className="aspect-square rounded-md border text-[10px] font-medium outline-offset-2 hover:brightness-95 focus-visible:ring-2 focus-visible:ring-gakit-maroon focus-visible:ring-offset-1 disabled:cursor-default disabled:hover:brightness-100"
-                  style={{ background: cell.future ? 'transparent' : ARCHIVE_LEVELS[cell.level].color,
-                    color: cell.future ? '#cbd5e1' : cell.level >= 3 ? '#ffffff' : '#475569',
-                    borderColor: cell.future || cell.count === 0 ? '#e2e8f0' : 'rgba(15,23,42,0.05)',
+                  className="aspect-square rounded-md border text-[10px] font-medium outline-offset-2 hover:brightness-95 focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-1 disabled:cursor-default disabled:hover:brightness-100"
+                  style={{ background: cell.future ? 'transparent' : cell.level === 0 ? 'rgb(var(--surface-muted))' : ARCHIVE_LEVELS[cell.level].color,
+                    color: cell.future ? 'rgb(var(--text-muted))' : cell.level >= 3 ? 'rgb(var(--text-on-accent))' : cell.level === 0 ? 'rgb(var(--text-secondary))' : '#334155',
+                    borderColor: 'rgb(var(--border-default))',
                     borderStyle: cell.future ? 'dashed' : 'solid',
-                    outline: cell.date === activeDate && !cell.future ? '1px solid #7a0019' : undefined,
+                    outline: cell.date === activeDate && !cell.future ? '1px solid rgb(var(--accent-text))' : undefined,
                   }}>{Number(cell.date.slice(-2))}</button>
               ) : <span key={`padding-${index}`} aria-hidden />)}
             </div>
             <div className="flex min-w-0 flex-col gap-3">
-              {upcoming ? <p className="text-sm font-semibold text-slate-500">Upcoming month</p>
-                : <p className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5"><strong className="text-2xl font-bold leading-none tracking-tight text-slate-900 tabular-nums">{calendar.total.toLocaleString('en-PH')}</strong>
-                  <span className="text-[11px] text-slate-500">submissions across {calendar.activeDays} day{calendar.activeDays === 1 ? '' : 's'}</span></p>}
-              <p className="text-[11px] text-slate-500" aria-live="polite">
-                <span className="font-semibold text-slate-700">{inspected?.date ? archiveDateLabel(inspected.date) : 'No elapsed days in this month'}</span>
+              {upcoming ? <p className="text-sm font-semibold text-muted-foreground">Upcoming month</p>
+                : <p className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5"><strong className="text-2xl font-bold leading-none tracking-tight text-primary tabular-nums">{calendar.total.toLocaleString('en-PH')}</strong>
+                  <span className="text-[11px] text-muted-foreground">submissions across {calendar.activeDays} day{calendar.activeDays === 1 ? '' : 's'}</span></p>}
+              <p className="text-[11px] text-muted-foreground" aria-live="polite">
+                <span className="font-semibold text-secondary">{inspected?.date ? archiveDateLabel(inspected.date) : 'No elapsed days in this month'}</span>
                 {' · '}{inspected ? inspected.future ? 'Future date' : `${inspected.count} submission${inspected.count === 1 ? '' : 's'} received` : 'Future dates have a dashed border.'}
               </p>
-              <div className="flex flex-wrap items-center gap-2 text-[9px] text-slate-500" aria-label="Submissions per day legend">
+              <div className="flex flex-wrap items-center gap-2 text-[9px] text-muted-foreground" aria-label="Submissions per day legend">
                 <span>Per day</span>
-                {ARCHIVE_LEVELS.map((level) => <span key={level.label} className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm border border-black/5" style={{ background: level.color }} />{level.label}</span>)}
+                {ARCHIVE_LEVELS.map((level) => <span key={level.label} className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm border border-scrim/5" style={{ background: level.color }} />{level.label}</span>)}
               </div>
-            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-[9px] text-slate-400">
+            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-[9px] text-muted-foreground">
               <p>Submission volume, including rejected reports · Asia/Manila</p>
-              <p className={error ? 'text-amber-700' : ''}>{error ? 'Last available' : 'Updated'} {manilaTime(archive.asOf, true)} PHT</p>
+              <p className={error ? 'text-warning-text' : ''}>{error ? 'Last available' : 'Updated'} {manilaTime(archive.asOf, true)} PHT</p>
             </div>
             </div>
             </div>

@@ -9,11 +9,13 @@ import {
   useState,
   type MutableRefObject,
 } from 'react';
+import { getSessionBasemap, setSessionBasemap, themeStore } from '@/lib/theme/store';
+import { useBasemapStyle } from '@/hooks/useBasemapStyle';
+import { syncParBoundary } from '@/lib/map/parBoundary';
 import { Focus, Locate, X } from 'lucide-react';
 import { IIT_BOUNDS, isInsideIit, syncCampusFocus } from '@/lib/map/campusFocus';
 import { ensureCampusSatelliteProtocol } from '@/lib/map/campusSatellite';
 import { Spinner } from '@/components/ui/Spinner';
-import { PageLoader } from '@/components/ui/LoadingState';
 import { FloodSimulationTimeline } from '@/components/map/FloodSimulationTimeline';
 import { PinnedLocationActions, type PinActions } from '@/components/map/PinnedLocationActions';
 import { toast } from 'react-toastify';
@@ -85,7 +87,6 @@ import { useMapPopups } from '@/hooks/useMapPopups';
 import { BarangayMetricsCard } from '@/components/map/BarangayMetricsCard';
 import { formatReportDepth, STATUS_META, timeAgo } from '@/lib/reports/reportFormatting';
 // @ts-ignore
-import 'maplibre-gl/dist/maplibre-gl.css';
 import { useRainfallLayer } from '@/hooks/useRainfallLayer';
 import { useHeatIndexLayer } from '@/hooks/useHeatIndexLayer';
 import { useDroughtLayer } from '@/hooks/useDroughtLayer';
@@ -125,6 +126,7 @@ export interface PublicMapHandle {
   setFocusRoads: (enabled: boolean) => void;
   setPolygonSmoothing: (smooth: boolean) => void;
   setBarangayBoundariesVisible: (visible: boolean) => void;
+  setParBoundaryVisible: (visible: boolean) => void;
   checkLocation: (location: {
     lat: number;
     lng: number;  }) => Promise<LocationRiskInfo>;
@@ -142,7 +144,7 @@ interface PublicMapProps {
   rightInset?: number;
   bottomInset?: number;
   onCampusFocusChange?: (enabled: boolean) => void;
-  onDisplaySettingsChange?: (settings: { basemap: BasemapId; mode: MapMode; showBuildings: boolean; showBarangayBoundaries: boolean; smoothPolygons: boolean; showRoads: boolean; focusRoads: boolean; ready: boolean }) => void;
+  onDisplaySettingsChange?: (settings: { basemap: BasemapId; mode: MapMode; showBuildings: boolean; showBarangayBoundaries: boolean; showParBoundary: boolean; smoothPolygons: boolean; showRoads: boolean; focusRoads: boolean; ready: boolean }) => void;
   hideDisplayControls?: boolean;
   onLocationSelect: (location: { lat: number; lng: number; address: string }) => void;
   selectedLocation: { lat: number; lng: number } | null;
@@ -173,6 +175,7 @@ interface PublicMapProps {
   /** Initial basemap shown on first load. Staff maps (e.g. report management)
    *  can default to satellite; the public map stays on the light 2D basemap. */
   defaultBasemap?: BasemapId;
+  basemapContext?: string;
   /** Keep satellite imagery unobstructed on staff report maps. */
   hideBuildingsOnSatellite?: boolean;
   /** Initial barangay boundary visibility. Staff maps can default them on;
@@ -217,28 +220,28 @@ function MinimalCompass({
         cx="16"
         cy="16"
         r="12.25"
-        stroke={isActive ? '#64748B' : '#94A3B8'}
+        stroke={isActive ? 'rgb(var(--text-secondary))' : 'rgb(var(--text-muted))'}
         strokeWidth="1.25"
       />
       <g transform={`rotate(${-bearing} 16 16)`}>
         {/* A small N and dial ticks keep the direction readable at HUD size. */}
         <path
           d="M14.25 9V5.75L17.75 9V5.75"
-          stroke="#475569"
+          stroke="rgb(var(--text-secondary))"
           strokeWidth="1.15"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
         <path
           d="M5.75 16H7.5M24.5 16H26.25M16 24.5V26.25"
-          stroke="#94A3B8"
+          stroke="rgb(var(--text-muted))"
           strokeWidth="1.25"
           strokeLinecap="round"
         />
         {/* Two halves of one needle, with a persistent maroon north tip. */}
         <path d="M16 10.5L19.25 17L16 16L12.75 17Z" fill="#7A0019" />
-        <path d="M16 23L12.75 17L16 18L19.25 17Z" fill="#64748B" />
-        <circle cx="16" cy="17" r="1.25" fill="white" stroke="#475569" strokeWidth="0.8" />
+        <path d="M16 23L12.75 17L16 18L19.25 17Z" fill="rgb(var(--text-secondary))" />
+        <circle cx="16" cy="17" r="1.25" fill="rgb(var(--surface-panel))" stroke="rgb(var(--text-secondary))" strokeWidth="0.8" />
       </g>
     </svg>
   );
@@ -269,7 +272,7 @@ export function PublicMap({
   fullScreen = false,
   hasBottomNav = false,
   hideBarangayBoundariesToggle = false,
-  defaultBasemap = 'light',
+  basemapContext = 'public',
   hideBuildingsOnSatellite = false,
   defaultShowBarangayBoundaries = false,
   onStartReport,
@@ -280,6 +283,10 @@ export function PublicMap({
   tourActive = false,
   tourPanel = null,
 }: PublicMapProps) {
+  const { changeStyle, errorNotice } = useBasemapStyle();
+  const [initialBasemap] = useState(() => getSessionBasemap(basemapContext));
+  const initialBasemapContext = useRef(basemapContext);
+  const styleRevision = useRef(0);
   const initialVisibleReportStatuses = {
     ...DEFAULT_VISIBLE_REPORT_STATUSES,
     ...defaultVisibleReportStatuses,
@@ -311,7 +318,7 @@ export function PublicMap({
   const lastFetchedBoundsRef = useRef<{ west: number; south: number; east: number; north: number } | null>(null);
   const selectedMarkerRef = useRef<any>(null);
   const mapModeRef = useRef<MapMode>('2d');
-  const basemapRef = useRef<BasemapId>(defaultBasemap);
+  const basemapRef = useRef<BasemapId>(initialBasemap);
   const showFloodHazardRef = useRef(false);
   const showSimulatedFloodRef = useRef(false);
   const showRainfallRef = useRef(false);
@@ -344,6 +351,8 @@ export function PublicMap({
   const [showFloodHazard, setShowFloodHazard] = useState(false);
   const [showSimulatedFlood, setShowSimulatedFlood] = useState(false);
   const [showRainfall, setShowRainfall] = useState(false);
+  const [showParBoundary, setShowParBoundary] = useState(true);
+  const showParBoundaryRef = useRef(true);
   const [showBarangayBoundaries, setShowBarangayBoundaries] = useState(defaultShowBarangayBoundaries);
   const showBarangayBoundariesRef = useRef(defaultShowBarangayBoundaries);
 
@@ -360,14 +369,14 @@ export function PublicMap({
       ? current : { ...current, REJECTED: showRejectedReports });
   }, [showRejectedReports]);
   const [mapMode, setMapMode] = useState<MapMode>('2d');
-  const [basemap, setBasemap] = useState<BasemapId>(defaultBasemap);
+  const [basemap, setBasemap] = useState<BasemapId>(initialBasemap);
   const [smoothPolygons, setSmoothPolygons] = useState(true);
   const smoothPolygonsRef = useRef(true);
   // Buildings are on for the Light basemap but disabled by default on Satellite
   // (footprints cover the aerial imagery). buildingsBasePreferenceRef remembers
   // the Light choice so it is restored when switching back from Satellite, and
   // tracks explicit choices made while on Satellite.
-  const defaultShowBuildings = defaultBasemap !== 'satellite';
+  const defaultShowBuildings = initialBasemap !== 'satellite';
   const [showBuildings, setShowBuildings] = useState(defaultShowBuildings);
   const showBuildingsRef = useRef(defaultShowBuildings);
   const buildingsBasePreferenceRef = useRef(true);
@@ -873,6 +882,8 @@ export function PublicMap({
   // destroyed when switching between 2D and 3D.
   const handleStyleLoad = useCallback(
     (map: any) => {
+      const revision = styleRevision.current;
+      const isCurrent = () => revision === styleRevision.current && map === mapRef.current;
       void (async () => {
         await setupOverlayLayers(map, maplibregl, {
           showFloodHazard: showFloodHazardRef.current,
@@ -880,6 +891,7 @@ export function PublicMap({
           showRainfall: showRainfallRef.current,
           showHimawariIR: himawari.visibleRef.current,
           showTyphoonTrack: typhoon.visibleRef.current,
+          showParBoundary: showParBoundaryRef.current,
           showBarangayBoundaries: showBarangayBoundariesRef.current,
           visibleRiskLevels: { high: true, medium: true, low: true },
           showLandslide: showLandslideRef.current,
@@ -892,7 +904,9 @@ export function PublicMap({
           smoothPolygons: smoothPolygonsRef.current,
           showBuildings: !campusFocusRef.current && showBuildingsRef.current && !(hideBuildingsOnSatellite && basemapRef.current === 'satellite'),
           showRoads: showRoadsRef.current,
-        });
+        }, isCurrent);
+        if (!isCurrent()) return;
+        syncParBoundary(map, showParBoundaryRef.current);
 
         layersReadyRef.current = true;
         setMapReady(true);
@@ -946,8 +960,12 @@ export function PublicMap({
   }, [onMapLoad]);
 
   const handleBasemapChange = useCallback((nextBasemap: BasemapId) => {
+    setSessionBasemap(basemapContext, nextBasemap);
+    // Even a request for the already applied style cancels a pending fetch.
+    changeStyle(nextBasemap, style => {
     const previousBasemap = basemapRef.current;
-    if (nextBasemap === previousBasemap) return;
+    if (nextBasemap === previousBasemap && mapRef.current?.isStyleLoaded()) return;
+    styleRevision.current++;
     layersReadyRef.current = false;
     setBasemap(nextBasemap);
     basemapRef.current = nextBasemap;
@@ -971,8 +989,15 @@ export function PublicMap({
     } catch {
       /* terrain not yet initialised; nothing to clear */
     }
-    updateDisplay('basemap', () => { map.setStyle(BASEMAP_STYLES[nextBasemap], { diff: false }); });
-  }, [updateDisplay]);
+    updateDisplay('basemap', () => { map.setStyle(style, { diff: false }); });
+    });
+  }, [updateDisplay, basemapContext, changeStyle]);
+
+  useEffect(() => {
+    const sync = () => handleBasemapChange(getSessionBasemap(basemapContext));
+    const unsubscribe = themeStore.subscribe(sync);
+    return unsubscribe;
+  }, [basemapContext, handleBasemapChange]);
 
   const handleModeChange = useCallback((nextMode: MapMode) => {
     if (nextMode === mapModeRef.current) return;
@@ -992,6 +1017,7 @@ export function PublicMap({
         showRainfall: showRainfallRef.current,
         showHimawariIR: himawari.visibleRef.current,
         showTyphoonTrack: typhoon.visibleRef.current,
+          showParBoundary: showParBoundaryRef.current,
         showBarangayBoundaries: showBarangayBoundariesRef.current,
         visibleRiskLevels: { high: true, medium: true, low: true },
         showLandslide: showLandslideRef.current,
@@ -1005,6 +1031,7 @@ export function PublicMap({
         showBuildings: !campusFocusRef.current && showBuildingsRef.current && !(hideBuildingsOnSatellite && basemapRef.current === 'satellite'),
         showRoads: showRoadsRef.current,
       });
+      syncParBoundary(map, showParBoundaryRef.current);
       syncCampusFocus(map, campusFocusRef.current);
     }, undefined, `Switching to ${nextMode.toUpperCase()} view…`);
   }, [himawari.visibleRef, typhoon, hoursRef, hideBuildingsOnSatellite, updateDisplay]);
@@ -1027,6 +1054,12 @@ export function PublicMap({
     updateDisplay('buildings', () => applyBuildingsVisibility(mapRef.current, mapModeRef.current, !campusFocusRef.current && visible && !(hideBuildingsOnSatellite && basemapRef.current === 'satellite')));
   }, [hideBuildingsOnSatellite, updateDisplay]);
 
+  const handleParBoundaryChange = useCallback((visible: boolean) => {
+    showParBoundaryRef.current = visible;
+    setShowParBoundary(visible);
+    if (mapRef.current && layersReadyRef.current) syncParBoundary(mapRef.current, visible);
+  }, []);
+
   const handleRoadsChange = useCallback((visible: boolean) => {
     showRoadsRef.current = visible;
     setShowRoads(visible);
@@ -1043,6 +1076,7 @@ export function PublicMap({
         setFocusRoads,
         setPolygonSmoothing: handleSmoothingChange,
         setBarangayBoundariesVisible: handleShowBarangayBoundariesChange,
+        setParBoundaryVisible: handleParBoundaryChange,
         checkLocation,
         focusLocation,
         setCampusFocus: setCampusFocusEnabled,
@@ -1058,11 +1092,11 @@ export function PublicMap({
         mapApiRef.current = null;
       };
     }
-  }, [handleBasemapChange, handleModeChange, handleBuildingsChange, handleRoadsChange, handleSmoothingChange, handleShowBarangayBoundariesChange, mapApiRef, checkLocation, focusLocation, setCampusFocusEnabled, showReport, rainfall.rainfallHours, reportsLayer.invalidateAndReload, handleShareLocation]);
+  }, [handleBasemapChange, handleModeChange, handleBuildingsChange, handleParBoundaryChange, handleRoadsChange, handleSmoothingChange, handleShowBarangayBoundariesChange, mapApiRef, checkLocation, focusLocation, setCampusFocusEnabled, showReport, rainfall.rainfallHours, reportsLayer.invalidateAndReload, handleShareLocation]);
 
   useEffect(() => {
-    onDisplaySettingsChange?.({ basemap, mode: mapMode, showBuildings, showBarangayBoundaries, smoothPolygons, showRoads, focusRoads, ready: mapReady });
-  }, [basemap, mapMode, showBuildings, showBarangayBoundaries, smoothPolygons, showRoads, focusRoads, mapReady, onDisplaySettingsChange]);
+    onDisplaySettingsChange?.({ basemap, mode: mapMode, showBuildings, showBarangayBoundaries, showParBoundary, smoothPolygons, showRoads, focusRoads, ready: mapReady });
+  }, [basemap, mapMode, showBuildings, showBarangayBoundaries, showParBoundary, smoothPolygons, showRoads, focusRoads, mapReady, onDisplaySettingsChange]);
 
   useEffect(() => {
     if (mapRef.current) {
@@ -1093,6 +1127,8 @@ export function PublicMap({
     maplibregl.setWorkerUrl('/vendor/maplibre-gl/maplibre-gl-worker.mjs');
     ensureCampusSatelliteProtocol(maplibregl);
 
+    basemapRef.current = getSessionBasemap(initialBasemapContext.current);
+    setBasemap(basemapRef.current);
     // Start with the configured default basemap (OpenFreeMap Positron by default, or satellite).
     const map = new maplibregl.Map({
       container: mapContainer.current,
@@ -1333,14 +1369,14 @@ export function PublicMap({
   ]);
 
   return (
-    <div className="relative w-full h-full bg-canvas-grey">
+    <div className="relative w-full h-full bg-muted">
       <div ref={mapContainer} className="w-full h-full touch-none select-none" />
       {drought.visible && <DroughtControls state={drought} />}
       {campusFocus && (
-        <div role="region" aria-label="Campus focus" className="absolute bottom-[calc(env(safe-area-inset-bottom,0px)+7rem)] left-1/2 z-[1010] flex w-max max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-3 rounded-2xl border border-white/80 bg-white px-3 py-2 shadow-lg md:bottom-auto md:top-5">
-          <Focus className="h-5 w-5 shrink-0 text-gakit-maroon" aria-hidden="true" />
-          <p className="min-w-0 text-xs font-bold text-slate-900">MSU-IIT focus</p>
-          <button type="button" onClick={() => setCampusFocusEnabled(false)} className="flex min-h-10 shrink-0 items-center gap-1.5 rounded-xl bg-slate-100 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon" aria-label="Exit campus focus">
+        <div role="region" aria-label="Campus focus" className="absolute bottom-[calc(env(safe-area-inset-bottom,0px)+7rem)] left-1/2 z-[1010] flex w-max max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-3 rounded-2xl border border-default/80 bg-panel px-3 py-2 shadow-lg md:bottom-auto md:top-5">
+          <Focus className="h-5 w-5 shrink-0 text-secondary" aria-hidden="true" />
+          <p className="min-w-0 text-xs font-bold text-primary">MSU-IIT focus</p>
+          <button type="button" onClick={() => setCampusFocusEnabled(false)} className="flex min-h-10 shrink-0 items-center gap-1.5 rounded-xl bg-muted px-3 text-xs font-semibold text-secondary hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus" aria-label="Exit campus focus">
             <X className="h-3.5 w-3.5" aria-hidden="true" />Exit
           </button>
         </div>
@@ -1353,7 +1389,8 @@ export function PublicMap({
           {...selectedLocationActions}
         />
       )}
-      <PageLoader isLoading={displayLoadingLabel !== null} label={displayLoadingLabel ?? 'Loading map layers…'} />
+      {errorNotice}
+      {displayLoadingLabel && <div role="status" className="pointer-events-none absolute bottom-12 left-3 z-[990] rounded-lg border border-default bg-panel px-3 py-2 text-xs text-secondary shadow-sm">{displayLoadingLabel}</div>}
 
       {showBarangayBoundaries &&
         hoveredBarangay &&
@@ -1486,6 +1523,7 @@ export function PublicMap({
 
       {/* Bottom-right Navigation & Location Cluster */}
       <div
+        data-map-navigation
         style={{ right: rightInset ? rightInset + 16 : undefined, bottom: bottomInset ? bottomInset + 16 : undefined }}
         className={`absolute ${
           fullScreen
@@ -1503,7 +1541,7 @@ export function PublicMap({
             disabled={isShareLocating}
             title="Locate my position"
             aria-label="Locate my position"
-            className="flex h-9 w-9 items-center justify-center text-slate-700 hud-pill hover:bg-white hover:text-gakit-maroon active:bg-maroon-50 active:text-gakit-maroon active:scale-[0.94] disabled:cursor-not-allowed md:hidden"
+            className="flex h-9 w-9 items-center justify-center text-secondary hud-pill hover:bg-panel hover:text-primary active:bg-muted active:text-secondary active:scale-[0.94] disabled:cursor-not-allowed md:hidden"
           >
             {isShareLocating ? (
               <Spinner label="Locating your position" />
@@ -1528,7 +1566,7 @@ export function PublicMap({
                   ? `Facing ${Math.round((360 - mapBearing) % 360)}° · Click to reset North`
                   : 'Facing North · Click to center Iligan City view'
               }
-              className="flex h-9 w-9 items-center justify-center text-slate-700 hud-pill hover:bg-white hover:text-gakit-maroon active:bg-maroon-50 active:text-gakit-maroon active:scale-[0.94] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon focus-visible:ring-offset-2"
+              className="flex h-9 w-9 items-center justify-center text-secondary hud-pill hover:bg-panel hover:text-primary active:bg-muted active:text-secondary active:scale-[0.94] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2"
             >
               <MinimalCompass
                 bearing={mapBearing}
@@ -1545,7 +1583,7 @@ export function PublicMap({
           style={{ right: rightInset ? rightInset + 8 : undefined, bottom: bottomInset ? bottomInset + 6 : undefined }}
           className={`absolute ${
             fullScreen ? 'bottom-2 md:bottom-2' : 'bottom-1.5'
-          } right-2 z-[990] flex items-center gap-1 text-[10px] font-medium text-slate-600 [text-shadow:_0_1px_2px_rgb(255_255_255_/_80%)]`}
+          } right-2 z-[990] flex items-center gap-1 text-[10px] font-medium text-secondary map-label`}
         >
           {basemap === 'satellite' ? (
             <>
@@ -1553,7 +1591,7 @@ export function PublicMap({
                 href="https://www.esri.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-slate-800 hover:underline"
+                className="hover:text-primary hover:underline"
               >
                 Imagery © Esri
               </a>
@@ -1562,7 +1600,7 @@ export function PublicMap({
                 href="https://www.maxar.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-slate-800 hover:underline"
+                className="hover:text-primary hover:underline"
               >
                 Maxar
               </a>
@@ -1571,7 +1609,7 @@ export function PublicMap({
                 href="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-slate-800 hover:underline"
+                className="hover:text-primary hover:underline"
               >
                 Earthstar
               </a>
@@ -1582,7 +1620,7 @@ export function PublicMap({
                 href="https://openfreemap.org"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-slate-800 hover:underline"
+                className="hover:text-primary hover:underline"
               >
                 © OpenFreeMap
               </a>
@@ -1591,7 +1629,7 @@ export function PublicMap({
                 href="https://www.openstreetmap.org/copyright"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-slate-800 hover:underline"
+                className="hover:text-primary hover:underline"
               >
                 © OpenStreetMap
               </a>
@@ -1599,7 +1637,7 @@ export function PublicMap({
           )}
           {mapMode === '3d' && <>
             <span>·</span>
-            <a href="https://mapterhorn.com/attribution/" target="_blank" rel="noopener noreferrer" className="hover:text-slate-800 hover:underline">Terrain © Mapterhorn</a>
+            <a href="https://mapterhorn.com/attribution/" target="_blank" rel="noopener noreferrer" className="hover:text-primary hover:underline">Terrain © Mapterhorn</a>
           </>}
         </div>
       )}

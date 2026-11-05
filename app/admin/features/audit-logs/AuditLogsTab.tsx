@@ -87,8 +87,8 @@ export function AuditLogsTab({ active = true }: { active?: boolean }) {
       bare
       toolbar={
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(14rem,1fr)_12rem_10rem_10rem_auto]">
-          <label className="flex items-center gap-2 rounded-lg border border-canvas-grey bg-canvas-light px-3 py-2">
-            <Search className="h-4 w-4 text-slate-400" />
+          <label className="flex items-center gap-2 rounded-lg border border-default bg-page px-3 py-2">
+            <Search className="h-4 w-4 text-muted-foreground" />
             <input
               value={actorEmail}
               onChange={(event) => {
@@ -97,7 +97,7 @@ export function AuditLogsTab({ active = true }: { active?: boolean }) {
               }}
               placeholder="Filter by actor email"
               aria-label="Filter audit logs by actor email"
-              className="w-full bg-transparent text-sm outline-none text-slate-700 placeholder:text-slate-400"
+              className="w-full bg-transparent text-sm outline-none text-secondary placeholder:text-muted-foreground"
             />
           </label>
           <select
@@ -107,7 +107,7 @@ export function AuditLogsTab({ active = true }: { active?: boolean }) {
               setCurrentPage(1);
             }}
             aria-label="Filter by action"
-            className="rounded-lg border border-canvas-grey bg-canvas-light px-3 py-2 text-sm text-slate-700 outline-none focus:border-gakit-maroon/40 focus:bg-white"
+            className="rounded-lg border border-default bg-page px-3 py-2 text-sm text-secondary outline-none focus:border-strong/40 focus:bg-panel"
           >
             <option value="all">All actions</option>
             {AUDIT_ACTION_OPTIONS.map((value) => (
@@ -116,8 +116,8 @@ export function AuditLogsTab({ active = true }: { active?: boolean }) {
               </option>
             ))}
           </select>
-          <label className="flex items-center gap-2 rounded-lg border border-canvas-grey bg-canvas-light px-3 py-2">
-            <span className="text-xs font-semibold text-slate-400">From</span>
+          <label className="flex items-center gap-2 rounded-lg border border-default bg-page px-3 py-2">
+            <span className="text-xs font-semibold text-muted-foreground">From</span>
             <input
               type="date"
               value={fromDate}
@@ -125,11 +125,11 @@ export function AuditLogsTab({ active = true }: { active?: boolean }) {
                 setFromDate(event.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full bg-transparent text-sm text-slate-700 outline-none"
+              className="w-full bg-transparent text-sm text-secondary outline-none"
             />
           </label>
-          <label className="flex items-center gap-2 rounded-lg border border-canvas-grey bg-canvas-light px-3 py-2">
-            <span className="text-xs font-semibold text-slate-400">To</span>
+          <label className="flex items-center gap-2 rounded-lg border border-default bg-page px-3 py-2">
+            <span className="text-xs font-semibold text-muted-foreground">To</span>
             <input
               type="date"
               value={toDate}
@@ -137,7 +137,7 @@ export function AuditLogsTab({ active = true }: { active?: boolean }) {
                 setToDate(event.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full bg-transparent text-sm text-slate-700 outline-none"
+              className="w-full bg-transparent text-sm text-secondary outline-none"
             />
           </label>
           <button
@@ -146,13 +146,13 @@ export function AuditLogsTab({ active = true }: { active?: boolean }) {
             disabled={!canReset}
             className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
               canReset
-                ? 'border-canvas-grey bg-white text-slate-700 hover:bg-canvas-light hover:border-slate-300 cursor-pointer'
-                : 'border-canvas-grey/60 bg-canvas-light/60 text-slate-400 cursor-not-allowed opacity-60'
+                ? 'border-default bg-panel text-secondary hover:bg-page hover:border-default cursor-pointer'
+                : 'border-default/60 bg-page/60 text-muted-foreground cursor-not-allowed opacity-60'
             }`}
           >
             <RotateCcw
               className={`h-4 w-4 transition-colors ${
-                canReset ? 'text-gakit-maroon' : 'text-slate-400'
+                canReset ? 'text-secondary' : 'text-muted-foreground'
               }`}
             />
             Reset
@@ -162,15 +162,15 @@ export function AuditLogsTab({ active = true }: { active?: boolean }) {
     >
       <div
         aria-busy={loading}
-        className="overflow-hidden rounded-2xl border border-canvas-grey bg-white shadow-sm"
+        className="overflow-hidden rounded-2xl border border-default bg-panel shadow-sm"
       >
         {error ? (
-          <div className="p-6 text-sm text-red-700">{error}</div>
+          <div className="p-6 text-sm text-error-text">{error}</div>
         ) : (
           <>
             <div className="hidden overflow-x-auto lg:block">
               <table className="w-full text-sm">
-                <thead className="bg-canvas-light text-slate-500">
+                <thead className="bg-page text-muted-foreground">
                   <tr>
                     <th scope="col" className="px-5 py-3 text-left font-semibold">Time</th>
                     <th scope="col" className="px-5 py-3 text-left font-semibold">Action</th>
@@ -180,13 +180,13 @@ export function AuditLogsTab({ active = true }: { active?: boolean }) {
                     <th scope="col" className="px-5 py-3 text-left font-semibold">IP</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-canvas-grey">
+                <tbody className="divide-y divide-default">
                   {logs.map((log) => {
                     const meta = auditActionMeta(log.action);
                     const detailsText = formatJsonDetails(log.details);
                     return (
-                      <tr key={log.id} className="hover:bg-canvas-light/70">
-                        <td className="whitespace-nowrap px-5 py-3.5 text-slate-600">
+                      <tr key={log.id} className="hover:bg-page/70">
+                        <td className="whitespace-nowrap px-5 py-3.5 text-secondary">
                           {formatDateTime(log.createdAt)}
                         </td>
                         <td className="px-5 py-3.5">
@@ -197,22 +197,22 @@ export function AuditLogsTab({ active = true }: { active?: boolean }) {
                           </span>
                         </td>
                         <td className="px-5 py-3.5">
-                          <div className="text-slate-800">
+                          <div className="text-primary">
                             {log.actorEmail ?? 'System'}
                           </div>
-                          <div className="font-mono text-xs text-slate-400">
+                          <div className="font-mono text-xs text-muted-foreground">
                             {shortenId(log.actorUserId)}
                           </div>
                         </td>
                         <td className="px-5 py-3.5">
-                          <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                             {log.resourceType}
                           </div>
-                          <div className="font-mono text-xs text-slate-400">
+                          <div className="font-mono text-xs text-muted-foreground">
                             {shortenId(log.resourceId)}
                           </div>
                         </td>
-                        <td className="max-w-[16rem] px-5 py-3.5 text-xs text-slate-600">
+                        <td className="max-w-[16rem] px-5 py-3.5 text-xs text-secondary">
                           {detailsText ? (
                             <details className="group">
                               <summary
@@ -222,7 +222,7 @@ export function AuditLogsTab({ active = true }: { active?: boolean }) {
                                 <span className="block truncate group-open:whitespace-normal group-open:break-words">
                                   {detailsText}
                                 </span>
-                                <span className="mt-0.5 block text-[10px] font-semibold uppercase tracking-wide text-gakit-maroon group-open:hidden">
+                                <span className="mt-0.5 block text-[10px] font-semibold uppercase tracking-wide text-secondary group-open:hidden">
                                   Show more
                                 </span>
                               </summary>
@@ -231,10 +231,10 @@ export function AuditLogsTab({ active = true }: { active?: boolean }) {
                               </pre>
                             </details>
                           ) : (
-                            <span className="text-slate-400">—</span>
+                            <span className="text-muted-foreground">—</span>
                           )}
                         </td>
-                        <td className="px-5 py-3.5 font-mono text-xs text-slate-400">
+                        <td className="px-5 py-3.5 font-mono text-xs text-muted-foreground">
                           {log.ipAddress ?? '—'}
                         </td>
                       </tr>
@@ -244,7 +244,7 @@ export function AuditLogsTab({ active = true }: { active?: boolean }) {
                     <tr>
                       <td
                         colSpan={6}
-                        className="px-5 py-10 text-center text-sm text-slate-500"
+                        className="px-5 py-10 text-center text-sm text-muted-foreground"
                       >
                         No audit entries match the current filters.
                       </td>
@@ -254,7 +254,7 @@ export function AuditLogsTab({ active = true }: { active?: boolean }) {
               </table>
             </div>
 
-            <div className="divide-y divide-canvas-grey lg:hidden">
+            <div className="divide-y divide-default lg:hidden">
               {logs.map((log) => {
                 const meta = auditActionMeta(log.action);
                 const detailsText = formatJsonDetails(log.details);
@@ -266,23 +266,23 @@ export function AuditLogsTab({ active = true }: { active?: boolean }) {
                       >
                         {meta.label}
                       </span>
-                      <span className="text-xs text-slate-500">
+                      <span className="text-xs text-muted-foreground">
                         {formatDateTime(log.createdAt)}
                       </span>
                     </div>
-                    <div className="text-sm font-semibold text-slate-800">
+                    <div className="text-sm font-semibold text-primary">
                       {log.actorEmail ?? 'System'}
                     </div>
-                    <div className="text-xs text-slate-500">
+                    <div className="text-xs text-muted-foreground">
                       {log.resourceType}
                       {log.resourceId ? ` · ${shortenId(log.resourceId)}` : ''}
                       {log.ipAddress ? ` · ${log.ipAddress}` : ''}
                     </div>
                     {detailsText && (
-                      <details className="text-xs text-slate-600">
+                      <details className="text-xs text-secondary">
                         <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
                           <span className="line-clamp-2">{detailsText}</span>
-                          <span className="mt-0.5 block text-[10px] font-semibold uppercase tracking-wide text-gakit-maroon">
+                          <span className="mt-0.5 block text-[10px] font-semibold uppercase tracking-wide text-secondary">
                             Show more
                           </span>
                         </summary>
@@ -295,7 +295,7 @@ export function AuditLogsTab({ active = true }: { active?: boolean }) {
                 );
               })}
               {logs.length === 0 && !loading && (
-                <div className="px-5 py-10 text-center text-sm text-slate-500">
+                <div className="px-5 py-10 text-center text-sm text-muted-foreground">
                   No audit entries match the current filters.
                 </div>
               )}

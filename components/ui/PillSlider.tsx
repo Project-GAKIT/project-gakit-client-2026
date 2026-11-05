@@ -1,16 +1,8 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import type { CSSProperties } from 'react';
 
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(max, Math.max(min, value));
-
-/**
- * Horizontal soft slider: a recessed track with a raised thumb that sinks
- * while pressed, and a flat fill for the current level. The thumb position
- * is set imperatively during a drag so it tracks the pointer in the same
- * frame, independent of any parent re-render.
- */
+/** Native range input keeps pointer, touch, and keyboard movement in sync. */
 export function PillSlider({
   value,
   min = 0,
@@ -18,7 +10,7 @@ export function PillSlider({
   step = 0.01,
   onChange,
   ariaLabel,
-  accent = '#6366f1',
+  accent = 'rgb(var(--accent-text))',
   className = '',
 }: {
   value: number;
@@ -30,103 +22,11 @@ export function PillSlider({
   accent?: string;
   className?: string;
 }) {
-  const span = max - min;
-  const pctOf = (v: number) => clamp((v - min) / span, 0, 1) * 100;
-  const thumbLeftFor = (v: number) =>
-    `clamp(0px, calc(${pctOf(v)}% - 10px), calc(100% - 20px))`;
-
-  const thumbRef = useRef<HTMLDivElement>(null);
-  const draggingRef = useRef(false);
-  const [pressed, setPressed] = useState(false);
-
-  const applyThumb = (v: number) => {
-    if (thumbRef.current) thumbRef.current.style.left = thumbLeftFor(v);
-  };
-
-  const valueFromPointer = (element: HTMLElement, clientX: number) => {
-    const rect = element.getBoundingClientRect();
-    const raw = ((clientX - rect.left) / rect.width) * span + min;
-    return clamp(Math.round(raw / step) * step, min, max);
-  };
-
+  const progress = max > min ? Math.min(100, Math.max(0, (value - min) / (max - min) * 100)) : 0;
   return (
-    <div
-      role="slider"
-      tabIndex={0}
-      aria-label={ariaLabel}
-      aria-valuemin={min}
-      aria-valuemax={max}
-      aria-valuenow={value}
-      aria-orientation="horizontal"
-      className={`relative h-5 w-full cursor-pointer touch-none outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon ${className}`}
-      onPointerDown={(event) => {
-        event.currentTarget.setPointerCapture(event.pointerId);
-        draggingRef.current = true;
-        setPressed(true);
-        const next = valueFromPointer(event.currentTarget, event.clientX);
-        applyThumb(next);
-        onChange(next);
-      }}
-      onPointerMove={(event) => {
-        if (!draggingRef.current && !(event.buttons & 1)) return;
-        const next = valueFromPointer(event.currentTarget, event.clientX);
-        applyThumb(next);
-        onChange(next);
-      }}
-      onPointerUp={(event) => {
-        if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-          event.currentTarget.releasePointerCapture(event.pointerId);
-        }
-        draggingRef.current = false;
-        setPressed(false);
-      }}
-      onPointerCancel={() => {
-        draggingRef.current = false;
-        setPressed(false);
-      }}
-      onPointerLeave={() => {
-        if (draggingRef.current) return;
-      }}
-      onKeyDown={(event) => {
-        const base = value;
-        if (event.key === 'ArrowRight' || event.key === 'ArrowUp') {
-          event.preventDefault();
-          onChange(clamp(base + step, min, max));
-        } else if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') {
-          event.preventDefault();
-          onChange(clamp(base - step, min, max));
-        } else if (event.key === 'Home') {
-          event.preventDefault();
-          onChange(min);
-        } else if (event.key === 'End') {
-          event.preventDefault();
-          onChange(max);
-        }
-      }}
-    >
-      <div
-        aria-hidden
-        className="absolute left-0 right-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-slate-100 ring-1 ring-slate-200/80"
-      >
-        <div
-          className="absolute left-0 top-0 h-full rounded-full opacity-70"
-          style={{ width: `${pctOf(value)}%`, backgroundColor: accent }}
-        />
-      </div>
-
-      <div
-        ref={thumbRef}
-        aria-hidden
-        className={`pointer-events-none absolute top-1/2 h-5 w-5 -translate-y-1/2 rounded-full bg-white ring-1 ring-slate-300 transition-all duration-150 ease-out flex items-center justify-center ${
-          pressed ? 'scale-95 shadow-sm' : 'scale-100 shadow-md'
-        }`}
-        style={{ left: thumbLeftFor(value) }}
-      >
-        <div
-          className="h-2 w-2 rounded-full"
-          style={{ backgroundColor: accent }}
-        />
-      </div>
-    </div>
+    <input type="range" min={min} max={max} step={step} value={value} aria-label={ariaLabel}
+      onChange={event => onChange(Number(event.target.value))}
+      className={`ui-slider block h-8 w-full min-w-0 ${className}`}
+      style={{ '--slider-accent': accent, '--slider-progress': `${progress}%` } as CSSProperties} />
   );
 }

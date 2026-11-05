@@ -41,10 +41,10 @@ function formatDateTime(value: string | null): string {
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+      <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         {label}
       </dt>
-      <dd className="mt-1 text-sm font-medium text-slate-700">{value}</dd>
+      <dd className="mt-1 text-sm font-medium text-secondary">{value}</dd>
     </div>
   );
 }
@@ -66,30 +66,30 @@ export function AccountCard({
   const home = homePathForRole(role);
 
   return (
-    <section className="rounded-2xl border border-canvas-grey bg-white p-5 shadow-sm sm:p-6">
+    <section className="rounded-2xl border border-default bg-panel p-5 shadow-sm sm:p-6">
       <div className="flex items-center gap-4">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-maroon-50 text-lg font-bold text-gakit-maroon">
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-muted text-lg font-bold text-secondary">
           {initials(name, email)}
         </div>
         <div className="min-w-0">
-          <p className="truncate text-lg font-bold text-slate-900">
+          <p className="truncate text-lg font-bold text-primary">
             {name || 'Unnamed user'}
           </p>
-          <p className="truncate text-sm text-slate-500">
+          <p className="truncate text-sm text-muted-foreground">
             {email ?? 'No email on file'}
           </p>
         </div>
       </div>
 
-      <dl className="mt-5 grid gap-4 border-t border-canvas-grey pt-5 sm:grid-cols-2">
+      <dl className="mt-5 grid gap-4 border-t border-default pt-5 sm:grid-cols-2">
         <Field label="Role" value={role ? ROLE_LABEL[role] : '—'} />
         <Field label="Home portal" value={home ? PORTAL_LABEL[home] ?? home : '—'} />
         <Field label="Member since" value={formatDate(memberSince)} />
         <Field label="Last sign-in" value={formatDateTime(lastSignIn)} />
       </dl>
 
-      <p className="mt-5 flex items-start gap-2 border-t border-canvas-grey pt-4 text-xs text-slate-500">
-        <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" />
+      <p className="mt-5 flex items-start gap-2 border-t border-default pt-4 text-xs text-muted-foreground">
+        <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
         Your email address and role are managed by a GAKIT administrator. Ask
         them if either needs to change.
       </p>
