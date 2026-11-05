@@ -13,7 +13,7 @@ import { locationSearchAction } from '@/lib/map/locationSearchAction';
 import { ReportModal } from '@/components/ReportModal';
 import { MapPin, X } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
-import { LoadingOverlay } from '@/components/ui/LoadingState';
+import { PageLoader } from '@/components/ui/LoadingState';
 import { toast } from 'react-toastify';
 import { createReport, pingHealth, uploadReportPhoto } from './actions/publicView';
 import type { PreparedPhoto } from '@/lib/reports/photoUpload';
@@ -833,7 +833,7 @@ export function PublicViewPage({
           <section id="hazard-map" className="min-h-[100dvh] snap-start">
             <div className="flex h-[100dvh] overflow-hidden bg-panel">
               <div className="relative isolate flex-1 w-full h-full min-h-0">
-                {!isMapReady && <LoadingOverlay message="Loading map…" className="pointer-events-none" />}
+                <PageLoader isLoading={!isMapReady && activeSection === 'hazard-map'} label="Loading map…" />
                 <PublicMap
                   onCampusFocusChange={setIsCampusFocus}
                   hideDisplayControls

@@ -173,7 +173,7 @@ describe('setupOverlayLayers himawari source', () => {
     expect(terrain!.spec.encoding).toBe('terrarium');
   });
 
-  it('adds both 2D footprints and 3D extrusion layers for buildings', async () => {
+  it.each(['2d', '3d'] as const)('only builds the active building variant in %s mode', async mapMode => {
     const addedLayers: any[] = [];
     const { map } = createMockMap();
     map.addLayer = (layer: any) => {
@@ -181,21 +181,17 @@ describe('setupOverlayLayers himawari source', () => {
     };
 
     const maplibregl = { addProtocol: () => {} };
-    await setupOverlayLayers(map, maplibregl, { ...baseState, mapMode: '2d' });
+    await setupOverlayLayers(map, maplibregl, { ...baseState, mapMode });
 
     const b2d = addedLayers.find((l) => l.id === 'iligan-buildings-2d');
     const b3d = addedLayers.find((l) => l.id === 'iligan-buildings-3d');
 
-    expect(b2d).toBeDefined();
-    expect(b2d.type).toBe('fill');
-    expect(b2d.source).toBe('iligan-buildings');
-    expect(b2d.layout.visibility).toBe('visible');
-
-    expect(b3d).toBeDefined();
-    expect(b3d.type).toBe('fill-extrusion');
-    expect(b3d.source).toBe('iligan-buildings');
-    expect(b3d.layout.visibility).toBe('none');
-    expect(b3d.paint['fill-extrusion-vertical-gradient']).toBe(false);
+    const active = mapMode === '2d' ? b2d : b3d;
+    expect(mapMode === '2d' ? b3d : b2d).toBeUndefined();
+    expect(active.type).toBe(mapMode === '2d' ? 'fill' : 'fill-extrusion');
+    expect(active.source).toBe('iligan-buildings');
+    expect(active.layout.visibility).toBe('visible');
+    if (mapMode === '3d') expect(active.paint['fill-extrusion-vertical-gradient']).toBe(false);
   });
 
   it('adds iligan-roads pmtiles vector source and line layers', async () => {

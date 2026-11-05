@@ -924,8 +924,15 @@ export function PublicMap({
         // location prompt never covers a still-loading map. Fires once on the
         // initial style load (not on 2D <-> 3D switches).
         if (!onReadyFiredRef.current) {
-          onReadyFiredRef.current = true;
-          onReadyRef.current?.();
+          const notifyReady = () => {
+            if (!isCurrent() || onReadyFiredRef.current) return;
+            onReadyFiredRef.current = true;
+            onReadyRef.current?.();
+          };
+          // Layer registration finishes before its vector tiles render. Keep
+          // the shared startup loader until the first complete map frame.
+          if (map.loaded()) notifyReady();
+          else map.once('idle', notifyReady);
         }
 
         // Apply rainfall data that was fetched before the map finished loading.
