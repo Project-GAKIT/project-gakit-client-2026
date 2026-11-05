@@ -36,6 +36,7 @@ export function MobileBottomNav<T extends string>({
             >
               <div className="relative">
                 <Icon aria-hidden="true" className={`h-4 w-4 ${isActive ? 'text-accent-text' : ''}`} />
+                {!!feature.unreadCount && <span aria-label={`${feature.unreadCount} unread alerts`} className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-error-solid px-1 text-[9px] font-bold text-on-accent shadow-xs">{feature.unreadCount > 99 ? '99+' : feature.unreadCount}</span>}
                 {feature.badge && (
                   <span className="absolute -top-1 -right-1 flex h-2 w-2">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
@@ -45,7 +46,6 @@ export function MobileBottomNav<T extends string>({
               </div>
               <span className="flex max-w-full items-baseline text-[10px] font-semibold">
                 {feature.mobileLabel ?? feature.label}
-                {feature.unreadCount !== undefined && <sup aria-label={`${feature.unreadCount} unread alerts`} className="relative -top-1 ml-0.5 shrink-0 rounded-full bg-muted px-1 py-0.5 text-[9px] font-bold leading-none text-primary">{feature.unreadCount > 99 ? '99+' : feature.unreadCount}</sup>}
               </span>
             </button>
           );
