@@ -316,9 +316,9 @@ export function PublicHeader({
   return (
     <>
     <header ref={headerRef} data-map-header data-scenario-header={guideVariant === 'scenarios' || undefined} className={`fixed top-[max(0.375rem,env(safe-area-inset-top,0px))] inset-x-1.5 md:top-4 md:left-1/2 md:-translate-x-1/2 md:inset-x-auto md:w-[calc(100%-3rem)] md:max-w-7xl z-[1200] isolate rounded-full bg-panel shadow-panel border border-default/90 ring-1 ring-strong/5 md:[background-color:var(--hud-bg-desktop)] md:[backdrop-filter:blur(var(--hud-blur-desktop))] md:border-default/80 md:shadow-panel`}>
-      <div className={`flex h-12 md:h-14 items-center justify-between ${guideVariant === 'scenarios' ? 'px-1' : 'px-2'} md:px-5 ${onSearchSelect ? 'md:grid md:grid-cols-[minmax(0,1fr)_var(--map-header-search-width,0px)_minmax(0,1fr)]' : ''}`}>
+      <div data-map-header-row className={`flex h-12 md:h-14 items-center justify-between ${guideVariant === 'scenarios' ? 'px-1' : 'px-2'} md:px-5 ${onSearchSelect ? 'md:grid md:grid-cols-[minmax(0,1fr)_var(--map-header-search-width,0px)_minmax(0,1fr)]' : ''}`}>
         {/* Left: Brand Logo & Title */}
-        <div ref={brandRef} className={`flex items-center min-w-0 md:justify-self-start md:gap-3 ${showSectionNav ? 'shrink-0 gap-2' : guideVariant === 'scenarios' ? 'shrink-0 gap-1' : 'flex-1 gap-1 md:flex-none md:shrink-0'}`}>
+        <div ref={brandRef} data-map-header-start className={`flex items-center min-w-0 md:justify-self-start md:gap-3 ${showSectionNav ? 'shrink-0 gap-2' : guideVariant === 'scenarios' ? 'shrink-0 gap-1' : 'flex-1 gap-1 md:flex-none md:shrink-0'}`}>
           {!showSectionNav && (
             <button
               type="button"
@@ -328,7 +328,7 @@ export function PublicHeader({
               className={`flex h-10 ${guideVariant === 'scenarios' ? 'min-w-8' : 'min-w-10'} shrink-0 flex-col items-center justify-center gap-0.5 rounded-full px-1 text-[9px] font-semibold text-secondary transition-colors hover:bg-muted hover:text-primary md:h-9 md:flex-row md:gap-1.5 md:px-2.5 md:text-[11px]`}
             >
               <ChevronLeft className="h-4 w-4 stroke-[2.5]" />
-              <span className={guideVariant === 'scenarios' ? 'hidden md:inline' : ''}>Back</span>
+              <span>Back</span>
             </button>
           )}
 
@@ -370,12 +370,9 @@ export function PublicHeader({
         </div>
 
         {/* Location search or flexible spacing between brand and actions. */}
-        <div className={`${!showSectionNav && !onSearchSelect && guideVariant !== 'scenarios' ? 'hidden md:flex' : 'flex'} min-w-0 flex-1 items-center justify-center ${guideVariant === 'scenarios' ? 'px-0.5 md:px-4' : 'px-2'}`}>
+        <div data-map-header-center className={`${!showSectionNav && !onSearchSelect && guideVariant !== 'scenarios' ? 'hidden md:flex' : 'flex'} min-w-0 flex-1 items-center justify-center ${guideVariant === 'scenarios' ? 'px-0.5 md:px-4' : 'px-2'}`}>
           {guideVariant === 'scenarios' && (
-            <div className="flex min-w-0 items-center justify-center gap-0.5 whitespace-nowrap min-[375px]:gap-1">
-              <span className="min-w-0 truncate font-heading text-[11px] font-bold uppercase leading-4 text-secondary min-[375px]:text-xs md:text-sm">Flood Scenario Explorer</span>
-              <sup className="relative -top-1 shrink-0 select-none rounded bg-warning-bg px-0.5 py-0.5 text-[7px] font-semibold leading-none text-warning-text min-[375px]:px-1 min-[375px]:text-[8px]">BETA</sup>
-            </div>
+            <div data-scenario-header-slot className="w-full min-w-0" />
           )}
           {onSearchSelect && (
             <div data-tour="search" className="w-full min-w-0 max-w-md lg:max-w-lg">
@@ -390,7 +387,7 @@ export function PublicHeader({
         </div>
 
         {/* Desktop Navigation & Actions */}
-        <div ref={actionsRef} className="hidden items-center justify-end gap-1.5 md:flex md:justify-self-end shrink-0">
+        <div ref={actionsRef} data-map-header-actions="desktop" className="hidden items-center justify-end gap-1.5 md:flex md:justify-self-end shrink-0">
           {/* Right cluster: info, notifications, account */}
           <div className="flex items-center gap-0 xl:gap-1 [&>button]:px-1 [&>div>button]:px-1 xl:[&>button]:px-1.5 xl:[&>div>button]:px-1.5">
             {showSectionNav && <button type="button"
@@ -432,7 +429,7 @@ export function PublicHeader({
         </div>
 
         {/* Mobile top-right cluster */}
-        <div className="flex shrink-0 items-center gap-0.5 sm:gap-1 md:hidden [&>button]:h-8 [&>button]:min-w-8 [&>div>button]:h-8 [&>div>button]:min-w-8">
+        <div data-map-header-actions="mobile" className="flex shrink-0 items-center gap-0.5 sm:gap-1 md:hidden [&>button]:h-8 [&>button]:min-w-8 [&>div>button]:h-8 [&>div>button]:min-w-8">
           {activeSection === 'about' && guideVariant !== 'scenarios' && mobileExtraAction}
           {showBentoMenu && guideVariant !== 'scenarios' && !showBottomNav && !hideMobileAlertsAndMenu && (
             <BentoMenu
@@ -461,7 +458,7 @@ export function PublicHeader({
     </header>
 
     <div ref={toolbarRef} data-map-mobile-toolbar aria-label="Map toolbar"
-      className={`fixed inset-x-1.5 top-[calc(max(0.375rem,env(safe-area-inset-top,0px))+3.5rem)] z-[1150] ${activeSection === 'about' || (hideMobileAlertsAndMenu && guideVariant !== 'scenarios') ? 'hidden' : 'flex'} min-h-8 items-start gap-1.5 md:hidden`}>
+      className={`fixed inset-x-1.5 top-[calc(max(0.375rem,env(safe-area-inset-top,0px))+3.5rem)] z-[1150] ${guideVariant === 'scenarios' || activeSection === 'about' || hideMobileAlertsAndMenu ? 'hidden' : 'flex'} min-h-8 items-start gap-1.5 md:hidden`}>
       <div data-map-mobile-controls-slot className="min-w-0 flex-1 empty:hidden" />
       {showAlerts && <NotificationBell notifications={weatherNotifications} onSelectAlert={setSelectedAlert}
         onMarkRead={markAlertRead} variant="toolbar" className="shrink-0" />}

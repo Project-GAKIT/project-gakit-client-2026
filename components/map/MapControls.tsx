@@ -769,7 +769,7 @@ function StormTrackSelector({
               left: menuPos.left,
               width: menuPos.width,
             }}
-            className="z-[1400] max-h-72 flex flex-col rounded-xl border border-default/90 bg-panel/95 backdrop-blur-md shadow-xl shadow-scrim/10 text-secondary animate-in fade-in zoom-in-95 duration-100 overflow-hidden"
+            className="z-[1400] max-h-72 flex flex-col rounded-xl border border-default/90 bg-panel shadow-xl shadow-scrim/10 text-secondary animate-in fade-in zoom-in-95 duration-100 overflow-hidden"
           >
             {/* Sticky Search Header */}
             <div className="p-1.5 border-b border-default bg-panel/80 shrink-0">

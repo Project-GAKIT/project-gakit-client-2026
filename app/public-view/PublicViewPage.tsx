@@ -913,7 +913,7 @@ export function PublicViewPage({
         <div
           role="status"
           aria-live="polite"
-          className="fixed left-1/2 top-20 z-[1250] flex w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 items-center gap-2.5 rounded-2xl border border-default bg-panel/95 px-3 py-2.5 shadow-lg backdrop-blur-md"
+          className="fixed left-1/2 top-20 z-[1250] flex w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 items-center gap-2.5 rounded-2xl border border-default bg-panel/95 px-3 py-2.5 shadow-lg map-glass backdrop-blur-md"
         >
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-secondary">
             <MapPin className="h-4 w-4" aria-hidden />
@@ -955,7 +955,7 @@ export function PublicViewPage({
         <div
           role="status"
           aria-label="Preparing"
-          className="fixed top-4 left-1/2 z-[1350] flex -translate-x-1/2 items-center rounded-full border border-default/80 bg-panel/95 px-3 py-2 shadow-lg backdrop-blur-md"
+          className="fixed top-4 left-1/2 z-[1350] flex -translate-x-1/2 items-center rounded-full border border-default/80 bg-panel/95 px-3 py-2 shadow-lg map-glass backdrop-blur-md"
         >
           <Spinner size="sm" />
         </div>

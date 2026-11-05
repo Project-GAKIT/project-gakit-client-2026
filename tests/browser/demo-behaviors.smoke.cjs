@@ -44,7 +44,7 @@ const base = process.env.GAKIT_BASE_URL || 'http://localhost:3000';
     let pendingHour = true, failNext = false;
     page.on('pageerror',error=>errors.push(error.message));
     await page.route('**/__demo-behaviors/page',route=>route.fulfill({contentType:'text/html',body:'<body style="font-family:system-ui,sans-serif"><div id="root"></div></body>'}));
-    await page.route('**/data/scenarios/pagasa_orange.json',route=>route.fulfill({json:scenario}));
+    await page.route(/\/data\/(scenarios|scenario-assets)\/pagasa_orange\.json$/,route=>route.fulfill({json:scenario}));
     await page.route('**/__demo-behaviors/library**',route=>{
       const request=route.request(), id=new URL(request.url()).pathname.split('/')[3];
       if(request.method()==='GET') return route.fulfill({json:[...database.values()]});

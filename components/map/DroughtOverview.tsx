@@ -57,7 +57,7 @@ export function DroughtOverview({ state, periods, onClose }: { state: DroughtCon
   const provinceTone = provinceTones[category ?? 4];
   const affected = groups.reduce((sum, group) => sum + group.affected, 0);
   const updated = grid.issuedAt;
-  return <aside ref={panelRef} aria-label="Drought overview" className="pointer-events-auto absolute right-5 top-24 z-[1010] flex max-h-[calc(100%-12rem)] w-[340px] flex-col overflow-hidden rounded-2xl border border-default/80 bg-panel/95 shadow-xl backdrop-blur-md lg:w-[360px]">
+  return <aside ref={panelRef} aria-label="Drought overview" className="pointer-events-auto absolute right-5 top-24 z-[1010] flex max-h-[calc(100%-12rem)] w-[340px] flex-col overflow-hidden rounded-2xl border border-default/80 bg-panel/95 shadow-xl map-glass backdrop-blur-md lg:w-[360px]">
     <header className="flex shrink-0 items-center gap-1 border-b border-default px-3 py-2">
       <button type="button" aria-label="Move drought details" onPointerDown={start} onPointerMove={move} onPointerUp={end} onPointerCancel={end} onKeyDown={keyMove} className="flex min-w-0 flex-1 cursor-grab touch-none items-center gap-2 text-left active:cursor-grabbing"><GripHorizontal size={12} className="text-muted-foreground" /><span className="text-xs font-bold text-primary">Drought overview</span></button>
       <button type="button" aria-label="About drought overview" aria-expanded={help} onClick={() => setHelp(v => !v)} className="p-1.5 text-muted-foreground hover:text-secondary"><Info size={12} /></button>

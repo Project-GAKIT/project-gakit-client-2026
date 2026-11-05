@@ -1,0 +1,49 @@
+/* Opaque by default: mobile, startup, unsupported browsers, and busy maps. */
+:is([data-map-shell], [data-map-workspace], [data-map-glass]) {
+  --map-glass-filter: none;
+  --map-glass-surface: rgb(var(--surface-panel) / .98);
+}
+
+[data-map-glass='busy'] {
+  --map-glass-surface: rgb(var(--surface-panel));
+}
+
+@media (min-width: 768px) {
+  @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    [data-map-glass='settled'] {
+      --map-glass-filter: blur(6px);
+      --map-glass-surface: rgb(var(--surface-panel) / .94);
+    }
+  }
+}
+
+:is([data-map-shell], [data-map-workspace], [data-map-glass]) :is(.hud-card, .hud-pill, .map-glass, [data-map-glass-surface], [data-map-header], [data-header-dropdown]) {
+  background-color: var(--map-glass-surface);
+  -webkit-backdrop-filter: var(--map-glass-filter);
+  backdrop-filter: var(--map-glass-filter);
+  border-color: rgb(var(--border-default) / .9);
+  box-shadow: var(--shadow-control), inset 0 1px 0 rgb(var(--map-glass-highlight) / .1);
+  /* Never interpolate the blur radius during the busy/settled handoff. */
+  transition-property: color, border-color, opacity, transform;
+}
+
+/* A card or popup inside another glass surface gets a solid readable fill. */
+:is([data-map-shell], [data-map-workspace], [data-map-glass]) :is(.hud-card, .hud-pill, .map-glass, [data-map-glass-surface], [data-map-header]) :is(.hud-card, .hud-pill, .map-glass, [data-map-glass-surface], [data-header-dropdown]) {
+  background-color: rgb(var(--surface-panel) / .98);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* MapLibre owns popup markup and its integration styles use !important. */
+:is([data-map-shell], [data-map-workspace], [data-map-glass]) .maplibregl-popup:not(.gakit-report-popup, .gakit-report-hover) .maplibregl-popup-content {
+  background: var(--map-glass-surface) !important;
+  -webkit-backdrop-filter: var(--map-glass-filter) !important;
+  backdrop-filter: var(--map-glass-filter) !important;
+}
+
+@media (prefers-reduced-transparency: reduce), (forced-colors: active) {
+  :is([data-map-shell], [data-map-workspace], [data-map-glass]) {
+    --map-glass-filter: none;
+    --map-glass-surface: rgb(var(--surface-panel));
+  }
+}

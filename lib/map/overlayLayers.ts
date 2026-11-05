@@ -491,8 +491,8 @@ export const setupOverlayLayers = async (
     });
 
     // 3. Official PAGASA category symbols for observed and forecast positions.
-    await registerTyphoonIcons(map);
-    if (!isCurrent()) return;
+    // Icons enrich the tracker; their downloads must not gate map startup.
+    void registerTyphoonIcons(map, isCurrent);
     // Renders nodes for official classifications ('STY', 'TY', 'STS', 'TS', 'TD', 'LPA' + agency aliases like 'AA', 'LOW')
     const officialCategoryFilter = [
       'all',

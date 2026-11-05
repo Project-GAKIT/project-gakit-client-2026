@@ -3,6 +3,7 @@
 import { syncParBoundary } from '@/lib/map/parBoundary';
 import { getSessionBasemap } from '@/lib/theme/store';
 import { useBasemapStyle } from '@/hooks/useBasemapStyle';
+import { attachAdaptiveGlass, mapGlassScope } from '@/lib/map/adaptiveGlass';
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import { LiveRasterController } from '@/lib/map/liveRasterController';
@@ -232,6 +233,7 @@ export function ScenarioMap({ scenarioId, currentFrame, bounds, onRasterStateCha
     });
 
     mapRef.current = map;
+    const releaseGlass = attachAdaptiveGlass(map, mapGlassScope(mapContainer.current));
     map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
     // MapLibre opens compact attribution initially; start closed while keeping
     // its native information button and attribution links available.
@@ -346,6 +348,7 @@ export function ScenarioMap({ scenarioId, currentFrame, bounds, onRasterStateCha
     });
 
     return () => {
+      releaseGlass();
       map.remove();
       imageController.dispose();
       mapRef.current = null;

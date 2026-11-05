@@ -3,6 +3,7 @@
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import { ChartNoAxesColumnIncreasing, Pause, Play, Radio, RotateCcw, SkipBack, SkipForward, X } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
+import { useMapGlassActivity } from '@/hooks/useMapGlassActivity';
 import { SIMULATION_DEPTH_LEGEND } from '@/lib/map/colorScales';
 import type { SimulatedFloodTelemetry } from '@/lib/map/surrogate';
 import type { ScenarioFrame } from '@/types/scenario';
@@ -59,6 +60,7 @@ export function FloodSimulationTimeline({ frames, selectedIndex, onSelect, statu
   const toggleOverview = () => desktop ? setDesktopOverview(value => !value) : setMobileOverview(value => !value);
   const closeOverview = () => desktop ? setDesktopOverview(false) : setMobileOverview(false);
   const playerRef = useRef<HTMLElement>(null);
+  useMapGlassActivity(playerRef, playing && pageVisible);
   const live = !context || context.presetType === 'live';
   const latestIndex = frames.findIndex(frame => frame.live?.kind === 'latest');
   const currentIndex = latestIndex >= 0 ? latestIndex : frames.reduce((last, frame, index) => frame.is_forecast ? last : index, 0);
@@ -83,7 +85,8 @@ export function FloodSimulationTimeline({ frames, selectedIndex, onSelect, statu
     if (!player || !container) return;
     const measure = () => {
       const bottom = parseFloat(getComputedStyle(player).bottom) || 0;
-      container.style.setProperty('--flood-player-clearance', `${Math.ceil(player.getBoundingClientRect().height + bottom + 12)}px`);
+      const gap = parseFloat(getComputedStyle(container).getPropertyValue('--map-edge-gap')) || 12;
+      container.style.setProperty('--flood-player-clearance', `${Math.ceil(player.getBoundingClientRect().height + bottom + gap)}px`);
       container.style.setProperty('--scenario-player-height', `${Math.ceil(player.getBoundingClientRect().height)}px`);
     };
     measure();
@@ -111,14 +114,14 @@ export function FloodSimulationTimeline({ frames, selectedIndex, onSelect, statu
     mobile={!desktop} onSelect={choose} onClose={closeOverview} context={context} forecastControl={forecastControl} />;
 
   return <>
-    <section ref={playerRef} aria-label="Flood simulation timeline" className={`pointer-events-auto absolute inset-x-3 z-[1010] md:left-1/2 md:right-auto md:-translate-x-1/2 ${explorer ? 'md:w-[min(960px,calc(100%-2rem))]' : 'md:w-[min(960px,calc(100%-380px))]'} ${hasBottomNav ? 'bottom-[calc(env(safe-area-inset-bottom,0px)+5rem)]' : 'bottom-[max(1.5rem,env(safe-area-inset-bottom,0px))]'} ${fullScreen ? 'md:bottom-5' : 'md:bottom-3'}`}>
+    <section ref={playerRef} data-flood-timeline aria-label="Flood simulation timeline" className={`pointer-events-auto absolute inset-x-3 z-[1010] md:left-1/2 md:right-auto md:-translate-x-1/2 ${explorer ? 'md:w-[min(960px,calc(100%-2rem))]' : 'md:w-[min(960px,calc(100%-380px))]'} ${hasBottomNav ? 'bottom-[calc(env(safe-area-inset-bottom,0px)+5rem)]' : 'bottom-[max(1.5rem,env(safe-area-inset-bottom,0px))]'} ${fullScreen ? 'md:bottom-5' : 'md:bottom-3'}`}>
       {!desktop && overviewOpen && overview}
       <div aria-label="Flood simulation depth legend" className="mb-1.5 flex items-center justify-center gap-1 text-[9px] font-bold md:gap-1.5">
         <span className="mr-1 hidden text-secondary md:inline">DEPTH</span>
         {(live ? SIMULATION_DEPTH_LEGEND : scenarioDepthLegend).map(band => <span key={band.key} className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md bg-panel/95 px-2 py-1 text-secondary shadow-sm"><span aria-hidden="true" className="h-2 w-2 rounded-sm" style={{ backgroundColor: band.color }} />{band.label}</span>)}
       </div>
       {message && <div role="status" className="mb-1.5 flex items-center justify-between gap-2 rounded-xl bg-panel/95 px-3 py-2 text-[10px] leading-4 text-secondary shadow-sm"><span>{message}</span>{!loading && <button type="button" onClick={() => { if (playback) playback.pause(); else setPlaying(false); onRetry(); }} className="shrink-0 font-bold text-accent-text">Retry</button>}</div>}
-      <div className="flex h-[66px] items-center gap-1.5 rounded-2xl border border-default/80 bg-panel/95 px-2.5 shadow-lg backdrop-blur-md md:gap-3 md:px-3">
+      <div className="flex h-[66px] items-center gap-1.5 rounded-2xl border border-default/80 bg-panel/95 px-2.5 shadow-lg map-glass backdrop-blur-md md:gap-3 md:px-3">
         <div role="group" aria-label="Playback controls" className="flex shrink-0 items-center gap-0.5">
           <button type="button" aria-label="Previous hour" title="Previous hour" disabled={frames.length < 2 || index <= 0}
             onClick={() => choose(index - 1)} className="flex h-9 w-6 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted disabled:cursor-default disabled:opacity-30 md:w-7">

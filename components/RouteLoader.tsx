@@ -28,12 +28,12 @@ function RouteChangeWatcher({ onRouteChange }: { onRouteChange: () => void }) {
   return null;
 }
 
-export function RouteLoadingOverlay({ isLoading, label = 'Loading page…', showLabel = true }: { isLoading: boolean; label?: string; showLabel?: boolean }) {
-  return <PageLoader isLoading={isLoading} label={label} showLabel={showLabel} standalone />;
+export function RouteLoadingOverlay({ isLoading, label = 'Loading page…', showLabel = true, recovery = false }: { isLoading: boolean; label?: string; showLabel?: boolean; recovery?: boolean }) {
+  return <PageLoader isLoading={isLoading} label={label} showLabel={showLabel} recovery={recovery} standalone />;
 }
 
 const MIN_DISPLAY_TIME_MS = 150;
-const SAFETY_TIMEOUT_MS = 8000;
+const SAFETY_TIMEOUT_MS = 15000;
 
 function routeLabel(href: string) {
   const path = new URL(href, window.location.href).pathname;
@@ -49,8 +49,10 @@ function routeLabel(href: string) {
 export function RouteLoaderProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [recovery, setRecovery] = useState(false);
   const [hasNavigated, setHasNavigated] = useState(false);
   const [loadingLabel, setLoadingLabel] = useState('Loading page…');
+  const destinationLabelRef = useRef<string | null>(null);
   const fallbackLabels = useRef(new Map<symbol, string>());
   const startTimeRef = useRef<number>(0);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -60,6 +62,8 @@ export function RouteLoaderProvider({ children }: { children: React.ReactNode })
   const lastPathRef = useRef<string | null>(null);
 
   const showLoader = useCallback((label = 'Loading page…') => {
+    destinationLabelRef.current = label;
+    setRecovery(false);
     setHasNavigated(true);
     setLoadingLabel(label);
     if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
@@ -83,6 +87,8 @@ export function RouteLoaderProvider({ children }: { children: React.ReactNode })
     const finish = () => {
       if (fallbackCountRef.current > 0) return;
       setIsLoading(false);
+      setRecovery(false);
+      destinationLabelRef.current = null;
       snapshotRef.current?.replaceChildren();
       hideTimerRef.current = null;
     };
@@ -92,8 +98,13 @@ export function RouteLoaderProvider({ children }: { children: React.ReactNode })
 
   const registerFallback = useCallback((label = 'Loading page…') => {
     const id = Symbol();
-    fallbackLabels.current.set(id, label);
-    setLoadingLabel(label);
+    // A generic route fallback must not replace the destination's map label
+    // while the page hands loading ownership to its map startup gate.
+    const fallbackLabel = label === 'Loading page…'
+      ? destinationLabelRef.current ?? routeLabel(window.location.href)
+      : label;
+    fallbackLabels.current.set(id, fallbackLabel);
+    setLoadingLabel(fallbackLabel);
     fallbackCountRef.current++;
     if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
     setIsLoading(true);
@@ -124,12 +135,14 @@ export function RouteLoaderProvider({ children }: { children: React.ReactNode })
     return () => window.removeEventListener('popstate', onHistoryNavigation, true);
   }, [showLoader]);
 
-  // Safety fallback: if navigation stalls or is cancelled, auto-dismiss
+  // Stalled startup stays gated with recovery controls; cancelled navigation
+  // without a mounted fallback can safely dismiss the transition overlay.
   useEffect(() => {
     if (!isLoading) return;
     const timer = setTimeout(() => {
-      if (fallbackCountRef.current > 0) return;
+      if (fallbackCountRef.current > 0) { setRecovery(true); return; }
       setIsLoading(false);
+      destinationLabelRef.current = null;
       snapshotRef.current?.replaceChildren();
     }, SAFETY_TIMEOUT_MS);
     return () => clearTimeout(timer);
@@ -233,7 +246,7 @@ export function RouteLoaderProvider({ children }: { children: React.ReactNode })
       <div ref={contentRef} className="contents" data-route-content>{children}</div>
       <div ref={snapshotRef} aria-hidden="true" inert data-route-snapshot
         className="fixed inset-0 z-[1999] overflow-hidden bg-panel pointer-events-none select-none" />
-      <RouteLoadingOverlay isLoading={isLoading} label={loadingLabel} showLabel={hasNavigated} />
+      <RouteLoadingOverlay isLoading={isLoading} label={loadingLabel} showLabel={hasNavigated} recovery={recovery} />
     </RouteLoaderContext.Provider>
   );
 }
