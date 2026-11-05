@@ -5,6 +5,7 @@
 
 # Testing
 /coverage
+/tests/browser/artifacts/
 
 # Next.js Build and Cache Output
 /.next/

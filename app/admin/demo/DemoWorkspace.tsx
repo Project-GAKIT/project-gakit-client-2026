@@ -18,8 +18,8 @@ import type { DemoBehavior } from '@/lib/demo/behaviors';
 
 const ScenarioMap = dynamic(() => import('@/app/flood-scenarios/components/ScenarioMap').then(module => module.ScenarioMap), { ssr: false });
 const PRESETS = SCENARIO_PRESETS.filter(preset => preset.type !== 'live' && preset.dataFile);
-const inputClass = 'h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-sm text-slate-800';
-const actionClass = 'rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 disabled:opacity-50';
+const inputClass = 'h-9 w-full rounded-lg border border-default bg-panel px-2 text-sm text-primary';
+const actionClass = 'rounded-lg border border-default bg-panel px-3 py-2 text-xs font-semibold text-secondary disabled:opacity-50';
 const EMPTY_RESULTS: DemoReportResult[] = [];
 const EMPTY_FRAMES: ScenarioFrame[] = [];
 const subscribeHydration = () => () => {};
@@ -249,24 +249,24 @@ export function DemoWorkspace() {
       depthUncertaintyCm: exact && measured ? 10 : null }]);
   };
 
-  if (!hydrated) return <main role="status" className="min-h-screen bg-slate-50 p-6 text-sm text-slate-600">Opening demo workspace…</main>;
-  if (!enabled) return <main className="min-h-screen bg-slate-50 p-6"><div className="mx-auto max-w-lg rounded-2xl border border-slate-200 bg-white p-6">
-    <h1 className="text-xl font-bold text-slate-900">Demo mode is off</h1>
-    <p className="my-3 text-sm text-slate-600">Choose a storm, add reports, and see how water depth and flood coverage change.</p>
-    <button type="button" onClick={() => setDemoEnabled(true)} className="rounded-lg bg-gakit-maroon px-4 py-2 text-sm font-semibold text-white">Start storm demo</button>
+  if (!hydrated) return <main role="status" className="min-h-screen bg-page p-6 text-sm text-secondary">Opening demo workspace…</main>;
+  if (!enabled) return <main className="min-h-screen bg-page p-6"><div className="mx-auto max-w-lg rounded-2xl border border-default bg-panel p-6">
+    <h1 className="text-xl font-bold text-primary">Demo mode is off</h1>
+    <p className="my-3 text-sm text-secondary">Choose a storm, add reports, and see how water depth and flood coverage change.</p>
+    <button type="button" onClick={() => setDemoEnabled(true)} className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-on-accent">Start storm demo</button>
   </div></main>;
 
-  return <main className="min-h-screen bg-slate-50 text-slate-800">
-    <header className="flex flex-wrap items-center justify-between gap-3 border-b border-amber-200 bg-amber-50 px-4 py-3 md:px-6">
+  return <main className="min-h-screen bg-page text-primary">
+    <header className="flex flex-wrap items-center justify-between gap-3 border-b border-warning-border bg-warning-bg px-4 py-3 md:px-6">
       <div className="flex items-center gap-3"><Link href="/settings#developer" aria-label="Back to developer tools"><ArrowLeft className="h-5 w-5" /></Link>
-        <span className="rounded-md bg-amber-200 px-2 py-1 text-xs font-bold">DEMO</span><h1 className="font-bold">Live storm & report response</h1></div>
+        <span className="rounded-md bg-warning-bg px-2 py-1 text-xs font-bold">DEMO</span><h1 className="font-bold">Live storm & report response</h1></div>
       <div className="flex items-center gap-2"><span className="text-xs font-semibold tabular-nums">{demoClock(minutes)}</span>
         <button type="button" className={actionClass} onClick={() => { reset(); setDemoEnabled(false); }}>Exit demo</button></div>
     </header>
     <div className="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_340px] lg:p-6">
       <section className="min-w-0 space-y-3">
-        <p className="text-sm text-slate-600">Choose a storm, add reports, and compare the flood response. Demo data stays in this workspace.</p>
-        <div className="flex flex-wrap items-center gap-2"><FlaskConical className="h-4 w-4 text-amber-600" />
+        <p className="text-sm text-secondary">Choose a storm, add reports, and compare the flood response. Demo data stays in this workspace.</p>
+        <div className="flex flex-wrap items-center gap-2"><FlaskConical className="h-4 w-4 text-warning-text" />
           <label className="sr-only" htmlFor="demo-storm">Storm scenario</label>
           <select id="demo-storm" className={`${inputClass} max-w-sm`} value={preset} onChange={event => { reset(); setPreset(event.target.value); }}>
             {PRESETS.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
@@ -274,33 +274,33 @@ export function DemoWorkspace() {
           <button type="button" className={actionClass} onClick={reset}><RotateCcw className="mr-1 inline h-3.5 w-3.5" />Reset demo</button>
           <button type="button" className={actionClass} aria-pressed={reportsHidden} onClick={() => setReportsHidden(value => !value)}>{reportsHidden ? 'Show reports' : 'Hide reports'}</button>
           <div className="flex gap-1" role="group" aria-label="Demo flood comparison">
-            <button type="button" aria-pressed={view === 'baseline'} className={`${actionClass} ${view === 'baseline' ? 'border-gakit-maroon text-gakit-maroon' : ''}`} onClick={() => setView('baseline')}>Without reports</button>
-            <button type="button" aria-pressed={view === 'corrected'} className={`${actionClass} ${view === 'corrected' ? 'border-gakit-maroon text-gakit-maroon' : ''}`} onClick={() => setView('corrected')}>With reports</button>
+            <button type="button" aria-pressed={view === 'baseline'} className={`${actionClass} ${view === 'baseline' ? 'border-strong text-secondary' : ''}`} onClick={() => setView('baseline')}>Without reports</button>
+            <button type="button" aria-pressed={view === 'corrected'} className={`${actionClass} ${view === 'corrected' ? 'border-strong text-secondary' : ''}`} onClick={() => setView('corrected')}>With reports</button>
           </div>
           <ScenarioDisplayPopover compact />
         </div>
-        <div className="relative h-[48vh] min-h-80 overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 lg:h-[60vh]">
+        <div className="relative h-[48vh] min-h-80 overflow-hidden rounded-2xl border border-default bg-muted lg:h-[60vh]">
           {data ? <ScenarioMap scenarioId={`demo:${preset}:${view}`} bounds={data.bounds} currentFrame={displayFrame}
             demoReports={currentReports} demoReportPinsHidden={reportsHidden} onDemoLocationPick={setLocation} demoDraftLocation={location} demoFocus={focus} demoTerrainBounds={displayed?.analysis?.terrainBounds} depthPatches={depthPatches} />
             : <div role="status" className="flex h-full items-center justify-center text-sm">{scenario?.id === preset && scenario.error ? scenario.error : 'Loading storm…'}</div>}
-          <div className="pointer-events-none absolute left-3 top-3 rounded-lg bg-amber-100 px-2 py-1 text-xs font-bold text-amber-950">{inspectionMinutes !== null ? 'Historical replay' : 'Synthetic storm'} · {demoClock(displayedMinutes)}</div>
-          {analysisPending && <div role="status" className="absolute bottom-3 left-3 rounded-lg bg-white/95 px-3 py-2 text-xs shadow">
+          <div className="pointer-events-none absolute left-3 top-3 rounded-lg bg-warning-bg px-2 py-1 text-xs font-bold text-warning-text">{inspectionMinutes !== null ? 'Historical replay' : 'Synthetic storm'} · {demoClock(displayedMinutes)}</div>
+          {analysisPending && <div role="status" className="absolute bottom-3 left-3 rounded-lg bg-panel/95 px-3 py-2 text-xs shadow">
             {progress ? `Routing water · calculated through ${demoClock((Date.parse(progress.at) - Date.parse(demoTime(0))) / 60_000)}` : 'Updating flood map…'}
             {displayed && ` Showing ${demoClock(displayed.minutes)}.`}
           </div>}
-          {assessed?.error && <div role="alert" className="absolute bottom-3 left-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900 shadow">Update paused.{displayed && ` Showing ${demoClock(displayed.minutes)}.`} See the message below to retry.</div>}
+          {assessed?.error && <div role="alert" className="absolute bottom-3 left-3 rounded-lg bg-warning-bg px-3 py-2 text-xs text-warning-text shadow">Update paused.{displayed && ` Showing ${demoClock(displayed.minutes)}.`} See the message below to retry.</div>}
         </div>
-        {inspectionMinutes !== null && <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+        {inspectionMinutes !== null && <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-warning-border bg-warning-bg p-3 text-xs text-warning-text">
           <p>Reviewing {demoClock(inspectionMinutes)} with reports received by {demoClock(minutes)}. Current storm levels stay unchanged.</p>
           <button type="button" className={actionClass} onClick={() => setInspectionMinutes(null)}>Back to current time · {demoClock(minutes)}</button>
         </div>}
-        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600">
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-secondary">
           <span>Rain this hour: <strong>{frame?.hourly_rain_mm?.toFixed(1) ?? '—'} mm</strong></span>
           <span>Rain used by model: <strong>{demoRainfall(frame)?.toFixed(1) ?? '—'} mm</strong></span>
           <span>Hourly flood maps · checks every 5 demo minutes</span>
         </div>
-        {analysis && <div className="flex flex-wrap gap-x-4 gap-y-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs">
-          <span className="text-slate-500">With vs without reports · same time</span>
+        {analysis && <div className="flex flex-wrap gap-x-4 gap-y-1 rounded-lg border border-default bg-panel px-3 py-2 text-xs">
+          <span className="text-muted-foreground">With vs without reports · same time</span>
           <span><strong>{analysis.reportUpdateCount}</strong> reports applied</span>
           <span><strong>+{analysis.addedWetAreaM2.toLocaleString(undefined, { maximumFractionDigits: 0 })} m²</strong> more flooded</span>
           <span><strong>−{analysis.removedWetAreaM2.toLocaleString(undefined, { maximumFractionDigits: 0 })} m²</strong> less flooded</span>
@@ -308,16 +308,16 @@ export function DemoWorkspace() {
           <span>Water volume change <strong>{analysis.storageChangeM3 > 0 ? '+' : ''}{Math.round(analysis.storageChangeM3).toLocaleString()} m³</strong></span>
           {analysis.reportUpdateCount > 0 && <span>Local area (without → with): <strong>{Math.round(analysis.baselineWetAreaM2).toLocaleString()} → {Math.round(analysis.correctedWetAreaM2).toLocaleString()} m²</strong></span>}
           {analysis.observationOnlyGroups > 0 && <span>{analysis.observationOnlyGroups} reports with no depth update</span>}
-          {analysis.outsideDomainReportIds.length > 0 && <span className="text-amber-700">{analysis.outsideDomainReportIds.length} outside model coverage</span>}
-          {analysis.flowState && <span className="font-semibold text-sky-700">Water carries forward</span>}
+          {analysis.outsideDomainReportIds.length > 0 && <span className="text-warning-text">{analysis.outsideDomainReportIds.length} outside model coverage</span>}
+          {analysis.flowState && <span className="font-semibold text-info-text">Water carries forward</span>}
         </div>}
         {frames.length > 0 && <TimelinePlayer className="relative w-full" frames={playerFrames} currentIndex={currentIndex}
           onIndexChange={index => { setPlaying(false); setInspectionMinutes(null); setMinutes(index * 60); }} isPlaying={isPlaying}
           onTogglePlay={() => { setInspectionMinutes(null); if (minutes >= maxMinutes) { setMinutes(0); setPlaying(true); } else setPlaying(value => !value); }}
           onReset={reset}
           status={`${demoClock(minutes)} · ${analysisPending ? 'Updating map' : '1 second = 5 demo minutes'}`} />}
-        <p className="text-xs text-slate-500">Area counts water at least 20 cm deep. Depth can change without expanding the outline.</p>
-        <details className="text-xs leading-5 text-slate-500">
+        <p className="text-xs text-muted-foreground">Area counts water at least 20 cm deep. Depth can change without expanding the outline.</p>
+        <details className="text-xs leading-5 text-muted-foreground">
           <summary className="cursor-pointer font-medium">How updates work</summary>
           <ul className="mt-1 list-disc space-y-1 pl-4">
             <li>Accepted readings adjust water once at their observation time. Water then keeps moving between steps.</li>
@@ -329,21 +329,21 @@ export function DemoWorkspace() {
         </details>
       </section>
       <aside className="space-y-3">
-        <section className="rounded-xl border border-slate-200 bg-white p-4">
+        <section className="rounded-xl border border-default bg-panel p-4">
           <label className="block text-xs font-medium">Report handling<select className={`${inputClass} mt-1`} value={approveFixtures ? 'approved' : 'policy'} onChange={event => { setPlaying(false); setApproveFixtures(event.target.value === 'approved'); }}>
             <option value="policy">Check reports (default)</option>
             <option value="approved">Auto-approve (skip checks)</option>
           </select></label>
-          <p role="status" className={`mb-3 mt-2 rounded-lg p-2 text-xs leading-5 ${approveFixtures ? 'bg-amber-50 text-amber-800' : 'bg-slate-50 text-slate-600'}`}>{approveFixtures
+          <p role="status" className={`mb-3 mt-2 rounded-lg p-2 text-xs leading-5 ${approveFixtures ? 'bg-warning-bg text-warning-text' : 'bg-page text-secondary'}`}>{approveFixtures
             ? 'Demo reports skip validation. The live report setting stays unchanged.'
             : 'Reports use the normal validation engine. One report can be accepted when storm and location checks support it.'}</p>
         </section>
         <DemoBehaviors snapshot={{ preset, minutes, inspectionMinutes, approveFixtures, reports: manual, location }}
           statuses={preloadStatuses} busyId={preloadBusyId} error={preloadError}
           onLoad={loadBehavior} onPreload={behavior => void preloadBehavior(behavior)} onChange={invalidateBehavior} />
-        <form onSubmit={addReport} className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+        <form onSubmit={addReport} className="space-y-3 rounded-xl border border-default bg-panel p-4">
           <h2 className="text-sm font-bold">Submit a demo report</h2>
-          <p className="text-xs text-slate-500">Playback pauses after submission so you can inspect the change.</p>
+          <p className="text-xs text-muted-foreground">Playback pauses after submission so you can inspect the change.</p>
           <label className="block text-xs font-medium">Observed at<select className={`${inputClass} mt-1`} value={observationTime} onChange={event => setObservationTime(event.target.value as 'now' | 'earlier')}>
             <option value="now">Now · {demoClock(minutes)}</option>
             <option value="earlier">Earlier</option>
@@ -357,20 +357,20 @@ export function DemoWorkspace() {
             {DEPTH_PRESETS.map(item => <option key={item.code} value={item.code}>{item.shortLabel} deep · about {item.cm} cm</option>)}
             <option value="overhead">Overhead · about 190 cm</option>
           </select></label>
-          <label className="block text-xs font-medium">Exact depth in cm <span className="font-normal text-slate-500">(optional; overrides category)</span>
+          <label className="block text-xs font-medium">Exact depth in cm <span className="font-normal text-muted-foreground">(optional; overrides category)</span>
             <input className={`${inputClass} mt-1`} type="number" min={1} max={999} step={1} value={exactDepth} onChange={event => setExactDepth(event.target.value)} placeholder="e.g. 45" />
           </label>
           {exactDepth.trim() && <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={measured} onChange={event => setMeasured(event.target.checked)} />Measured with demo ruler (±10 cm)</label>}
           <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={manualLocation} onChange={event => setManualLocation(event.target.checked)} />Manual location (no GPS)</label>
           {!manualLocation && <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={poorGps} onChange={event => setPoorGps(event.target.checked)} />Low GPS accuracy</label>}
-          <p className="text-xs text-slate-500"><MapPin className="mr-1 inline h-3 w-3" />{location.latitude.toFixed(5)}, {location.longitude.toFixed(5)} · Click map to move pin</p>
-          <button type="submit" disabled={manual.length >= 50} className="w-full rounded-lg bg-gakit-maroon px-3 py-2 text-sm font-semibold text-white disabled:opacity-50">Add demo report</button>
+          <p className="text-xs text-muted-foreground"><MapPin className="mr-1 inline h-3 w-3" />{location.latitude.toFixed(5)}, {location.longitude.toFixed(5)} · Click map to move pin</p>
+          <button type="submit" disabled={manual.length >= 50} className="w-full rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-on-accent disabled:opacity-50">Add demo report</button>
         </form>
-        <section className="rounded-xl border border-slate-200 bg-white p-4">
-          <h2 className="text-sm font-bold">Demo reports <span className="font-normal text-slate-500">({inputs.length})</span></h2>
-          {!approveFixtures && inputs.length > 1 && new Set(inputs.map(input => input.reporter)).size === 1 && <p className="mt-2 text-xs leading-5 text-amber-700">Same reporter · nearby repeats count once. Separate locations remain usable.</p>}
-          {!assessed && <p role="status" className="mt-2 text-xs text-slate-500">Checking reports…</p>}
-          {assessed?.error && <div role="alert" className="mt-2 text-xs text-red-700">{assessed.error}
+        <section className="rounded-xl border border-default bg-panel p-4">
+          <h2 className="text-sm font-bold">Demo reports <span className="font-normal text-muted-foreground">({inputs.length})</span></h2>
+          {!approveFixtures && inputs.length > 1 && new Set(inputs.map(input => input.reporter)).size === 1 && <p className="mt-2 text-xs leading-5 text-warning-text">Same reporter · nearby repeats count once. Separate locations remain usable.</p>}
+          {!assessed && <p role="status" className="mt-2 text-xs text-muted-foreground">Checking reports…</p>}
+          {assessed?.error && <div role="alert" className="mt-2 text-xs text-error-text">{assessed.error}
             <button type="button" className={`${actionClass} mt-2`} onClick={() => { setAssessment(null); setRetry(value => value + 1); }}>Try again</button>
           </div>}
           <div className="mt-3 max-h-96 space-y-2 overflow-y-auto">{[...results].reverse().map(report => {

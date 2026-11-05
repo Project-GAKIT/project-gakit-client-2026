@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { getDisplayName, type AuthSnapshot } from '@/lib/auth/roles';
 import { createClient } from '@/lib/supabase/client';
+import { AppearanceSelector } from '@/components/AppearanceSelector';
 import { AccountCard } from './components/AccountCard';
 import { SettingsSection } from './components/SettingsSection';
 import { ProfileSection } from './components/ProfileSection';
@@ -101,12 +102,15 @@ export function SettingsPage({ initialAuth }: { initialAuth?: AuthSnapshot }) {
       )}
 
       {active === 'appearance' && (
+        <div className="space-y-6">
+        <SettingsSection title="Theme"><AppearanceSelector /></SettingsSection>
         <SettingsSection
           title="Map display"
           description="Preferences for how flood scenarios are shown on the map. Saved to this browser."
         >
           <DisplayPreferencesSection />
         </SettingsSection>
+        </div>
       )}
     </SettingsLayout>
   );

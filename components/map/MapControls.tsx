@@ -90,7 +90,7 @@ const formatRainfallBand = (mm: number) =>
 
 function PillToggle({
   label,
-  color = '#7B1113',
+  color = 'rgb(var(--accent))',
   checked,
   onChange,
   credit,
@@ -127,39 +127,39 @@ function PillToggle({
           aria-checked={checked}
           disabled={disabled}
           onClick={() => onChange(!checked)}
-          className="flex items-center gap-2 cursor-pointer select-none text-left min-w-0 flex-1 py-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon rounded disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex items-center gap-2 cursor-pointer select-none text-left min-w-0 flex-1 py-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus rounded disabled:cursor-not-allowed disabled:opacity-40"
         >
           {/* Pill track */}
           <span
-            className="relative inline-flex h-[18px] w-[32px] shrink-0 items-center rounded-full ring-1 ring-slate-300/70 transition-colors duration-200"
-            style={{ backgroundColor: checked ? color : '#E2E8F0' }}
+            className="relative inline-flex h-[18px] w-[32px] shrink-0 items-center rounded-full ring-1 ring-inset ring-switch-edge transition-colors duration-200"
+            style={{ backgroundColor: checked ? color : 'rgb(var(--switch-off))' }}
           >
             {/* Circle thumb */}
             <span
-              className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow-xs ring-1 ring-black/5 transition-transform duration-200 ${
+              className={`inline-block h-3.5 w-3.5 rounded-full bg-on-accent shadow-xs ring-1 ring-scrim/5 transition-transform duration-200 ${
                 checked ? 'translate-x-[15px]' : 'translate-x-[2px]'
               }`}
             />
           </span>
           <span className={`flex items-center gap-1.5 min-w-0 text-xs transition-colors ${
-            checked ? 'font-semibold text-slate-800 group-hover:text-slate-950' : 'font-normal text-slate-400'
+            checked ? 'font-semibold text-primary group-hover:text-primary' : 'font-normal text-muted-foreground'
           }`}>
             {indicatorDot && (
               <span
-                className="w-2 h-2 rounded-full shrink-0 ring-1 ring-black/10"
+                className="w-2 h-2 rounded-full shrink-0 ring-1 ring-scrim/10"
                 style={{ backgroundColor: indicatorDot }}
               />
             )}
             <span className="truncate leading-tight">{label}</span>
-            {beta && <sup className="relative -top-1 shrink-0 select-none rounded bg-amber-100/90 px-1 py-0.5 text-[7px] font-extrabold uppercase leading-none tracking-wider text-amber-800 shadow-xs ring-1 ring-inset ring-amber-200/70">Beta</sup>}
-            {subtitle && <span className="text-slate-400 shrink-0">{subtitle}</span>}
+            {beta && <sup className="relative -top-1 shrink-0 select-none rounded bg-warning-bg/90 px-1 py-0.5 text-[7px] font-extrabold uppercase leading-none tracking-wider text-warning-text shadow-xs ring-1 ring-inset ring-warning-border/70">Beta</sup>}
+            {subtitle && <span className="text-muted-foreground shrink-0">{subtitle}</span>}
             {loading && <Spinner size="sm" label={`Loading ${label}`} />}
           </span>
         </button>
-        {onDetails && <button type="button" aria-label={`About ${label}`} aria-haspopup="dialog" onClick={onDetails} className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon"><Info size={14} /></button>}
+        {onDetails && <button type="button" aria-label={`About ${label}`} aria-haspopup="dialog" onClick={onDetails} className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"><Info size={14} /></button>}
         {typeof count === 'number' && (
           <span className={`text-[10px] font-bold tabular-nums shrink-0 px-1.5 py-0.5 rounded-full ${
-            checked ? 'text-slate-600 bg-slate-100' : 'text-slate-300 bg-slate-50'
+            checked ? 'text-secondary bg-muted' : 'text-muted-foreground bg-page'
           }`}>
             {count}
           </span>
@@ -169,7 +169,7 @@ function PillToggle({
             href={credit.href}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[10px] text-slate-400 hover:text-slate-900 hover:underline shrink-0"
+            className="text-[10px] text-muted-foreground hover:text-primary hover:underline shrink-0"
             title={`Data source: ${credit.label}`}
           >
             © {credit.label}
@@ -195,6 +195,7 @@ function Card({
 }: {
   open: boolean;
   onToggle: (v: boolean) => void;
+  /** Shown only on the collapsed pill; the expanded card header is intentionally icon-free. */
   icon: typeof Layers;
   title: string;
   badge?: React.ReactNode;
@@ -208,10 +209,9 @@ function Card({
       <div className="w-full hud-card overflow-hidden transition-all duration-200">
         <div
           onClick={() => onToggle(!open)}
-          className="flex items-center justify-between gap-2.5 px-3 py-2 text-xs font-bold text-slate-900 cursor-pointer select-none hover:bg-slate-50/60 transition-colors"
+          className="flex items-center justify-between gap-2.5 px-3 py-2 text-xs font-bold text-primary cursor-pointer select-none hover:bg-page/60 transition-colors"
         >
           <div className="flex items-center gap-2">
-            <Icon className="w-4 h-4 text-slate-500 shrink-0" />
             <span>{title}</span>
             {badge}
           </div>
@@ -223,10 +223,10 @@ function Card({
                 e.stopPropagation();
                 onToggle(!open);
               }}
-              className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-canvas-light transition-colors"
+              className="p-1 rounded-md text-muted-foreground hover:text-secondary hover:bg-page transition-colors"
               aria-label={open ? `Collapse ${title}` : `Expand ${title}`}
             >
-              {open ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              {open ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
             </button>
           </div>
         </div>
@@ -237,7 +237,7 @@ function Card({
           }`}
         >
           <div className="min-h-0 overflow-hidden">
-            <div className="px-3 pb-3 pt-2 border-t border-slate-100/80">{children}</div>
+            <div className="px-3 pb-3 pt-2 border-t border-default/80">{children}</div>
           </div>
         </div>
       </div>
@@ -246,9 +246,8 @@ function Card({
 
   return open ? (
     <div className="w-72 hud-card">
-      <div className="flex items-center justify-between gap-3 px-3 pt-3 pb-1 text-xs font-bold text-slate-900">
+      <div className="flex items-center justify-between gap-3 px-3 pt-3 pb-1 text-xs font-bold text-primary">
         <div className="flex items-center gap-2">
-          <Icon className="w-3.5 h-3.5 text-slate-500 shrink-0" />
           {title}
           {badge}
         </div>
@@ -256,10 +255,10 @@ function Card({
           {headerAction}
           <button
             onClick={() => onToggle(false)}
-            className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-canvas-light transition-colors"
+            className="p-1 rounded-md text-muted-foreground hover:text-secondary hover:bg-page transition-colors"
             aria-label={`Collapse ${title}`}
           >
-            <ChevronUp className="w-4 h-4" />
+            <ChevronDown className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -270,12 +269,12 @@ function Card({
   ) : (
     <button
       onClick={() => onToggle(true)}
-      className="flex items-center gap-2 px-3.5 py-2.5 hud-pill hover:bg-white hover:shadow-lg transition-all duration-150"
+      className="flex items-center gap-2 px-3.5 py-2.5 hud-pill hover:bg-panel hover:shadow-lg transition-all duration-150"
       title={`Show ${title}`}
       aria-label={`Show ${title}`}
     >
-      <Icon className="w-5 h-5 text-slate-500" />
-      <span className="text-sm font-semibold text-slate-700">{title}</span>
+      <Icon className="w-5 h-5 text-muted-foreground" />
+      <span className="text-sm font-semibold text-secondary">{title}</span>
       {badge}
     </button>
   );
@@ -286,10 +285,10 @@ function Card({
 function CoverageChip({ label, detail }: { label: string; detail: string }) {
   return (
     <span className="group relative ml-auto shrink-0" title={detail}>
-      <span className="inline-flex items-center rounded-full bg-white px-1.5 py-0.5 text-[9px] font-semibold normal-case tracking-normal text-slate-500 ring-1 ring-slate-200">
+      <span className="inline-flex items-center rounded-full bg-panel px-1.5 py-0.5 text-[9px] font-semibold normal-case tracking-normal text-muted-foreground ring-1 ring-default">
         {label}
       </span>
-      <span className="pointer-events-none absolute top-full right-0 z-10 mt-1.5 hidden whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[10px] font-medium text-white shadow-lg group-hover:block">
+      <span className="pointer-events-none absolute top-full right-0 z-10 mt-1.5 hidden whitespace-nowrap rounded-md bg-contrast px-2 py-1 text-[10px] font-medium text-on-accent shadow-lg group-hover:block">
         {detail}
       </span>
     </span>
@@ -300,7 +299,7 @@ function CoverageChip({ label, detail }: { label: string; detail: string }) {
 const BASEMAP_TITLES: Record<BasemapId, string> = {
   light: 'Light street map (Positron)',
   bright: 'Colorful street map (OSM Bright)',
-  dark: 'Dark street map (Fiord)',
+  dark: 'Dark street map (Dark Matter)',
   satellite: 'Satellite imagery (Esri)',
 };
 
@@ -332,8 +331,8 @@ export function MapViewToggle({
             title={BASEMAP_TITLES[id]}
             className={`rounded-xl px-2.5 py-1.5 text-xs font-bold leading-none transition-colors duration-150 md:px-3 ${
               basemap === id
-                ? 'bg-gakit-maroon text-white shadow-xs'
-                : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900'
+                ? 'bg-accent text-on-accent shadow-xs'
+                : 'text-secondary hover:bg-muted/80 hover:text-primary'
             }`}
           >
             {BASEMAP_LABELS[id]}
@@ -341,7 +340,7 @@ export function MapViewToggle({
         ))}
       </div>
 
-      <span className="h-4 w-px bg-slate-200" aria-hidden="true" />
+      <span className="h-4 w-px bg-muted" aria-hidden="true" />
 
       {/* 3D Toggle Pill */}
       <label
@@ -354,15 +353,15 @@ export function MapViewToggle({
           onChange={(e) => onModeChange(e.target.checked ? '3d' : '2d')}
           className="sr-only"
         />
-        <span className="text-xs font-bold text-slate-700 group-hover:text-slate-900 transition-colors">
+        <span className="text-xs font-bold text-secondary group-hover:text-primary transition-colors">
           3D
         </span>
         <span
-          className="relative inline-flex h-[18px] w-[32px] shrink-0 items-center rounded-full ring-1 ring-slate-300/70 transition-colors duration-200"
-          style={{ backgroundColor: is3D ? '#7B1113' : '#E2E8F0' }}
+          className="relative inline-flex h-[18px] w-[32px] shrink-0 items-center rounded-full ring-1 ring-inset ring-switch-edge transition-colors duration-200"
+          style={{ backgroundColor: is3D ? 'rgb(var(--accent))' : 'rgb(var(--switch-off))' }}
         >
           <span
-            className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow-xs ring-1 ring-black/5 transition-transform duration-200 ${
+            className={`inline-block h-3.5 w-3.5 rounded-full bg-on-accent shadow-xs ring-1 ring-scrim/5 transition-transform duration-200 ${
               is3D ? 'translate-x-[15px]' : 'translate-x-[2px]'
             }`}
           />
@@ -459,48 +458,48 @@ export function ReportControls({
         isLoading ? (
           <Spinner size="xs" />
         ) : typeof summaryCount === 'number' ? (
-          <span className="rounded-full bg-gakit-maroon/10 px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-gakit-maroon">
+          <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-secondary">
             {summaryCount}
           </span>
         ) : undefined
       }
     >
       {publicSummary ? <div className="space-y-2.5">
-        <p className="text-[10px] font-medium text-slate-500">Validated reports · {reportWindowHours == null ? 'All time' : `Last ${reportWindowHours} hours`}</p>
-        {isLoading && !verified.length ? <p role="status" className="text-xs text-slate-400">Loading reports…</p> : verified.length === 0 ? (
-          <p className="rounded-lg bg-slate-50 px-2.5 py-3 text-xs leading-5 text-slate-500">No verified reports in this area {reportWindowHours == null ? '' : `in the last ${reportWindowHours} hours`}.</p>
+        <p className="text-[10px] font-medium text-muted-foreground">Validated reports · {reportWindowHours == null ? 'All time' : `Last ${reportWindowHours} hours`}</p>
+        {isLoading && !verified.length ? <p role="status" className="text-xs text-muted-foreground">Loading reports…</p> : verified.length === 0 ? (
+          <p className="rounded-lg bg-page px-2.5 py-3 text-xs leading-5 text-muted-foreground">No verified reports in this area {reportWindowHours == null ? '' : `in the last ${reportWindowHours} hours`}.</p>
         ) : <>
-          <div className="grid grid-cols-[0.7fr_1.3fr] divide-x divide-slate-200 rounded-lg border border-slate-200 bg-slate-50 py-2">
-            <div className="px-2.5"><p className="text-[9px] text-slate-400">Validated reports</p><p className="mt-0.5 text-lg font-bold leading-5 tabular-nums text-slate-900">{verified.length}</p></div>
-            <div className="px-2.5"><p className="text-[9px] text-slate-400">Deepest reported</p><p className="mt-1 text-[11px] font-semibold text-slate-800">{deepest ? formatReportDepth(deepest.properties.depth, deepest.properties.depthCm) : '—'}</p></div>
+          <div className="grid grid-cols-[0.7fr_1.3fr] divide-x divide-default rounded-lg border border-default bg-page py-2">
+            <div className="px-2.5"><p className="text-[9px] text-muted-foreground">Validated reports</p><p className="mt-0.5 text-lg font-bold leading-5 tabular-nums text-primary">{verified.length}</p></div>
+            <div className="px-2.5"><p className="text-[9px] text-muted-foreground">Deepest reported</p><p className="mt-1 text-[11px] font-semibold text-primary">{deepest ? formatReportDepth(deepest.properties.depth, deepest.properties.depthCm) : '—'}</p></div>
           </div>
           <div role="group" aria-label="Reported depth distribution" className="space-y-1">
-            <div className="flex h-2 w-full overflow-hidden rounded-full bg-slate-100" aria-hidden="true">
+            <div className="flex h-2 w-full overflow-hidden rounded-full bg-muted" aria-hidden="true">
               {depthMix.map(({ code, count, color }) => (
                 <span key={code} className="h-full" style={{ flexGrow: count, flexBasis: 0, backgroundColor: color }} />
               ))}
             </div>
-            <ul className="flex flex-wrap gap-x-2 gap-y-0.5 text-[9px] font-medium text-slate-500">
+            <ul className="flex flex-wrap gap-x-2 gap-y-0.5 text-[9px] font-medium text-muted-foreground">
               {depthMix.map(({ code, count, color, label }) => (
                 <li key={code} className="flex items-center gap-1" title={`${DEPTH_LABELS[code]}: ${count} ${count === 1 ? 'report' : 'reports'}`}>
                   <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: color }} aria-hidden="true" />
-                  <span>{label} <span className="font-semibold tabular-nums text-slate-700">{count}</span></span>
+                  <span>{label} <span className="font-semibold tabular-nums text-secondary">{count}</span></span>
                 </li>
               ))}
             </ul>
           </div>
           {latest && <button type="button" onClick={() => onOpenReport?.(latest)} disabled={!onOpenReport}
-            className="block w-full rounded-lg border border-slate-200 bg-white p-2.5 text-left hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-gakit-maroon">
-            <span className="flex items-center justify-between gap-2 text-[9px] text-slate-400"><span className="font-semibold uppercase tracking-wide">Latest report</span><span>{timeAgo(latest.properties.createdAt)}</span></span>
-            <span className="mt-1 block text-xs font-semibold leading-4 text-slate-700 line-clamp-2">{latest.properties.address || 'Location not named'}</span>
-            <span className="mt-1 block text-[10px] font-semibold text-slate-700">View report on map →</span>
+            className="block w-full rounded-lg border border-default bg-panel p-2.5 text-left hover:border-default hover:bg-page focus-visible:outline-focus">
+            <span className="flex items-center justify-between gap-2 text-[9px] text-muted-foreground"><span className="font-semibold uppercase tracking-wide">Latest report</span><span>{timeAgo(latest.properties.createdAt)}</span></span>
+            <span className="mt-1 block text-xs font-semibold leading-4 text-secondary line-clamp-2">{latest.properties.address || 'Location not named'}</span>
+            <span className="mt-1 block text-[10px] font-semibold text-secondary">View report on map →</span>
           </button>}
         </>}
-        <div className="border-t border-slate-100 pt-2">
+        <div className="border-t border-default pt-2">
           <PillToggle label="Show report pins" checked={visibleReportStatuses.VERIFIED} onChange={checked => onReportStatusChange('VERIFIED', checked)} />
         </div>
       </div> : <>
-      <div className="text-[10px] text-slate-400 font-medium mb-2 leading-snug">
+      <div className="text-[10px] text-muted-foreground font-medium mb-2 leading-snug">
         {formatReportWindowSubtitle(reportWindowHours, totalReports)}
       </div>
       <div className="space-y-1.5">
@@ -715,17 +714,17 @@ function StormTrackSelector({
   const sortedYears = Array.from(stormsByYear.keys()).sort((a, b) => Number(b) - Number(a));
 
   return (
-    <div className="pt-1.5 border-t border-slate-100 space-y-1">
-      <div className="flex items-center justify-between text-[9.5px] uppercase tracking-wider text-slate-400 font-bold">
+    <div className="pt-1.5 border-t border-default space-y-1">
+      <div className="flex items-center justify-between text-[9.5px] uppercase tracking-wider text-muted-foreground font-bold">
         <span className="flex items-center gap-1">
-          <History className="w-3 h-3 text-slate-400" />
+          <History className="w-3 h-3 text-muted-foreground" />
           Track Source
         </span>
         {isLoadingHistory && <Spinner size="xs" />}
       </div>
 
       {historicalStorms.length === 0 && (
-        <p className="text-[10px] text-slate-500" role="status">
+        <p className="text-[10px] text-muted-foreground" role="status">
           {isLoadingHistory ? 'Loading archived storms…' : 'No archived storms available. The archive refreshes automatically.'}
         </p>
       )}
@@ -736,22 +735,22 @@ function StormTrackSelector({
         onClick={toggle}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className="w-full flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-left text-[11px] font-medium text-slate-700 hover:border-slate-300 focus:outline-none focus:border-slate-400 shadow-2xs transition-colors cursor-pointer"
+        className="w-full flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-lg bg-panel border border-default text-left text-[11px] font-medium text-secondary hover:border-default focus:outline-none focus:border-strong shadow-2xs transition-colors cursor-pointer"
       >
         <span className="flex items-center gap-1.5 min-w-0 truncate">
           <span
             className={`w-2 h-2 rounded-full shrink-0 ${
               selectedHistoricalStorm
-                ? 'bg-slate-600'
+                ? 'bg-strong'
                 : hasActiveTyphoon
                 ? 'bg-emerald-500 animate-pulse'
-                : 'bg-slate-300'
+                : 'bg-hover'
             }`}
           />
           <span className="truncate">{activeStormLabel}</span>
         </span>
         <ChevronDown
-          className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200 ${
+          className={`w-3.5 h-3.5 text-muted-foreground shrink-0 transition-transform duration-200 ${
             open ? 'rotate-180' : ''
           }`}
         />
@@ -770,12 +769,12 @@ function StormTrackSelector({
               left: menuPos.left,
               width: menuPos.width,
             }}
-            className="z-[1400] max-h-72 flex flex-col rounded-xl border border-slate-200/90 bg-white/95 backdrop-blur-md shadow-xl shadow-slate-900/10 text-slate-700 animate-in fade-in zoom-in-95 duration-100 overflow-hidden"
+            className="z-[1400] max-h-72 flex flex-col rounded-xl border border-default/90 bg-panel/95 backdrop-blur-md shadow-xl shadow-scrim/10 text-secondary animate-in fade-in zoom-in-95 duration-100 overflow-hidden"
           >
             {/* Sticky Search Header */}
-            <div className="p-1.5 border-b border-slate-100 bg-white/80 shrink-0">
+            <div className="p-1.5 border-b border-default bg-panel/80 shrink-0">
               <div className="relative flex items-center">
-                <Search className="w-3.5 h-3.5 absolute left-2 text-slate-400 pointer-events-none" />
+                <Search className="w-3.5 h-3.5 absolute left-2 text-muted-foreground pointer-events-none" />
                 <input
                   ref={searchInputRef}
                   type="text"
@@ -786,7 +785,7 @@ function StormTrackSelector({
                     if (e.key === 'Escape') setOpen(false);
                   }}
                   placeholder="Search storm or year..."
-                  className="w-full pl-7 pr-6 py-1 text-[11px] bg-slate-50 border border-slate-200 rounded-lg text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-slate-300 focus:bg-white transition-colors"
+                  className="w-full pl-7 pr-6 py-1 text-[11px] bg-page border border-default rounded-lg text-secondary placeholder:text-muted-foreground focus:outline-none focus:border-default focus:bg-panel transition-colors"
                 />
                 {searchQuery && (
                   <button
@@ -796,7 +795,7 @@ function StormTrackSelector({
                       setSearchQuery('');
                       searchInputRef.current?.focus();
                     }}
-                    className="absolute right-2 text-slate-400 hover:text-slate-600 p-0.5 rounded cursor-pointer"
+                    className="absolute right-2 text-muted-foreground hover:text-secondary p-0.5 rounded cursor-pointer"
                     title="Clear search"
                   >
                     <X className="w-3 h-3" />
@@ -819,14 +818,14 @@ function StormTrackSelector({
                   }}
                   className={`flex items-center justify-between w-full px-2.5 py-1.5 rounded-lg text-[11px] transition-colors text-left cursor-pointer ${
                     !selectedHistoricalStorm
-                      ? 'bg-slate-100 font-semibold text-slate-900'
-                      : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+                      ? 'bg-muted font-semibold text-primary'
+                      : 'text-secondary hover:bg-page hover:text-primary'
                   }`}
                 >
                   <span className="flex items-center gap-2 min-w-0 truncate">
                     <span
                       className={`w-2 h-2 rounded-full shrink-0 ${
-                        hasActiveTyphoon ? 'bg-emerald-500' : 'bg-slate-300'
+                        hasActiveTyphoon ? 'bg-emerald-500' : 'bg-hover'
                       }`}
                     />
                     <span className="truncate">
@@ -836,7 +835,7 @@ function StormTrackSelector({
                     </span>
                   </span>
                   {!selectedHistoricalStorm && (
-                    <Check className="w-3.5 h-3.5 text-slate-700 shrink-0 ml-1.5" />
+                    <Check className="w-3.5 h-3.5 text-secondary shrink-0 ml-1.5" />
                   )}
                 </button>
               )}
@@ -849,7 +848,7 @@ function StormTrackSelector({
 
                 return (
                   <div key={year} className="space-y-0.5">
-                    <div className="px-2.5 pt-2 pb-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-400 border-t border-slate-100 first:border-t-0 first:pt-1">
+                    <div className="px-2.5 pt-2 pb-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground border-t border-default first:border-t-0 first:pt-1">
                       {seasonLabel}
                     </div>
                     {stormsInYear.map((storm) => {
@@ -867,8 +866,8 @@ function StormTrackSelector({
                           }}
                           className={`flex items-start justify-between w-full px-2.5 py-1.5 rounded-lg text-[11px] transition-colors text-left cursor-pointer ${
                             isSelected
-                              ? 'bg-slate-100 font-semibold text-slate-900'
-                              : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+                              ? 'bg-muted font-semibold text-primary'
+                              : 'text-secondary hover:bg-page hover:text-primary'
                           }`}
                         >
                           <div className="min-w-0 flex-1 pr-1.5">
@@ -878,18 +877,18 @@ function StormTrackSelector({
                                 style={{ backgroundColor: getTyphoonCategoryColor(storm.category) }}
                               />
                               <span className="truncate font-semibold">{storm.cycloneName}</span>
-                              <span className="text-[9px] text-slate-400 font-mono shrink-0">
+                              <span className="text-[9px] text-muted-foreground font-mono shrink-0">
                                 [{storm.category}]
                               </span>
                             </div>
                             {datePart && (
-                              <div className="text-[9.5px] text-slate-400 pl-3 leading-tight truncate mt-0.5">
+                              <div className="text-[9.5px] text-muted-foreground pl-3 leading-tight truncate mt-0.5">
                                 {datePart} · {storm.pointCount} pts
                               </div>
                             )}
                           </div>
                           {isSelected && (
-                            <Check className="w-3.5 h-3.5 text-slate-700 shrink-0 mt-0.5" />
+                            <Check className="w-3.5 h-3.5 text-secondary shrink-0 mt-0.5" />
                           )}
                         </button>
                       );
@@ -900,7 +899,7 @@ function StormTrackSelector({
 
               {/* Empty State */}
               {filteredStorms.length === 0 && (
-                <div className="px-3 py-5 text-center text-[11px] text-slate-400">
+                <div className="px-3 py-5 text-center text-[11px] text-muted-foreground">
                   {searchQuery ? `No cyclone tracks match "${searchQuery}"` : 'No cyclone tracks found'}
                 </div>
               )}
@@ -1004,8 +1003,8 @@ export function DataLayerControls({
       isSidebarItem={isSidebarItem}
       badge={
         typeof activeLayersCount === 'number' && activeLayersCount > 0 ? (
-          <span className="rounded-full bg-gakit-maroon/10 px-1.5 py-0.5 text-[10px] font-bold text-gakit-maroon">
-            {activeLayersCount}
+          <span className="whitespace-nowrap rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-bold text-secondary">
+            {activeLayersCount} active
           </span>
         ) : undefined
       }
@@ -1018,7 +1017,7 @@ export function DataLayerControls({
           }}
           aria-label="Clear layers"
           title="Turn off all active layers"
-          className="flex h-6 shrink-0 items-center justify-center rounded-md px-1.5 text-[10px] font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-gakit-maroon focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon"
+          className="flex h-6 shrink-0 items-center justify-center rounded-md px-1.5 text-[10px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
         >
           Clear layers
         </button>
@@ -1026,7 +1025,7 @@ export function DataLayerControls({
     >
       <div className="space-y-1.5">
         <div data-tour="layers-hazards" className="space-y-1.5 scroll-mt-2">
-          <div className="flex items-center gap-1 text-[10px] uppercase tracking-wide text-slate-400 font-semibold">
+          <div className="flex items-center gap-1 text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
             Hazard maps
             <CoverageChip label="Lanao del Norte" detail="Covers Lanao del Norte only" />
           </div>
@@ -1048,7 +1047,7 @@ export function DataLayerControls({
                 style={{ background: FLOOD_HAZARD_GRADIENT_CSS }}
               />
             </div>
-            <div className="flex w-full justify-between text-[9px] text-slate-500">
+            <div className="flex w-full justify-between text-[9px] text-muted-foreground">
               <span>Low</span>
               <span>Medium</span>
               <span>High</span>
@@ -1073,7 +1072,7 @@ export function DataLayerControls({
                 style={{ background: LANDSLIDE_GRADIENT_CSS }}
               />
             </div>
-            <div className="flex w-full justify-between text-[9px] text-slate-500">
+            <div className="flex w-full justify-between text-[9px] text-muted-foreground">
               <span>Low</span>
               <span>Medium</span>
               <span>High</span>
@@ -1109,7 +1108,7 @@ export function DataLayerControls({
                 background: STORM_SURGE_GRADIENT_CSS,
               }} />
             </div>
-            <div className="flex w-full justify-between text-[9px] text-slate-500">
+            <div className="flex w-full justify-between text-[9px] text-muted-foreground">
               <span>Low</span>
               <span>Medium</span>
               <span>High</span>
@@ -1119,7 +1118,7 @@ export function DataLayerControls({
         </div>
 
         <div data-tour="flood-simulation" className="space-y-1.5 scroll-mt-2">
-        <div className="flex items-center gap-1 pt-2 text-[10px] uppercase tracking-wide text-slate-400 font-semibold">
+        <div className="flex items-center gap-1 pt-2 text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
           Hazard simulations
           <CoverageChip label="Iligan City" detail="Estimated inundation based on rainfall" />
         </div>
@@ -1137,7 +1136,7 @@ export function DataLayerControls({
         {showSimulationInfo && <FloodSimulationInfoModal isOpen onClose={() => setShowSimulationInfo(false)} />}
         </div>
 
-        <div className="flex items-center gap-1 pt-2 text-[10px] uppercase tracking-wide text-slate-400 font-semibold">
+        <div className="flex items-center gap-1 pt-2 text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
           Weather
           <CoverageChip label="Philippines" detail="Covers the Philippines" />
         </div>
@@ -1154,7 +1153,7 @@ export function DataLayerControls({
         />
         {showRainfall && (
           <div className="pl-10 pt-0.5 pb-1 space-y-1.5">
-            <div className="text-[10px] uppercase tracking-wide text-slate-400 font-semibold mb-1 flex items-center justify-between gap-2">
+            <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold mb-1 flex items-center justify-between gap-2">
               <span>Accumulation window</span>
               {rainfallObservedAt && (
                 <span className="normal-case tracking-normal font-medium">
@@ -1175,8 +1174,8 @@ export function DataLayerControls({
                   aria-pressed={rainfallHours === hours}
                   className={`rounded-lg py-1 text-xs font-bold transition-colors duration-150 ${
                     rainfallHours === hours
-                      ? 'bg-gakit-maroon text-white shadow-[0_2px_4px_rgba(123,17,19,0.35)] ring-1 ring-gakit-maroon'
-                      : 'bg-white text-slate-600 shadow-[0_1px_2px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/90 hover:bg-slate-50 hover:text-slate-900'
+                      ? 'bg-accent text-on-accent shadow-panel ring-1 ring-focus'
+                      : 'bg-panel text-secondary shadow-panel ring-1 ring-default/90 hover:bg-page hover:text-primary'
                   }`}
                 >
                   {hours}h
@@ -1184,8 +1183,8 @@ export function DataLayerControls({
               ))}
             </div>
             {rainfallSource && (
-              <div className="flex items-center gap-1 pt-1 text-[10px] leading-snug text-slate-400">
-                <RotateCwFadingClock className="h-3 w-3 shrink-0 text-sky-500" />
+              <div className="flex items-center gap-1 pt-1 text-[10px] leading-snug text-muted-foreground">
+                <RotateCwFadingClock className="h-3 w-3 shrink-0 text-info-text" />
                 <span>
                   {blended
                      ? 'GSMaP_NOW+NRT Hybrid · Hourly'
@@ -1199,16 +1198,16 @@ export function DataLayerControls({
                   className="h-2.5 flex-1 rounded-full"
                   style={{ background: RAINFALL_GRADIENT_CSS[rainfallHours] }}
                 />
-                <span className="text-[10px] font-semibold text-slate-500 shrink-0">mm</span>
+                <span className="text-[10px] font-semibold text-muted-foreground shrink-0">mm</span>
               </div>
-              <div className="flex w-full justify-between text-[9px] text-slate-500 mt-1">
+              <div className="flex w-full justify-between text-[9px] text-muted-foreground mt-1">
                 {RAINFALL_LEGEND_STOPS[rainfallHours].map((stop, index) => (
                   <span
                     key={stop.label || index}
                     className="flex flex-col items-center gap-0.5"
                   >
                     {stop.label && <span>{stop.label}</span>}
-                    <span className="font-semibold text-slate-600">
+                    <span className="font-semibold text-secondary">
                       {formatRainfallBand(rainfallBandValues(rainfallHours)[index])}
                     </span>
                   </span>
@@ -1241,7 +1240,7 @@ export function DataLayerControls({
         />
         {showTyphoonTrack && (
           <div className="pl-10 pt-0.5 pb-1 space-y-1.5">
-            <div className="text-[10px] leading-snug text-slate-400">
+            <div className="text-[10px] leading-snug text-muted-foreground">
               {selectedHistoricalStorm ? (
                 <span>Viewing archived cyclone track</span>
               ) : hasActiveTyphoon ? (
@@ -1265,7 +1264,7 @@ export function DataLayerControls({
                 isLoadingHistory={isLoadingHistory}
               />
             )}
-            <div className="flex items-center justify-between gap-1 pt-1 border-t border-slate-100">
+            <div className="flex items-center justify-between gap-1 pt-1 border-t border-default">
               <div className="flex items-center gap-1">
                 {PRIMARY_TYPHOON_CATEGORIES.map((code) => {
                   const cfg = TYPHOON_CATEGORY_CONFIG[code];
@@ -1275,7 +1274,7 @@ export function DataLayerControls({
                       key={code}
                       type="button"
                       onClick={() => setShowScaleModal(true)}
-                      className="inline-flex items-center justify-center w-6 h-6 rounded shrink-0 hover:opacity-80 transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+                      className="inline-flex items-center justify-center w-6 h-6 rounded shrink-0 hover:opacity-80 transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info-border"
                       aria-label={`${cfg.name} (${code}) - View legend`}
                       title={`${cfg.name} · Click to view legend`}
                     >
@@ -1287,17 +1286,17 @@ export function DataLayerControls({
               <button
                 type="button"
                 onClick={() => setShowScaleModal(true)}
-                className="inline-flex items-center gap-0.5 text-[9.5px] font-semibold text-slate-500 hover:text-slate-800 transition-colors px-1 py-0.5 rounded hover:bg-slate-100"
+                className="inline-flex items-center gap-0.5 text-[9.5px] font-semibold text-muted-foreground hover:text-primary transition-colors px-1 py-0.5 rounded hover:bg-muted"
                 title="View full typhoon track legend & wind scale"
               >
-                <Info className="w-3 h-3 text-slate-400" />
+                <Info className="w-3 h-3 text-muted-foreground" />
                 <span>Legend</span>
               </button>
             </div>
 
             {!selectedHistoricalStorm && activeStorms && activeStorms.length > 1 && (
-              <div className="pt-1.5 border-t border-slate-100 space-y-1">
-                <div className="text-[9.5px] uppercase tracking-wider text-slate-400 font-bold">
+              <div className="pt-1.5 border-t border-default space-y-1">
+                <div className="text-[9.5px] uppercase tracking-wider text-muted-foreground font-bold">
                   Focus storm ({activeStorms.length})
                 </div>
                 <div className="flex flex-wrap gap-1">
@@ -1306,20 +1305,20 @@ export function DataLayerControls({
                       key={storm.name}
                       type="button"
                       onClick={() => onFocusStorm?.(storm.name)}
-                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-white border border-slate-200 text-[10px] font-semibold text-slate-700 hover:border-slate-300 hover:text-slate-900 transition-colors shadow-2xs"
+                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-panel border border-default text-[10px] font-semibold text-secondary hover:border-default hover:text-primary transition-colors shadow-2xs"
                     >
                       <span
                         className="w-1.5 h-1.5 rounded-full shrink-0"
                         style={{ backgroundColor: getTyphoonCategoryColor(storm.category) }}
                       />
                       <span className="truncate max-w-[100px]">{storm.localName || storm.name}</span>
-                      {storm.category ? <span className="text-[9px] text-slate-400 font-mono">[{storm.category}]</span> : null}
+                      {storm.category ? <span className="text-[9px] text-muted-foreground font-mono">[{storm.category}]</span> : null}
                     </button>
                   ))}
                   <button
                     type="button"
                     onClick={() => onFocusStorm?.()}
-                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-slate-50 border border-slate-200 text-[10px] font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors"
+                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-page border border-default text-[10px] font-medium text-muted-foreground hover:bg-muted hover:text-primary transition-colors"
                   >
                     View All
                   </button>
@@ -1346,14 +1345,14 @@ export function DataLayerControls({
         />
         {showHimawariIR && (
           <div className="pl-10 pt-0.5 pb-1 space-y-1.5">
-            <div className="text-[10px] leading-snug text-slate-400">
+            <div className="text-[10px] leading-snug text-muted-foreground">
               Recent published scans · 10-min intervals
               {himawariObservedAt && <p className="mt-1" data-satellite-observed-at={himawariObservedAt}>
                 Latest scan: {new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(himawariObservedAt))} PHT
               </p>}
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wide text-slate-400 font-semibold">
+              <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
                 Opacity
               </div>
               <div className="flex items-center gap-2">
@@ -1364,16 +1363,16 @@ export function DataLayerControls({
                   step={0.01}
                   onChange={onHimawariOpacityChange}
                   ariaLabel="Himawari IR layer opacity"
-                  accent="#7B1113"
+                  accent="rgb(var(--accent-text))"
                 />
-                <span className="text-[10px] font-semibold text-slate-600 w-7 text-right">{Math.round(himawariOpacity * 100)}%</span>
+                <span className="text-[10px] font-semibold text-secondary w-7 text-right">{Math.round(himawariOpacity * 100)}%</span>
               </div>
             </div>
           </div>
         )}
 
         {drought && <>
-          <div className="flex items-center gap-1 pt-2 text-[10px] uppercase tracking-wide text-slate-400 font-semibold">
+          <div className="flex items-center gap-1 pt-2 text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
             Climate
             <CoverageChip label="Philippines" detail="Covers the Philippines" />
           </div>
@@ -1387,7 +1386,7 @@ export function DataLayerControls({
 
         {showBarangayBoundariesToggle && (
           <>
-            <div className="flex items-center gap-1 pt-2 text-[10px] uppercase tracking-wide text-slate-400 font-semibold">
+            <div className="flex items-center gap-1 pt-2 text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
               Administrative
               <CoverageChip label="Iligan City" detail="Covers Iligan City only" />
             </div>

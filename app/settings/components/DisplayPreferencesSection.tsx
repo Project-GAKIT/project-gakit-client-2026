@@ -18,14 +18,14 @@ export function DisplayPreferencesSection() {
   return (
     <div className="space-y-3">
       <div>
-        <p className="text-sm font-semibold text-slate-700">Flood scenario shading</p>
-        <p className="mt-0.5 text-xs text-slate-500">
+        <p className="text-sm font-semibold text-secondary">Flood scenario shading</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">
           How flood scenario layers are interpolated on the map.
         </p>
         <div
           role="radiogroup"
           aria-label="Flood scenario shading"
-          className="mt-2 inline-flex rounded-lg border border-canvas-grey bg-canvas-light p-1"
+          className="mt-2 inline-flex rounded-lg border border-default bg-page p-1"
         >
           {RENDER_MODES.map((mode) => {
             const active = prefs.renderMode === mode.value;
@@ -38,8 +38,8 @@ export function DisplayPreferencesSection() {
                 onClick={() => scenarioDisplayStore.setRenderMode(mode.value)}
                 className={`rounded-md px-4 py-1.5 text-sm font-semibold transition-colors ${
                   active
-                    ? 'bg-white text-gakit-maroon shadow-sm'
-                    : 'text-slate-500 hover:text-slate-700'
+                    ? 'bg-panel text-secondary shadow-sm'
+                    : 'text-muted-foreground hover:text-secondary'
                 }`}
               >
                 {mode.label}
@@ -75,7 +75,7 @@ export function DisplayPreferencesSection() {
             scenarioDisplayStore.reset();
             toast.success('Display settings reset');
           }}
-          className="text-sm font-semibold text-slate-500 hover:text-gakit-maroon"
+          className="text-sm font-semibold text-muted-foreground hover:text-primary"
         >
           Reset to defaults
         </button>

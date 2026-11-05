@@ -152,7 +152,7 @@ export function MonitoringShell({ initialAuth }: { initialAuth?: AuthSnapshot })
   };
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-slate-50/80">
+    <div className="flex h-dvh overflow-hidden bg-page/80">
       <div className={focusedReports ? 'hidden' : 'contents'}>
       <SideBar
         activeTab={activeTab}
@@ -163,7 +163,7 @@ export function MonitoringShell({ initialAuth }: { initialAuth?: AuthSnapshot })
         showTopo
       />
       </div>
-      <div className={`h-full min-w-0 flex-1 flex flex-col overflow-hidden bg-white ${focusedReports ? '' : 'lg:rounded-[2rem] lg:rounded-l-[2.75rem]'}`}>
+      <div className={`h-full min-w-0 flex-1 flex flex-col overflow-hidden bg-panel ${focusedReports ? '' : 'lg:rounded-[2rem] lg:rounded-l-[2.75rem]'}`}>
         <div className={focusedReports ? 'hidden' : 'contents'}>
         <AdminHeader
           title={activeFeature.title}
@@ -173,6 +173,7 @@ export function MonitoringShell({ initialAuth }: { initialAuth?: AuthSnapshot })
           compact
           showTopo
           hideNotifications
+          showDisplay={!reportsActive}
         />
         </div>
         <main className={`min-h-0 flex-1 ${reportsActive

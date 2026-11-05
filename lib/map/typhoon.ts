@@ -516,43 +516,43 @@ export function buildTyphoonPopupHtml(props: TyphoonProperties): string {
 
 
   return `
-    <div class="gakit-tooltip typhoon-popup min-w-[260px] sm:min-w-[280px] text-slate-800" style="font-family: 'Cal Sans', system-ui, sans-serif;">
-      <div class="flex items-center gap-2 mb-2 pb-2 border-b border-slate-100" style="padding-right: 36px;">
+    <div class="gakit-tooltip typhoon-popup min-w-[260px] sm:min-w-[280px] text-primary" style="font-family: 'Cal Sans', system-ui, sans-serif;">
+      <div class="flex items-center gap-2 mb-2 pb-2 border-b border-default" style="padding-right: 36px;">
         <img src="/icons/pagasa/${typeCode}.png" alt="${typeConfig.name} (${typeCode})" width="28" height="28" class="shrink-0 object-contain" />
-        <div class="font-bold text-xs text-slate-900 truncate min-w-0 flex-1 leading-tight" title="${escapeHtml(name)}">${escapeHtml(name)}</div>
+        <div class="font-bold text-xs text-primary truncate min-w-0 flex-1 leading-tight" title="${escapeHtml(name)}">${escapeHtml(name)}</div>
       </div>
       <div class="space-y-1.5 text-[11px] leading-relaxed">
         <div class="flex items-center justify-between gap-4">
-          <span class="text-slate-500 shrink-0">Classification:</span>
-          <span class="font-semibold text-slate-900 text-right">${typeConfig.name}</span>
+          <span class="text-muted-foreground shrink-0">Classification:</span>
+          <span class="font-semibold text-primary text-right">${typeConfig.name}</span>
         </div>
         ${
           props.windspeed
             ? `<div class="flex items-center justify-between gap-4">
-                <span class="text-slate-500 shrink-0">Max Sustained Winds:</span>
-                <span class="font-semibold text-slate-900 text-right tabular-nums">${props.windspeed} km/h</span>
+                <span class="text-muted-foreground shrink-0">Max Sustained Winds:</span>
+                <span class="font-semibold text-primary text-right tabular-nums">${props.windspeed} km/h</span>
               </div>`
             : ''
         }
         ${
           props.pressure
             ? `<div class="flex items-center justify-between gap-4">
-                <span class="text-slate-500 shrink-0">Central Pressure:</span>
-                <span class="font-semibold text-slate-900 text-right tabular-nums">${props.pressure} hPa</span>
+                <span class="text-muted-foreground shrink-0">Central Pressure:</span>
+                <span class="font-semibold text-primary text-right tabular-nums">${props.pressure} hPa</span>
               </div>`
             : ''
         }
         ${
           isForecast && props.radius
             ? `<div class="flex items-center justify-between gap-4">
-                <span class="text-slate-500 shrink-0">Forecast Radius:</span>
-                <span class="font-semibold text-slate-900 text-right tabular-nums">± ${Math.round(props.radius)} km</span>
+                <span class="text-muted-foreground shrink-0">Forecast Radius:</span>
+                <span class="font-semibold text-primary text-right tabular-nums">± ${Math.round(props.radius)} km</span>
               </div>`
             : ''
         }
         <div class="flex items-center justify-between gap-4">
-          <span class="text-slate-500 shrink-0">Position:</span>
-          <span class="font-mono text-[10.5px] font-semibold text-slate-900 text-right">
+          <span class="text-muted-foreground shrink-0">Position:</span>
+          <span class="font-mono text-[10.5px] font-semibold text-primary text-right">
             ${
               typeof props.latitude === 'number' && typeof props.longitude === 'number'
                 ? `${props.latitude.toFixed(1)}°N, ${props.longitude.toFixed(1)}°E`
@@ -560,9 +560,9 @@ export function buildTyphoonPopupHtml(props: TyphoonProperties): string {
             }
           </span>
         </div>
-        <div class="flex items-center justify-between gap-4 pt-1.5 border-t border-slate-100 text-[10px] text-slate-400">
+        <div class="flex items-center justify-between gap-4 pt-1.5 border-t border-default text-[10px] text-muted-foreground">
           <span class="shrink-0">Date/Time:</span>
-          <span class="font-medium text-slate-600 text-right">${dateStr}</span>
+          <span class="font-medium text-secondary text-right">${dateStr}</span>
         </div>
       </div>
     </div>

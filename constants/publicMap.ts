@@ -9,7 +9,7 @@ export { satelliteTileUrl } from '@/lib/map/satelliteImagery';
 // 2D & 3D basemaps — OpenFreeMap styles (vector, no API key needed).
 export const OPENFREEMAP_STYLE = 'https://tiles.openfreemap.org/styles/positron';
 const OPENFREEMAP_BRIGHT_STYLE = 'https://tiles.openfreemap.org/styles/bright';
-const OPENFREEMAP_FIORD_STYLE = 'https://tiles.openfreemap.org/styles/fiord';
+const OPENFREEMAP_DARK_STYLE = 'https://tiles.openfreemap.org/styles/dark';
 
 // Flat basemap choices (orthogonal to the 2D/3D mode toggle).
 export type BasemapId = 'light' | 'bright' | 'dark' | 'satellite';
@@ -36,15 +36,19 @@ const SATELLITE_STYLE: StyleSpecification = {
 export const BASEMAP_STYLES: Record<BasemapId, string | StyleSpecification> = {
   light: OPENFREEMAP_STYLE,
   bright: OPENFREEMAP_BRIGHT_STYLE,
-  dark: OPENFREEMAP_FIORD_STYLE,
+  dark: OPENFREEMAP_DARK_STYLE,
   satellite: SATELLITE_STYLE,
 };
 
-// Overlay painters query this to pick palette-aware colors: Fiord reads like
+// Overlay painters query this to pick palette-aware colors: Dark Matter reads like
 // the satellite imagery (which needs light strokes/labels for contrast), while
 // Positron and Bright keep the dark strokes/labels tuned for light street maps.
 export const isDarkBasemap = (basemap: BasemapId | undefined): boolean =>
   basemap === 'dark' || basemap === 'satellite';
+
+export const PAR_LINE_COLOR = '#d97706';
+export const PAR_LABEL_COLOR = '#b45309';
+export const PAR_LABEL_HALO = 'rgba(255, 255, 255, 0.85)';
 
 // Mapterhorn's native Terrarium tiles are for map relief, not flood-model input.
 // Its 512 px tiles avoid the coastal spikes found in the older AWS tiles here.
@@ -65,11 +69,12 @@ export const BUILDING_FILL_COLOR = '#dfdeda';
 export const BUILDING_FILL_OUTLINE_COLOR = '#d0ceca';
 export const BUILDING_FILL_OPACITY = 0.65;
 export const BUILDING_EXTRUSION_COLOR = '#dedcd7';
-// Dark-palette variants (Fiord): where the light tones sit slightly darker
-// than the pale street background, these lift slightly above the dark navy one.
-export const BUILDING_FILL_COLOR_DARK = '#55607a';
-export const BUILDING_FILL_OUTLINE_COLOR_DARK = '#67718a';
-export const BUILDING_EXTRUSION_COLOR_DARK = '#626d85';
+// Neutral charcoal keeps buildings just above Dark Matter's ground without
+// the blue cast or bright outlines of the previous Fiord building palette.
+export const BUILDING_FILL_COLOR_DARK = '#242424';
+export const BUILDING_FILL_OPACITY_DARK = 1;
+export const BUILDING_FILL_OUTLINE_COLOR_DARK = '#2c2c2c';
+export const BUILDING_EXTRUSION_COLOR_DARK = '#303030';
 export const BUILDING_EXTRUSION_OPACITY = 0.75;
 export const BUILDING_EXTRUSION_HEIGHT = 6;
 export const BUILDING_EXTRUSION_BASE = 0;
@@ -88,12 +93,17 @@ export const ROADS_PMTILES_URL = 'pmtiles:///data/iligan-roads.pmtiles';
 export const ROADS_MAJOR_MIN_ZOOM = 10;
 export const ROADS_MINOR_MIN_ZOOM = 12;
 export const ROAD_CASING_COLOR = '#ffffff';
-export const ROAD_CASING_OPACITY = 0.85;
+export const ROAD_CASING_OPACITY = 1;
 export const ROAD_PRIMARY_COLOR = '#64748b';
 export const ROAD_SECONDARY_COLOR = '#94a3b8';
 export const ROAD_MAJOR_OPACITY = 0.95;
 export const ROAD_MINOR_COLOR = '#94a3b8';
 export const ROAD_MINOR_OPACITY = 0.9;
+// Neutral grays lift the road network clearly above Dark Matter's near-black
+// roads while keeping the hierarchy subdued beside the city building fills.
+export const ROAD_PRIMARY_COLOR_DARK = '#a3a3a3';
+export const ROAD_SECONDARY_COLOR_DARK = '#858585';
+export const ROAD_MINOR_COLOR_DARK = '#777777';
 
 // Flattened 3D shading. MapLibre shades fill-extrusion walls with a vertical
 // gradient (darker at the base) and lights them from a default 0.5-intensity
@@ -115,6 +125,15 @@ export const HILLSHADE_EXAGGERATION = 0.35;
 export const HILLSHADE_SHADOW_COLOR = '#475569';
 export const HILLSHADE_HIGHLIGHT_COLOR = '#ffffff';
 export const HILLSHADE_ACCENT_COLOR = '#64748b';
+
+// Dark terrain needs a restrained neutral relief rather than white highlights.
+// Both map implementations use this palette so scenario and public views agree.
+export const getHillshadePaint = (basemap: BasemapId | undefined) => ({
+  'hillshade-exaggeration': basemap === 'dark' ? 0.12 : HILLSHADE_EXAGGERATION,
+  'hillshade-shadow-color': basemap === 'dark' ? '#0a0a0a' : HILLSHADE_SHADOW_COLOR,
+  'hillshade-highlight-color': basemap === 'dark' ? '#555555' : HILLSHADE_HIGHLIGHT_COLOR,
+  'hillshade-accent-color': basemap === 'dark' ? '#282828' : HILLSHADE_ACCENT_COLOR,
+});
 
 export const ILIGAN_REPORT_BOUNDS = {
   west: ILIGAN_BOUNDS[0][0],

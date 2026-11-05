@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
+import 'maplibre-gl/dist/maplibre-gl.css';
+import 'react-toastify/dist/ReactToastify.css';
 import './globals.css';
 import 'cal-sans';
-import 'react-toastify/dist/ReactToastify.css';
+import { appearanceBootstrap } from '@/lib/theme/appearance';
 import { ClientProviders } from './providers';
 
 export const metadata: Metadata = {
@@ -17,8 +19,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: appearanceBootstrap }} />
         {/* Warm up connections for the basemap and terrain so the map paints faster on first load */}
         <link rel="preconnect" href="https://tiles.openfreemap.org" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://tiles.openfreemap.org" />
@@ -27,12 +30,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://s3.amazonaws.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://s3.amazonaws.com" />
         <link rel="dns-prefetch" href="https://nominatim.openstreetmap.org" />
-        <link
-          rel="preload"
-          as="fetch"
-          href="https://tiles.openfreemap.org/styles/positron"
-          crossOrigin="anonymous"
-        />
       </head>
       <body className="font-sans">
         <ClientProviders>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Bell, ChevronDown, ChevronRight, CloudRain, MapPin, X } from 'lucide-react';
+import { Bell, ChevronDown, ChevronRight, CloudRain, MapPin } from 'lucide-react';
 import type { WeatherAlert, AlertSeverity, AlertType, WeatherAlertData } from '@/types/weather';
 import { ALERT_ICONS, ALERT_TYPE_LABELS } from '@/lib/weather/alertLabels';
 
@@ -9,9 +9,9 @@ const SEVERITY_CONFIG: Record<
   AlertSeverity,
   { bg: string; text: string; icon: string; dot: string }
 > = {
-  critical: { bg: 'bg-red-50', text: 'text-red-800', icon: 'text-red-500', dot: 'bg-red-500' },
-  warning: { bg: 'bg-orange-50', text: 'text-orange-800', icon: 'text-orange-500', dot: 'bg-orange-500' },
-  info: { bg: 'bg-blue-50', text: 'text-blue-800', icon: 'text-blue-500', dot: 'bg-blue-500' },
+  critical: { bg: 'bg-error-bg', text: 'text-error-text', icon: 'text-error-text', dot: 'bg-error-solid' },
+  warning: { bg: 'bg-caution-bg', text: 'text-caution-text', icon: 'text-caution-text', dot: 'bg-orange-500' },
+  info: { bg: 'bg-info-bg', text: 'text-info-text', icon: 'text-info-text', dot: 'bg-blue-500' },
 };
 
 export interface NotificationItem {
@@ -106,20 +106,20 @@ export function NotificationBell({
 
   const buttonClassName =
     isToolbar
-      ? `relative flex h-8 items-center justify-center gap-1 rounded-full border px-2.5 text-[11px] font-semibold shadow-sm ${open ? 'border-slate-300 bg-slate-100 text-slate-900' : 'border-slate-200/80 bg-white/95 text-slate-600'}`
+      ? `relative flex h-8 w-12 items-center justify-center gap-1 rounded-full border px-1 text-[11px] font-semibold shadow-sm ${open ? 'border-default bg-muted text-primary' : 'border-default/80 bg-panel/95 text-secondary'}`
       : variant === 'header'
-      ? `relative flex h-10 min-w-10 flex-col items-center justify-center gap-0.5 rounded-full px-1 text-[9px] font-semibold text-slate-600 transition-all duration-150 hover:bg-slate-100 hover:text-slate-900 active:scale-95 md:h-9 md:flex-row md:gap-1.5 md:px-2.5 md:text-[11px] ${
+      ? `relative flex h-10 min-w-10 flex-col items-center justify-center gap-0.5 rounded-full px-1 text-[9px] font-semibold text-secondary transition-all duration-150 hover:bg-muted hover:text-primary active:scale-95 md:h-9 md:flex-row md:gap-1.5 md:px-2.5 md:text-[11px] ${
           open
-            ? 'bg-slate-200 text-slate-900 ring-1 ring-slate-300/80 font-bold'
+            ? 'bg-muted text-primary ring-1 ring-default/80 font-bold'
             : ''
         }`
       : variant === 'mobile-nav'
         ? `relative flex w-full flex-col items-center justify-center gap-0.5 rounded-full px-2 py-1 transition-all duration-150 active:scale-95 ${
             open
-              ? 'bg-slate-200 text-slate-900 font-bold'
-              : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 active:bg-slate-100'
+              ? 'bg-muted text-primary font-bold'
+              : 'text-muted-foreground hover:bg-page hover:text-primary active:bg-muted'
           }`
-        : 'relative flex items-center gap-2 rounded-xl bg-white/90 px-3 py-3 shadow-xl shadow-slate-900/15 ring-1 ring-slate-200 backdrop-blur-none transition-shadow duration-200 hover:shadow-2xl active:scale-95 md:backdrop-blur';
+        : 'relative flex items-center gap-2 rounded-xl bg-panel/90 px-3 py-3 shadow-xl shadow-scrim/15 ring-1 ring-default backdrop-blur-none transition-shadow duration-200 hover:shadow-2xl active:scale-95 md:backdrop-blur';
 
   const iconClassName =
     variant === 'mobile-nav' ? 'h-5 w-5' : 'h-4 w-4';
@@ -139,14 +139,15 @@ export function NotificationBell({
         aria-label={isToolbar ? 'Advisories' : 'Notifications'}
         aria-expanded={open}
       >
-        <Bell className={`${iconClassName} ${open ? 'text-slate-900' : variant === 'header' ? 'text-slate-600' : 'text-slate-500'}`} />
+        <Bell className={`${iconClassName} ${variant === 'header' ? 'md:hidden' : ''} ${open ? 'text-primary' : variant === 'header' ? 'text-secondary' : 'text-muted-foreground'}`} />
         {variant === 'header' && <span>Alerts</span>}
+        {variant === 'header' && <ChevronDown className={`hidden h-3.5 w-3.5 shrink-0 transition-transform md:block ${open ? 'rotate-180' : ''}`} aria-hidden="true" />}
         {isToolbar && <ChevronDown className={`h-3 w-3 ${open ? 'rotate-180' : ''}`} aria-hidden="true" />}
         {count > 0 && (
           <span
-            className={isToolbar || variant === 'mobile-nav' ? 'absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white shadow-xs' : `absolute flex h-4 min-w-4 md:min-w-[18px] items-center justify-center rounded-full bg-red-600 px-0.5 md:px-1 text-[10px] md:text-[11px] font-bold text-white shadow-sm ${
+            className={isToolbar || variant === 'mobile-nav' ? 'absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-error-solid px-1 text-[9px] font-bold text-on-accent shadow-xs' : `absolute flex h-4 min-w-4 md:min-w-[18px] items-center justify-center rounded-full bg-error-solid px-0.5 md:px-1 text-[10px] md:text-[11px] font-bold text-on-accent shadow-sm ${
               variant === 'header'
-                ? '-right-0.5 -top-0.5 md:-right-1 md:-top-1'
+                ? '-right-0.5 -top-0.5 md:-right-1.5 md:-top-1.5'
                 : '-top-1.5 -right-1.5 h-5 min-w-[20px]'
             }`}
           >
@@ -164,7 +165,7 @@ export function NotificationBell({
           role={isToolbar ? 'region' : undefined}
           aria-label={isToolbar ? 'Advisories' : undefined}
           data-header-dropdown={variant === 'header' || isToolbar || undefined}
-          className={`${variant === 'header' || isToolbar ? 'map-header-dropdown' : ''} z-[1300] overflow-hidden rounded-2xl border border-slate-200/90 bg-white/95 shadow-2xl backdrop-blur-xl ring-1 ring-slate-900/10 ${
+          className={`${variant === 'header' || isToolbar ? 'map-header-dropdown' : ''} z-[1300] overflow-hidden rounded-2xl border border-default/90 bg-panel/95 shadow-2xl backdrop-blur-xl ring-1 ring-strong/10 ${
             isToolbar
               ? 'fixed inset-x-1.5 top-[var(--map-mobile-controls-top,104px)] mx-auto max-w-96'
               : variant === 'header'
@@ -175,33 +176,26 @@ export function NotificationBell({
           }`}
         >
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2">
+          <div className="flex items-center justify-between border-b border-default px-3 py-2">
             <div className="flex items-center gap-2">
-              <p className="text-xs font-bold text-slate-900">{isToolbar ? 'Advisories' : 'Alerts'}</p>
-              <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-600">
+              <p className="text-xs font-bold text-primary">{isToolbar ? 'Advisories' : 'Alerts'}</p>
+              <span className="rounded-full bg-muted px-1.5 py-0.5 text-[11px] font-medium text-secondary">
                 {total} active
               </span>
             </div>
-            <button
-              onClick={() => setOpen(false)}
-              className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
-              aria-label="Close notifications"
-            >
-              <X className="h-4 w-4" />
-            </button>
           </div>
 
           {/* Tabs */}
           {total > 0 && !isToolbar && (
-            <div className="flex border-b border-slate-100">
+            <div className="flex border-b border-default">
               <button
                 type="button"
                 onClick={() => setTab('unread')}
                 aria-pressed={tab === 'unread'}
                 className={`flex-1 px-3 py-1.5 text-[11px] font-semibold transition-colors ${
                   tab === 'unread'
-                    ? 'border-b-2 border-gakit-maroon text-gakit-maroon'
-                    : 'text-slate-500 hover:text-slate-700'
+                    ? 'border-b-2 border-accent-text text-accent-text'
+                    : 'text-muted-foreground hover:text-secondary'
                 }`}
               >
                 Unread{unreadCount > 0 ? ` (${unreadCount})` : ''}
@@ -212,8 +206,8 @@ export function NotificationBell({
                 aria-pressed={tab === 'read'}
                 className={`flex-1 px-3 py-1.5 text-[11px] font-semibold transition-colors ${
                   tab === 'read'
-                    ? 'border-b-2 border-gakit-maroon text-gakit-maroon'
-                    : 'text-slate-500 hover:text-slate-700'
+                    ? 'border-b-2 border-accent-text text-accent-text'
+                    : 'text-muted-foreground hover:text-secondary'
                 }`}
               >
                 Read{readNotifications.length > 0 ? ` (${readNotifications.length})` : ''}
@@ -223,15 +217,15 @@ export function NotificationBell({
 
           {/* List */}
           {total === 0 ? (
-            <div className="px-3 py-5 text-center text-xs text-slate-500">
+            <div className="px-3 py-5 text-center text-xs text-muted-foreground">
               {isToolbar ? 'No active advisories' : 'No notifications'}
             </div>
           ) : activeList.length === 0 ? (
-            <div className="px-3 py-5 text-center text-xs text-slate-500">
+            <div className="px-3 py-5 text-center text-xs text-muted-foreground">
               {tab === 'unread' ? 'No unread notifications' : 'No read notifications'}
             </div>
           ) : (
-            <div className="max-h-[min(24rem,55dvh)] divide-y divide-slate-100 overflow-y-auto overscroll-contain">
+            <div className="max-h-[min(24rem,55dvh)] divide-y divide-default overflow-y-auto overscroll-contain">
               {activeList.map((item) => {
                 const config = SEVERITY_CONFIG[item.severity];
                 const Icon = item.alertType ? (ALERT_ICONS[item.alertType] ?? CloudRain) : Bell;
@@ -262,7 +256,7 @@ export function NotificationBell({
                       }
                       setOpen(false);
                     }}
-                    className="group flex w-full items-start gap-2 px-3 py-2.5 text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gakit-maroon"
+                    className="group flex w-full items-start gap-2 px-3 py-2.5 text-left transition-colors hover:bg-page focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
                   >
                     <span className={`mt-0.5 shrink-0 rounded-lg p-1.5 ${config.bg}`}>
                       <Icon className={`h-3.5 w-3.5 ${config.icon}`} />
@@ -270,27 +264,27 @@ export function NotificationBell({
                     <span className="min-w-0 flex-1">
                       <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide">
                         <span className={config.text}>{item.severity}</span>
-                        {typeLabel && <span className="truncate text-slate-500">· {typeLabel}</span>}
+                        {typeLabel && <span className="truncate text-muted-foreground">· {typeLabel}</span>}
                         {!item.read && <span className={`ml-auto h-1.5 w-1.5 shrink-0 rounded-full ${config.dot}`} aria-label="Unread" />}
                       </span>
-                      <span className="mt-0.5 block text-xs font-semibold leading-4 text-slate-900 line-clamp-2">
+                      <span className="mt-0.5 block text-xs font-semibold leading-4 text-primary line-clamp-2">
                         {item.title}
                       </span>
                       {summary && summary !== item.title && (
-                        <span className="mt-0.5 block text-[11px] leading-4 text-slate-600 line-clamp-2">{summary}</span>
+                        <span className="mt-0.5 block text-[11px] leading-4 text-secondary line-clamp-2">{summary}</span>
                       )}
                       {areas.length > 0 && (
-                        <span className="mt-1 flex items-center gap-1 text-[11px] text-slate-500">
+                        <span className="mt-1 flex items-center gap-1 text-[11px] text-muted-foreground">
                           <MapPin className="h-3 w-3 shrink-0" />
                           <span className="truncate">{areas.join(', ')}</span>
                         </span>
                       )}
-                      <span className="mt-1 flex items-center justify-between gap-2 text-[11px] text-slate-500">
+                      <span className="mt-1 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
                         <span className="truncate">{item.data?.source || 'Weather advisory'}</span>
                         <time dateTime={Number.isNaN(issued.getTime()) ? undefined : issuedAt} className="shrink-0">{isToolbar && timestamp ? `Issued ${timestamp} PHT` : timestamp}</time>
                       </span>
                     </span>
-                    <ChevronRight className="mt-5 h-3.5 w-3.5 shrink-0 text-slate-300 transition-colors group-hover:text-slate-600" />
+                    <ChevronRight className="mt-5 h-3.5 w-3.5 shrink-0 text-muted-foreground transition-colors group-hover:text-secondary" />
                   </button>
                 );
               })}

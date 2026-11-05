@@ -1,0 +1,13 @@
+@layer base {
+  html, body { background: rgb(var(--surface-page)); color: rgb(var(--text-primary)); }
+  body { font-family: var(--font-ui); }
+  input, select, textarea { accent-color: rgb(var(--accent)); }
+  input::placeholder, textarea::placeholder { color: rgb(var(--text-muted)); opacity: 1; }
+  :focus-visible { outline: 2px solid rgb(var(--focus-ring)); outline-offset: 3px; }
+  ::selection { background: rgb(var(--surface-selected)); color: rgb(var(--text-primary)); }
+  * { scrollbar-color: rgb(var(--scrollbar)) rgb(var(--surface-muted)); }
+}
+
+[data-theme-changing] *,
+[data-theme-changing] *::before,
+[data-theme-changing] *::after { transition: none !important; }

@@ -183,7 +183,7 @@ export const buildReportPopupHtml = (feature: Record<string, any>): string => {
     ${props.depthLabel ? `<p class="report-pin-label">Reported depth</p><p class="report-pin-depth">${escapeHtml(String(props.depthLabel))}</p>` : ''}
     ${props.address ? `<p class="report-pin-location" title="${escapeHtml(String(props.address))}">${escapeHtml(String(props.address))}</p>` : ''}
     ${display.age ? `<p class="report-pin-time" title="${escapeHtml(display.fullTime)}">${display.timeLabel} ${escapeHtml(display.age)}</p>` : ''}
-    ${display.observed && display.submittedTime ? `<p class="report-pin-submitted" style="margin-top:4px;font-size:10px;color:#64748b">Submitted ${escapeHtml(display.submittedTime)}</p>` : ''}
+    ${display.observed && display.submittedTime ? `<p class="report-pin-submitted" style="margin-top:4px;font-size:10px;color:rgb(var(--text-muted))">Submitted ${escapeHtml(display.submittedTime)}</p>` : ''}
   </article>`;
 };
 

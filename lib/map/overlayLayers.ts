@@ -1,3 +1,4 @@
+import { syncParBoundary } from './parBoundary';
 import { ensureAssessmentLandMask } from './assessmentLandMask';
 import { registerTyphoonIcons, typhoonIconId } from './typhoonIcons';
 import { applyOverlaySmoothing } from './overlaySmoothing';
@@ -5,6 +6,7 @@ import { registerHazardSmoothingProtocol } from './hazardSmoothingProtocol';
 export { applyOverlaySmoothing } from './overlaySmoothing';
 import { toast } from 'react-toastify';
 import {
+  getHillshadePaint,
   TERRAIN_ENCODING,
   TERRAIN_MAX_ZOOM,
   TERRAIN_TILE_SIZE,
@@ -14,10 +16,6 @@ import {
   BUILDING_EXTRUSION_VERTICAL_GRADIENT,
   BUILDINGS_PMTILES_URL,
   FLAT_EXTRUSION_LIGHT,
-  HILLSHADE_ACCENT_COLOR,
-  HILLSHADE_EXAGGERATION,
-  HILLSHADE_HIGHLIGHT_COLOR,
-  HILLSHADE_SHADOW_COLOR,
   isDarkBasemap,
   TERRAIN_EXAGGERATION,
   REPORT_MARKER_COLORS,
@@ -41,7 +39,6 @@ import {
   RAINFALL_PLACEHOLDER_DATA_URL,
 } from '@/lib/map/rainfall';
 import {
-  PAR_BOUNDARY_GEOJSON,
   TYPHOON_CATEGORY_CONFIG,
   DEFAULT_TYPHOON_COLOR,
 } from '@/lib/map/typhoon';
@@ -58,6 +55,7 @@ import {
 import {
   addRoadLayers,
   applyRoadsVisibility,
+  reorderRoadLayers,
   ROAD_CASING_LAYER_ID,
   ROAD_MAJOR_LAYER_ID,
   ROAD_MINOR_LAYER_ID,
@@ -101,6 +99,7 @@ export interface OverlayLayerState {
   showRainfall: boolean;
   showHimawariIR: boolean;
   showTyphoonTrack?: boolean;
+  showParBoundary?: boolean;
   showBarangayBoundaries?: boolean;
   showBuildings?: boolean;
   showRoads?: boolean;
@@ -170,6 +169,7 @@ export const applyBuildingsVisibility = (
         }
       }
     }
+    reorderRoadLayers(map);
   } catch {
     /* style not loaded yet */
   }
@@ -220,10 +220,12 @@ export const applyRainfallPaint = (map: any, hours: number) => {
 export const setupOverlayLayers = async (
   map: any,
   maplibregl: any,
-  state: OverlayLayerState
+  state: OverlayLayerState,
+  isCurrent: () => boolean = () => true
 ) => {
   try {
     await registerPmtilesProtocol(maplibregl);
+    if (!isCurrent()) return;
     ensureAssessmentLandMask(map);
 
     // --- Flood hazard vector tile layer (PMTiles) ---
@@ -363,48 +365,8 @@ export const setupOverlayLayers = async (
   }
 
 
-// --- PAR (Philippine Area of Responsibility) boundary ---
-  if (!map.getSource('par-outline')) {
-    map.addSource('par-outline', {
-      type: 'geojson',
-      data: PAR_BOUNDARY_GEOJSON,
-      attribution:
-        'Typhoon & PAR: <a href="https://panahon.gov.ph/" target="_blank" rel="noopener">DOST-PAGASA (PANaHON)</a>',
-    });
-
-    map.addLayer({
-      id: 'par-boundary-line',
-      type: 'line',
-      source: 'par-outline',
-      before: 'report-clusters',
-      paint: {
-        'line-color': '#d97706',
-        'line-width': 1.2,
-        'line-dasharray': [5, 4],
-        'line-opacity': 0.7,
-      },
-    });
-
-    map.addLayer({
-      id: 'par-boundary-label',
-      type: 'symbol',
-      source: 'par-outline',
-      before: 'report-clusters',
-      layout: {
-        'text-field': 'PAR Boundary (PAGASA)',
-        'text-size': 10,
-        'text-font': ['Noto Sans Bold'],
-        'symbol-placement': 'line',
-        'text-offset': [0, -0.8],
-        'text-allow-overlap': false,
-      },
-      paint: {
-        'text-color': '#b45309',
-        'text-halo-color': 'rgba(255, 255, 255, 0.85)',
-        'text-halo-width': 1.2,
-      },
-    });
-  }
+  // PAR is a display preference; cyclone tracking never owns its visibility.
+  syncParBoundary(map, state.showParBoundary ?? true);
 
   // --- Official Typhoon Feed Source & Layers ---
   if (!map.getSource('typhoon-track')) {
@@ -521,6 +483,7 @@ export const setupOverlayLayers = async (
 
     // 3. Official PAGASA category symbols for observed and forecast positions.
     await registerTyphoonIcons(map);
+    if (!isCurrent()) return;
     // Renders nodes for official classifications ('STY', 'TY', 'STS', 'TS', 'TD', 'LPA' + agency aliases like 'AA', 'LOW')
     const officialCategoryFilter = [
       'all',
@@ -607,8 +570,6 @@ export const setupOverlayLayers = async (
     stormSurgeVis === n,
   ]);
   const initialLayers: Array<[string, boolean]> = [
-    ['par-boundary-line', typhoonVis],
-    ['par-boundary-label', typhoonVis],
     ['typhoon-forecast-cone-fill', typhoonVis],
     ['typhoon-forecast-cone-outline', typhoonVis],
     ['typhoon-track-line-glow', typhoonVis],
@@ -783,7 +744,7 @@ export const setupOverlayLayers = async (
         'Boundaries: <a href="https://namria.gov.ph/" target="_blank" rel="noopener">NAMRIA / PSA</a>',
     });
 
-    // Dark palettes (Fiord, satellite imagery) need light strokes and labels
+    // Dark palettes (Dark Matter, satellite imagery) need light strokes and labels
     // for contrast; light street maps keep the darker tuned variants.
     const isDark = isDarkBasemap(state.basemap);
     const boundaryColor = '#06b6d4';
@@ -1013,7 +974,7 @@ export const setupOverlayLayers = async (
     !map.getLayer(ROAD_MAJOR_LAYER_ID) &&
     !map.getLayer(ROAD_MINOR_LAYER_ID)
   ) {
-    addRoadLayers(map, 'iligan-roads', roadsBefore, state.showRoads ?? false);
+    addRoadLayers(map, 'iligan-roads', roadsBefore, state.showRoads ?? false, state.basemap);
   }
   applyRoadsVisibility(map, state.showRoads ?? false);
 
@@ -1066,11 +1027,9 @@ export const setupOverlayLayers = async (
     }
     map.setTerrain({ source: 'terrain', exaggeration: TERRAIN_EXAGGERATION });
 
-    // Subtle hillshade on the light street styles (Positron, Bright) to give
-    // depth and definition to the pale slopes. Omitted on dark and satellite
-    // choices: Fiord is flat-shaded and aerial photos already provide natural
-    // lighting and contrast.
-    const showHillshade = !isDarkBasemap(state.basemap);
+    // Street maps share relief styling, with gentler neutral shading for Dark
+    // Matter. Satellite imagery already carries natural lighting and contrast.
+    const showHillshade = state.basemap !== 'satellite';
     if (showHillshade) {
       if (!map.getLayer('hillshade')) {
         map.addLayer({
@@ -1080,12 +1039,7 @@ export const setupOverlayLayers = async (
           before: map.getLayer('iligan-buildings-2d')
             ? 'iligan-buildings-2d'
             : (map.getLayer('iligan-buildings-3d') ? 'iligan-buildings-3d' : undefined),
-          paint: {
-            'hillshade-exaggeration': HILLSHADE_EXAGGERATION,
-            'hillshade-shadow-color': HILLSHADE_SHADOW_COLOR,
-            'hillshade-highlight-color': HILLSHADE_HIGHLIGHT_COLOR,
-            'hillshade-accent-color': HILLSHADE_ACCENT_COLOR,
-          },
+          paint: getHillshadePaint(state.basemap),
         });
       }
     } else {

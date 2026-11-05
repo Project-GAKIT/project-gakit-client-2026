@@ -20,7 +20,7 @@ export function SortableHeader<Column extends string>({
       <button
         type="button"
         onClick={() => onSort(column)}
-        className="inline-flex items-center gap-1 hover:text-slate-900"
+        className="inline-flex items-center gap-1 hover:text-primary"
       >
         {label}
         {isActive ? (
@@ -30,7 +30,7 @@ export function SortableHeader<Column extends string>({
             <ChevronDown className="h-3.5 w-3.5" />
           )
         ) : (
-          <ChevronsUpDown className="h-3.5 w-3.5 text-slate-300" />
+          <ChevronsUpDown className="h-3.5 w-3.5 text-muted-foreground" />
         )}
       </button>
     </th>

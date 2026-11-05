@@ -59,6 +59,17 @@ const baseState = {
 };
 
 describe('setupOverlayLayers himawari source', () => {
+  it.each([
+    { showTyphoonTrack: false, showParBoundary: undefined, expected: 'visible' },
+    { showTyphoonTrack: true, showParBoundary: false, expected: 'none' },
+  ])('keeps PAR independent of typhoon visibility ($expected)', async ({ expected, ...state }) => {
+    const { map } = createMockMap();
+    map.setLayoutProperty = vi.fn();
+    await setupOverlayLayers(map, { addProtocol: () => {} }, { ...baseState, ...state });
+    expect(map.setLayoutProperty).toHaveBeenCalledWith('par-boundary-line', 'visibility', expected);
+    expect(map.setLayoutProperty).toHaveBeenCalledWith('par-boundary-label', 'visibility', expected);
+  });
+
   it('seeds himawari-ir with the transparent placeholder, never a proxy URL', async () => {
     const { map, addedSources } = createMockMap();
     const maplibregl = { addProtocol: () => {} };
@@ -129,7 +140,24 @@ describe('setupOverlayLayers himawari source', () => {
 
     const darkCasing = darkLayers.find((l) => l.id === 'barangay-outline-casing');
     expect(darkCasing?.paint['line-color']).toBe('rgba(0, 0, 0, 0.85)');
-    expect(darkLayers.some((l) => l.id === 'hillshade')).toBe(false);
+    const darkHillshade = darkLayers.find((l) => l.id === 'hillshade');
+    expect(darkHillshade).toBeDefined();
+    expect(darkHillshade.paint['hillshade-exaggeration']).toBe(0.12);
+    expect(darkHillshade.paint['hillshade-exaggeration']).toBeLessThan(
+      lightLayers.find((l) => l.id === 'hillshade').paint['hillshade-exaggeration'],
+    );
+    expect(darkHillshade.paint['hillshade-highlight-color']).toBe('#555555');
+  });
+
+  it.each([
+    { basemap: 'satellite' as const, mapMode: '3d' as const },
+    { basemap: 'dark' as const, mapMode: '2d' as const },
+  ])('omits hillshade for $basemap in $mapMode', async state => {
+    const { map } = createMockMap();
+    const layers: any[] = [];
+    map.addLayer = (layer: any) => layers.push(layer);
+    await setupOverlayLayers(map, { addProtocol: () => {} }, { ...baseState, ...state });
+    expect(layers.some(layer => layer.id === 'hillshade')).toBe(false);
   });
 
   it('configures the Mapterhorn Terrarium raster-dem source in 3D mode', async () => {

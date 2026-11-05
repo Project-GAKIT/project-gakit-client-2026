@@ -128,8 +128,8 @@ export default function InvitePage() {
 
   if (status === 'checking') {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-canvas-light p-4">
-        <div className="flex items-center gap-2 text-sm font-semibold text-slate-500">
+      <main className="flex min-h-screen items-center justify-center bg-page p-4">
+        <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
           <Spinner size="md" />
           Checking your invite…
         </div>
@@ -138,37 +138,37 @@ export default function InvitePage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-canvas-light md:flex-row">
+    <main className="flex min-h-screen flex-col bg-page md:flex-row">
       <section className="flex w-full items-center justify-center px-6 py-12 md:w-[45%]">
         <div className="w-full max-w-md">
           <Link
             href="/"
-            className="mb-8 inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-gakit-maroon"
+            className="mb-8 inline-flex items-center gap-2 text-sm font-semibold text-secondary hover:text-primary"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Home
           </Link>
 
           {done ? (
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6">
-              <CheckCircle2 className="h-8 w-8 text-emerald-600" />
-              <h1 className="mt-4 text-2xl font-bold text-slate-900">
+            <div className="rounded-2xl border border-success-border bg-success-bg p-6">
+              <CheckCircle2 className="h-8 w-8 text-success-text" />
+              <h1 className="mt-4 text-2xl font-bold text-primary">
                 Password set successfully
               </h1>
-              <p className="mt-2 text-sm text-slate-600">
+              <p className="mt-2 text-sm text-secondary">
                 Your password is ready. Taking you to the sign-in page…
               </p>
             </div>
           ) : status === 'error' ? (
-            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6">
-              <AlertTriangle className="h-8 w-8 text-amber-600" />
-              <h1 className="mt-4 text-2xl font-bold text-slate-900">
+            <div className="rounded-2xl border border-warning-border bg-warning-bg p-6">
+              <AlertTriangle className="h-8 w-8 text-warning-text" />
+              <h1 className="mt-4 text-2xl font-bold text-primary">
                 This invite link can&apos;t be used
               </h1>
-              <p className="mt-2 text-sm text-slate-600">{errorMessage}</p>
+              <p className="mt-2 text-sm text-secondary">{errorMessage}</p>
               <Link
                 href="/login"
-                className="mt-6 inline-flex items-center gap-2 rounded-lg bg-gakit-maroon px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-maroon-800"
+                className="mt-6 inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover"
               >
                 Go to sign in
               </Link>
@@ -176,10 +176,10 @@ export default function InvitePage() {
           ) : (
             <>
               <div className="mb-8">
-                <h1 className="text-3xl font-bold text-slate-900">
+                <h1 className="text-3xl font-bold text-primary">
                   Set your password
                 </h1>
-                <p className="mt-2 text-sm text-slate-600">
+                <p className="mt-2 text-sm text-secondary">
                   You&apos;ve been invited to join GAKIT. Choose a password for
                   your account to continue.
                 </p>
@@ -189,12 +189,12 @@ export default function InvitePage() {
                 <div>
                   <label
                     htmlFor="password"
-                    className="mb-2 block text-sm font-semibold text-slate-900"
+                    className="mb-2 block text-sm font-semibold text-primary"
                   >
                     Password
                   </label>
                   <div className="relative">
-                    <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <input
                       id="password"
                       type="password"
@@ -204,7 +204,7 @@ export default function InvitePage() {
                       onChange={(event) => setPassword(event.target.value)}
                       placeholder="At least 8 characters"
                       autoComplete="new-password"
-                      className="w-full rounded-lg border border-canvas-grey bg-white py-3 pl-9 pr-4 focus:outline-none focus:ring-2 focus:ring-gakit-maroon focus:border-gakit-maroon"
+                      className="w-full rounded-lg border border-default bg-panel py-3 pl-9 pr-4 focus:outline-none focus:ring-2 focus:ring-focus focus:border-strong"
                     />
                   </div>
                 </div>
@@ -212,12 +212,12 @@ export default function InvitePage() {
                 <div>
                   <label
                     htmlFor="confirm"
-                    className="mb-2 block text-sm font-semibold text-slate-900"
+                    className="mb-2 block text-sm font-semibold text-primary"
                   >
                     Confirm password
                   </label>
                   <div className="relative">
-                    <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <input
                       id="confirm"
                       type="password"
@@ -227,13 +227,13 @@ export default function InvitePage() {
                       onChange={(event) => setConfirm(event.target.value)}
                       placeholder="Repeat your password"
                       autoComplete="new-password"
-                      className="w-full rounded-lg border border-canvas-grey bg-white py-3 pl-9 pr-4 focus:outline-none focus:ring-2 focus:ring-gakit-maroon focus:border-gakit-maroon"
+                      className="w-full rounded-lg border border-default bg-panel py-3 pl-9 pr-4 focus:outline-none focus:ring-2 focus:ring-focus focus:border-strong"
                     />
                   </div>
                 </div>
 
                 {localError && (
-                  <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  <div className="rounded-lg border border-error-border bg-error-bg px-4 py-3 text-sm text-error-text">
                     {localError}
                   </div>
                 )}
@@ -241,7 +241,7 @@ export default function InvitePage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full rounded-lg bg-gakit-maroon py-3 px-6 font-semibold text-white transition-colors hover:bg-maroon-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="w-full rounded-lg bg-accent py-3 px-6 font-semibold text-on-accent transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isSubmitting ? 'Saving…' : 'Set password'}
                 </button>
@@ -261,13 +261,13 @@ export default function InvitePage() {
           sizes="55vw"
           className="object-cover object-center"
         />
-        <div className="absolute inset-0 bg-gakit-maroon/35" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
+        <div className="absolute inset-0 bg-accent/35" />
+        <div className="absolute inset-0 bg-gradient-to-t from-scrim/70 via-scrim/25 to-transparent" />
         <div className="relative z-10 p-12 max-w-3xl">
-          <h2 className="text-5xl font-bold text-white leading-tight">
+          <h2 className="text-5xl font-bold text-on-accent leading-tight">
             Geohazard Assessment & Knowledge Integration Tool
           </h2>
-          <p className="text-lg text-white/85 mt-5">
+          <p className="text-lg text-on-accent/85 mt-5">
             Submit, validate, and monitor flood reports so communities and
             responders can make faster decisions.
           </p>

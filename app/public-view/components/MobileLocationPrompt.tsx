@@ -27,17 +27,17 @@ export function MobileLocationPrompt({
       panelClassName="p-0"
     >
       <div className="flex items-start gap-3 px-5 pt-5">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-maroon-50 text-gakit-maroon">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted text-secondary">
           <MapPinned className="h-5 w-5" aria-hidden="true" />
         </span>
         <div className="min-w-0">
           <h2
             id="mobile-location-prompt-title"
-            className="font-heading text-base font-bold text-slate-900"
+            className="font-heading text-base font-bold text-primary"
           >
             See reports near you
           </h2>
-          <p className="mt-1 text-xs leading-5 text-slate-600">
+          <p className="mt-1 text-xs leading-5 text-secondary">
             Use your location to center the map on your area. You can also
             explore the map manually.
           </p>
@@ -47,7 +47,7 @@ export function MobileLocationPrompt({
       {error && (
         <p
           role="alert"
-          className="mx-5 mt-3 rounded-lg bg-red-50 px-3 py-2 text-xs leading-4 text-red-700"
+          className="mx-5 mt-3 rounded-lg bg-error-bg px-3 py-2 text-xs leading-4 text-error-text"
         >
           {error}
         </p>
@@ -59,7 +59,7 @@ export function MobileLocationPrompt({
           onClick={onUseLocation}
           disabled={isLocating}
           aria-busy={isLocating}
-          className="flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-gakit-maroon px-4 text-xs font-semibold text-white transition-colors hover:bg-maroon-800 disabled:cursor-wait disabled:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon focus-visible:ring-offset-2"
+          className="flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 text-xs font-semibold text-on-accent transition-colors hover:bg-accent-hover disabled:cursor-wait disabled:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2"
         >
           {isLocating ? (
             <Spinner size="sm" />
@@ -72,7 +72,7 @@ export function MobileLocationPrompt({
           type="button"
           onClick={onDismiss}
           disabled={isLocating}
-          className="flex min-h-10 w-full items-center justify-center rounded-xl border border-slate-200 px-4 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+          className="flex min-h-10 w-full items-center justify-center rounded-xl border border-default px-4 text-xs font-semibold text-secondary transition-colors hover:bg-page disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-strong"
         >
           Not now
         </button>

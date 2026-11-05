@@ -55,12 +55,12 @@ export interface ReportModalProps {
 }
 
 const PRESET_CHIP_BASE_CLASSES =
-  'bg-white text-slate-700 shadow-[0_1px_3px_rgba(15,23,42,0.08),0_1px_2px_rgba(15,23,42,0.04)] ring-1 ring-slate-200/90 hover:bg-slate-50 hover:text-slate-900';
+  'bg-panel text-secondary shadow-panel ring-1 ring-default/90 hover:bg-page hover:text-primary';
 
 const CRITICALITY_CHIP_SELECTED: Record<DepthCriticality, string> = {
-  low: 'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-300 font-bold shadow-xs',
-  medium: 'bg-amber-50 text-amber-800 ring-1 ring-amber-300 font-bold shadow-xs',
-  critical: 'bg-rose-50 text-rose-800 ring-1 ring-rose-300 font-bold shadow-xs',
+  low: 'bg-success-bg text-success-text ring-1 ring-success-border font-bold shadow-xs',
+  medium: 'bg-warning-bg text-warning-text ring-1 ring-warning-border font-bold shadow-xs',
+  critical: 'bg-error-bg text-error-text ring-1 ring-error-border font-bold shadow-xs',
 };
 
 export function ReportModal({
@@ -253,7 +253,7 @@ export function ReportModal({
       ) : undefined}
       helpCta={selectedLocation && withinCity !== false ? (
         <button type="button" onClick={startTour} disabled={isSubmitting}
-          className="min-h-9 rounded px-2 text-[11px] font-semibold text-slate-500 underline-offset-2 transition-colors hover:text-slate-800 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon focus-visible:ring-offset-2 disabled:opacity-50">
+          className="min-h-9 rounded px-2 text-[11px] font-semibold text-muted-foreground underline-offset-2 transition-colors hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 disabled:opacity-50">
           Need help?
         </button>
       ) : undefined}
@@ -270,7 +270,7 @@ export function ReportModal({
             onAdjust={onLocationChange ? () => setAdjustingLocation(true) : undefined} />}
 
           {withinCity === false ? (
-            <div className="rounded-lg border border-amber-200 bg-amber-50 p-3.5 text-xs text-amber-900">
+            <div className="rounded-lg border border-warning-border bg-warning-bg p-3.5 text-xs text-warning-text">
               <div className="font-semibold mb-1">Outside Iligan City</div>
               Choose a location within Iligan City to report.
             </div>
@@ -279,7 +279,7 @@ export function ReportModal({
               <section data-tour="report-depth" aria-labelledby={`${titleId}-depth-heading`}>
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <h3 ref={depthHeadingRef} id={`${titleId}-depth-heading`} tabIndex={-1}
-                    className="rounded text-sm font-semibold text-slate-900 outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon focus-visible:ring-offset-2">
+                    className="rounded text-sm font-semibold text-primary outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2">
                     Estimated water depth
                   </h3>
                 </div>
@@ -297,31 +297,31 @@ export function ReportModal({
                   label={referenceMeta.label} value={selectedCm} onSelect={selectDepth} disabled={isSubmitting}
                   referenceControl={<select aria-label="Visual reference" value={selectedReference}
                     onChange={event => setSelectedReference(event.target.value as FloodReference)} disabled={isSubmitting}
-                    className="h-8 min-w-0 max-w-[55%] rounded-md border border-slate-200 bg-white px-2 text-xs font-medium text-slate-700 focus:outline-gakit-maroon">
+                    className="h-8 min-w-0 max-w-[55%] rounded-md border border-default bg-panel px-2 text-xs font-medium text-secondary focus:outline-focus">
                     {FLOOD_REFERENCE_META.map(meta => <option key={meta.id} value={meta.id}>{meta.label}</option>)}
                   </select>} />}
                 <div className="mt-3 grid grid-cols-2 gap-3">
-                  <label htmlFor={`${titleId}-depth`} className="flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3">
+                  <label htmlFor={`${titleId}-depth`} className="flex h-10 items-center gap-2 rounded-lg border border-default bg-panel px-3">
                     <input id={`${titleId}-depth`} type="text" inputMode="numeric" pattern="[0-9]*" maxLength={3}
                       value={customCm} onChange={handleCustomCmChange} disabled={isSubmitting} placeholder="Depth in cm"
                       aria-label="Reported water depth in centimeters"
-                      className="h-8 w-full min-w-0 bg-transparent text-sm font-semibold tabular-nums text-slate-800 outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon" />
-                    <span className="text-xs text-slate-500">cm</span>
+                      className="h-8 w-full min-w-0 bg-transparent text-sm font-semibold tabular-nums text-primary outline-none focus-visible:ring-2 focus-visible:ring-focus" />
+                    <span className="text-xs text-muted-foreground">cm</span>
                   </label>
-                  <label className="flex h-10 items-center text-xs text-slate-600">
+                  <label className="flex h-10 items-center text-xs text-secondary">
                     <span className="sr-only">Observed</span>
                     <select value={observedEarlier ? 'earlier' : 'now'} onChange={event => setObservedEarlier(event.target.value === 'earlier')}
-                      disabled={isSubmitting} className="h-10 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs font-medium text-slate-700 focus:outline-gakit-maroon">
+                      disabled={isSubmitting} className="h-10 w-full rounded-lg border border-default bg-panel px-2 text-xs font-medium text-secondary focus:outline-focus">
                       <option value="now">Observed just now</option><option value="earlier">Observed earlier</option>
                     </select>
                   </label>
                 </div>
               </section>
               <PhotoCapture compact photo={photo} onChange={setPhoto} disabled={isSubmitting} />
-              {observedEarlier && <label className="block text-xs text-slate-600">
+              {observedEarlier && <label className="block text-xs text-secondary">
                 Date and time
                 <input type="datetime-local" value={observationTime} onChange={event => setObservationTime(event.target.value)}
-                  disabled={isSubmitting} className="mt-1 h-9 w-full rounded-md border border-slate-200 px-2 text-xs" />
+                  disabled={isSubmitting} className="mt-1 h-9 w-full rounded-md border border-default px-2 text-xs" />
               </label>}
             </div>
           )}

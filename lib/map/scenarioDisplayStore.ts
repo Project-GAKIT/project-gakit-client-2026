@@ -1,3 +1,4 @@
+import { getSessionBasemap, setSessionBasemap, themeStore } from '@/lib/theme/store';
 import { useSyncExternalStore } from 'react';
 import { BASEMAP_LABELS, type BasemapId } from '@/constants/publicMap';
 import {
@@ -12,6 +13,7 @@ export interface ScenarioDisplaySettings {
   enableBuildings: boolean;
   enableRoads: boolean;
   focusRoads: boolean;
+  showParBoundary: boolean;
 }
 
 export const SCENARIO_DISPLAY_STORAGE_KEY = 'gakit.scenario-display';
@@ -27,12 +29,14 @@ export const DEFAULT_SCENARIO_DISPLAY: ScenarioDisplaySettings = {
   // maps: both basemaps already carry their own street network.
   enableRoads: false,
   focusRoads: false,
+  showParBoundary: true,
 };
 
 let currentSettings: ScenarioDisplaySettings = { ...DEFAULT_SCENARIO_DISPLAY };
 // Remembered Light-basemap buildings choice so the Satellite default (off)
 // doesn't clobber it; see resolveBuildingsForBasemapSwitch.
 let baseBuildingsPreference = DEFAULT_SCENARIO_DISPLAY.enableBuildings;
+let modeChosenThisSession = false;
 const listeners = new Set<() => void>();
 
 function notify() {
@@ -53,7 +57,7 @@ function sameSettings(
     a.renderMode === b.renderMode &&
     a.mode === b.mode && a.basemap === b.basemap &&
     a.enableBuildings === b.enableBuildings &&
-    a.enableRoads === b.enableRoads && a.focusRoads === b.focusRoads
+    a.enableRoads === b.enableRoads && a.focusRoads === b.focusRoads && a.showParBoundary === b.showParBoundary
   );
 }
 
@@ -91,6 +95,7 @@ export function parseScenarioDisplay(
   if (typeof source.enableRoads === 'boolean') {
     result.enableRoads = source.enableRoads;
   }
+  if (typeof source.showParBoundary === 'boolean') result.showParBoundary = source.showParBoundary;
   if (typeof source.focusRoads === 'boolean') result.focusRoads = source.focusRoads;
   return result;
 }
@@ -127,6 +132,7 @@ function persist() {
 
 export const scenarioDisplayStore = {
   getSnapshot(): ScenarioDisplaySettings {
+    syncAppearanceBasemap();
     return currentSettings;
   },
   getServerSnapshot(): ScenarioDisplaySettings {
@@ -145,7 +151,18 @@ export const scenarioDisplayStore = {
    */
   hydrate(): void {
     const persisted = readPersisted();
-    const next = { ...currentSettings, ...persisted };
+    // Stored map geometry/layers remain browser-local. A stored basemap must
+    // never undo the appearance epoch or a manual selection from this session.
+    const basemap = getSessionBasemap('scenario');
+    // A saved desktop 3D choice must not tilt mobile scenarios on first load.
+    // An explicit choice in this session wins over any later hydration.
+    const mobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches;
+    const mode = modeChosenThisSession ? currentSettings.mode
+      : mobile ? '2d' : persisted.mode ?? currentSettings.mode;
+    const next = { ...currentSettings, ...persisted, basemap, mode };
+    if (persisted.basemap === 'satellite' && basemap !== 'satellite') {
+      next.enableBuildings = baseBuildingsPreference;
+    }
     if (sameSettings(next, currentSettings)) return;
     currentSettings = next;
     baseBuildingsPreference = next.enableBuildings;
@@ -158,6 +175,7 @@ export const scenarioDisplayStore = {
     notify();
   },
   setBasemap(basemap: BasemapId): void {
+    setSessionBasemap('scenario', basemap);
     if (currentSettings.basemap === basemap) return;
     // Footprints cover the aerial imagery, so Satellite disables them by
     // default; the Light preference is remembered and restored on return.
@@ -171,6 +189,7 @@ export const scenarioDisplayStore = {
     notify();
   },
   setMode(mode: '2d' | '3d'): void {
+    modeChosenThisSession = true;
     if (currentSettings.mode === mode) return;
     currentSettings = { ...currentSettings, mode };
     persist();
@@ -195,18 +214,37 @@ export const scenarioDisplayStore = {
     persist();
     notify();
   },
+  setShowParBoundary(visible: boolean): void {
+    if (currentSettings.showParBoundary === visible) return;
+    currentSettings = { ...currentSettings, showParBoundary: visible };
+    persist(); notify();
+  },
   setFocusRoads(enabled: boolean): void {
     if (currentSettings.focusRoads === enabled) return;
     currentSettings = { ...currentSettings, focusRoads: enabled };
     persist(); notify();
   },
   reset(): void {
-    currentSettings = { ...DEFAULT_SCENARIO_DISPLAY };
+    modeChosenThisSession = false;
+    setSessionBasemap('scenario', themeStore.getSnapshot().resolved);
+    currentSettings = { ...DEFAULT_SCENARIO_DISPLAY, basemap: getSessionBasemap('scenario') };
     baseBuildingsPreference = DEFAULT_SCENARIO_DISPLAY.enableBuildings;
     persist();
     notify();
   },
 };
+
+function syncAppearanceBasemap() {
+  if (typeof window === 'undefined') return;
+  const basemap = getSessionBasemap('scenario');
+  if (basemap === currentSettings.basemap) return;
+  const buildings = resolveBuildingsForBasemapSwitch(currentSettings.basemap, basemap, {
+    visible: currentSettings.enableBuildings, basePreference: baseBuildingsPreference,
+  });
+  baseBuildingsPreference = buildings.basePreference;
+  currentSettings = { ...currentSettings, basemap, enableBuildings: buildings.visible };
+}
+themeStore.subscribe(() => { syncAppearanceBasemap(); notify(); });
 
 export function useScenarioDisplay(): ScenarioDisplaySettings {
   return useSyncExternalStore(

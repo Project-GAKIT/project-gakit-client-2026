@@ -36,17 +36,17 @@ export function SettingsDropdown() {
         onClick={() => setIsOpen((open) => !open)}
         className={`rounded-full p-2.5 transition-all duration-150 active:scale-95 ${
           isOpen
-            ? 'bg-maroon-50 text-gakit-maroon ring-1 ring-maroon-200/80 font-bold'
-            : 'bg-slate-50 ring-1 ring-slate-200 hover:bg-slate-100 hover:text-gakit-maroon'
+            ? 'bg-muted text-secondary ring-1 ring-focus/80 font-bold'
+            : 'bg-page ring-1 ring-default hover:bg-muted hover:text-primary'
         }`}
       >
-        <Settings className="h-5 w-5 text-slate-600" />
+        <Settings className="h-5 w-5 text-secondary" />
       </button>
 
       {isOpen && (
-        <div className="fixed inset-x-4 top-16 z-[1300] overflow-hidden rounded-2xl border border-canvas-grey bg-white shadow-xl md:absolute md:inset-x-auto md:right-0 md:top-auto md:mt-3 md:w-56">
-          <div className="border-b border-canvas-grey px-4 py-3">
-            <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
+        <div className="fixed inset-x-4 top-16 z-[1300] overflow-hidden rounded-2xl border border-default bg-panel shadow-xl md:absolute md:inset-x-auto md:right-0 md:top-auto md:mt-3 md:w-56">
+          <div className="border-b border-default px-4 py-3">
+            <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
               Settings
             </p>
           </div>
@@ -54,7 +54,7 @@ export function SettingsDropdown() {
             <button
               type="button"
               onClick={() => go('/settings')}
-              className="flex w-full items-center rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-slate-700 transition-colors hover:bg-canvas-light"
+              className="flex w-full items-center rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-secondary transition-colors hover:bg-page"
             >
               Settings
             </button>

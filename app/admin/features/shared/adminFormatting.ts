@@ -6,15 +6,15 @@ export const USER_STATUS_META: Record<
 > = {
   active: {
     label: 'Active',
-    className: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    className: 'bg-success-bg text-success-text border-success-border',
   },
   pending: {
     label: 'Pending',
-    className: 'bg-slate-100 text-slate-600 border-slate-200',
+    className: 'bg-muted text-secondary border-default',
   },
   suspended: {
     label: 'Deactivated',
-    className: 'bg-slate-100 text-slate-600 border-slate-200',
+    className: 'bg-muted text-secondary border-default',
   },
 };
 
@@ -26,19 +26,19 @@ export function formatRoleLabel(role: string | null): string {
 }
 
 export const AUDIT_ACTION_META: Record<string, { label: string; className: string }> = {
-  'user.invited': { label: 'Invitation sent', className: 'bg-blue-50 text-blue-700 border-blue-200' },
-  'user.invite_resent': { label: 'Invitation resent', className: 'bg-blue-50 text-blue-700 border-blue-200' },
-  'user.role_changed': { label: 'Role changed', className: 'bg-violet-50 text-violet-700 border-violet-200' },
-  'user.suspended': { label: 'User deactivated', className: 'bg-red-50 text-red-700 border-red-200' },
-  'user.activated': { label: 'User reactivated', className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-  'role.created': { label: 'Role created', className: 'bg-cyan-50 text-cyan-700 border-cyan-200' },
-  'role.updated': { label: 'Role updated', className: 'bg-amber-50 text-amber-700 border-amber-200' },
+  'user.invited': { label: 'Invitation sent', className: 'bg-info-bg text-info-text border-info-border' },
+  'user.invite_resent': { label: 'Invitation resent', className: 'bg-info-bg text-info-text border-info-border' },
+  'user.role_changed': { label: 'Role changed', className: 'bg-notice-bg text-notice-text border-notice-border' },
+  'user.suspended': { label: 'User deactivated', className: 'bg-error-bg text-error-text border-error-border' },
+  'user.activated': { label: 'User reactivated', className: 'bg-success-bg text-success-text border-success-border' },
+  'role.created': { label: 'Role created', className: 'bg-info-bg text-info-text border-info-border' },
+  'role.updated': { label: 'Role updated', className: 'bg-warning-bg text-warning-text border-warning-border' },
 };
 
 export function auditActionMeta(action: string): { label: string; className: string } {
   return AUDIT_ACTION_META[action] ?? {
     label: action,
-    className: 'bg-slate-100 text-slate-600 border-slate-200',
+    className: 'bg-muted text-secondary border-default',
   };
 }
 

@@ -19,7 +19,7 @@
 }
 
 .dashboard-bar-value {
-  color: #334155;
+  color: rgb(var(--text-secondary));
   font-size: 0.75rem;
   font-weight: 700;
 }
@@ -27,17 +27,17 @@
 .dashboard-bar {
   width: 100%;
   border-radius: 0.5rem 0.5rem 0.125rem 0.125rem;
-  background: linear-gradient(180deg, #a10023 0%, #7a0019 100%);
+  background: linear-gradient(180deg, rgb(var(--accent)) 0%, rgb(var(--accent)) 100%);
   transition: background 160ms ease, transform 160ms ease;
 }
 
 .dashboard-bar:hover {
-  background: linear-gradient(180deg, #c4002b 0%, #8a001d 100%);
+  background: linear-gradient(180deg, rgb(var(--accent-hover)) 0%, rgb(var(--accent-hover)) 100%);
   transform: translateY(-0.125rem);
 }
 
 .dashboard-bar-label {
-  color: #64748b;
+  color: rgb(var(--text-muted));
   font-size: 0.75rem;
   font-weight: 600;
 }
@@ -48,7 +48,7 @@
   flex-direction: column;
   justify-content: space-between;
   padding-bottom: 1.375rem; /* mirrors the x-label row so tick 0 meets the bottom gridline */
-  color: #94a3b8;
+  color: rgb(var(--text-muted));
   font-size: 0.625rem;
   font-weight: 600;
   line-height: 1;
@@ -76,7 +76,7 @@
   display: block;
   height: 1px;
   width: 100%;
-  background: #f1f5f9;
+  background: rgb(var(--surface-muted));
 }
 
 .activity-hourly-bars {
@@ -103,7 +103,7 @@
 }
 
 .activity-hourly-value {
-  color: #334155;
+  color: rgb(var(--text-secondary));
   font-size: 0.6rem;
   font-weight: 700;
   line-height: 1;
@@ -113,16 +113,16 @@
   width: 100%;
   min-height: 0;
   border-radius: 0.25rem 0.25rem 0.0625rem 0.0625rem;
-  background: linear-gradient(180deg, #a10023 0%, #7a0019 100%);
+  background: linear-gradient(180deg, rgb(var(--accent)) 0%, rgb(var(--accent)) 100%);
   transition: height 240ms ease, background 160ms ease;
 }
 
 .activity-hourly-item:hover .activity-hourly-bar {
-  background: linear-gradient(180deg, #c4002b 0%, #8a001d 100%);
+  background: linear-gradient(180deg, rgb(var(--accent-hover)) 0%, rgb(var(--accent-hover)) 100%);
 }
 
 .activity-hourly-item:hover .activity-hourly-value {
-  color: #7a0019;
+  color: rgb(var(--accent-text));
 }
 
 .activity-hourly-labels {
@@ -132,7 +132,7 @@
   left: 0;
   display: flex;
   justify-content: space-between;
-  color: #94a3b8;
+  color: rgb(var(--text-muted));
   font-size: 0.6rem;
   font-weight: 600;
   line-height: 1;

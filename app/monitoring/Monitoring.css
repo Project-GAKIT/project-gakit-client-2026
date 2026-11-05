@@ -18,7 +18,7 @@
 }
 
 .admin-bar-value {
-  color: #334155;
+  color: rgb(var(--text-secondary));
   font-size: 0.75rem;
   font-weight: 700;
 }
@@ -26,17 +26,17 @@
 .admin-bar {
   width: 100%;
   border-radius: 0.375rem 0.375rem 0.125rem 0.125rem;
-  background: linear-gradient(180deg, #A10023 0%, #7A0019 100%);
+  background: linear-gradient(180deg, rgb(var(--accent)) 0%, rgb(var(--accent)) 100%);
   transition: background 160ms ease, transform 160ms ease;
 }
 
 .admin-bar:hover {
-  background: linear-gradient(180deg, #C4002B 0%, #8A001D 100%);
+  background: linear-gradient(180deg, rgb(var(--accent-hover)) 0%, rgb(var(--accent-hover)) 100%);
   transform: translateY(-0.125rem);
 }
 
 .admin-bar-label {
-  color: #64748b;
+  color: rgb(var(--text-muted));
   font-size: 0.75rem;
   font-weight: 600;
 }

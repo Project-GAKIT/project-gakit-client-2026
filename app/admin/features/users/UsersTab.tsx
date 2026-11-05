@@ -38,15 +38,15 @@ import { formatDateTime } from '@/lib/reports/reportFormatting';
 const USERS_PER_PAGE = 10;
 
 const secondaryActionClass =
-  'inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon/40 focus-visible:ring-offset-2';
+  'inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-default bg-panel px-3 text-sm font-semibold text-secondary transition-colors hover:border-default hover:bg-page focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus/40 focus-visible:ring-offset-2';
 const primaryActionClass =
-  'inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-gakit-maroon px-3 text-sm font-semibold text-white transition-colors hover:bg-maroon-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon focus-visible:ring-offset-2';
+  'inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-accent px-3 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2';
 
 function UserAvatar({ user }: { user: AdminUser }) {
   return (
     <span
       aria-hidden="true"
-      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-[11px] font-bold text-slate-600 ring-1 ring-inset ring-slate-200"
+      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted text-[11px] font-bold text-secondary ring-1 ring-inset ring-default"
     >
       {userInitials(user)}
     </span>
@@ -55,12 +55,12 @@ function UserAvatar({ user }: { user: AdminUser }) {
 
 function UserRoleLabel({ role }: { role: string | null }) {
   if (!role) {
-    return <span className="text-xs text-slate-400">No role</span>;
+    return <span className="text-xs text-muted-foreground">No role</span>;
   }
 
   if (role === 'admin') {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-gakit-maroon">
+      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-secondary">
         <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
         {formatRoleLabel(role)}
       </span>
@@ -68,7 +68,7 @@ function UserRoleLabel({ role }: { role: string | null }) {
   }
 
   return (
-    <span className="text-xs font-medium text-slate-600">
+    <span className="text-xs font-medium text-secondary">
       {formatRoleLabel(role)}
     </span>
   );
@@ -114,13 +114,13 @@ function UsersEmptyState({
 }) {
   return (
     <div className="flex flex-col items-center text-center">
-      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-muted text-muted-foreground">
         <Users className="h-5 w-5" aria-hidden="true" />
       </span>
-      <p className="mt-3 text-sm font-semibold text-slate-800">
+      <p className="mt-3 text-sm font-semibold text-primary">
         {canReset ? 'No users match these filters' : 'No users yet'}
       </p>
-      <p className="mt-1 max-w-sm text-sm text-slate-500">
+      <p className="mt-1 max-w-sm text-sm text-muted-foreground">
         {canReset
           ? 'Try a different name, role, or status.'
           : 'Invite your first user to get started.'}
@@ -287,7 +287,7 @@ export function UsersTab({ active = true }: { active?: boolean }) {
           <button
             type="button"
             onClick={() => setIsInviteOpen(true)}
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-gakit-maroon px-4 text-sm font-semibold text-white transition-colors hover:bg-maroon-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon focus-visible:ring-offset-2 active:scale-[0.98] sm:ml-auto"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 active:scale-[0.98] sm:ml-auto"
           >
             <UserPlus className="h-4 w-4" aria-hidden="true" />
             Invite user
@@ -296,21 +296,21 @@ export function UsersTab({ active = true }: { active?: boolean }) {
 
         <div
           aria-busy={loading}
-          className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm ring-1 ring-slate-900/[0.02]"
+          className="overflow-hidden rounded-2xl border border-default bg-panel shadow-sm ring-1 ring-strong/[0.02]"
         >
-          <div className="flex flex-col gap-4 border-b border-slate-100 px-4 py-4 sm:px-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col gap-4 border-b border-default px-4 py-4 sm:px-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <h2 className="text-sm font-semibold text-slate-900">
+              <h2 className="text-sm font-semibold text-primary">
                 User directory
               </h2>
-              <p className="mt-0.5 text-xs text-slate-500">
+              <p className="mt-0.5 text-xs text-muted-foreground">
                 Find and manage user accounts.
               </p>
             </div>
             <div className="flex flex-col gap-2 sm:flex-row lg:justify-end">
               <div className="relative min-w-0 sm:w-64">
                 <Search
-                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
                   aria-hidden="true"
                 />
                 <input
@@ -321,7 +321,7 @@ export function UsersTab({ active = true }: { active?: boolean }) {
                   }}
                   placeholder="Search name or email"
                   aria-label="Search users by name or email"
-                  className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-9 text-sm text-slate-700 outline-none transition-colors placeholder:text-slate-400 hover:border-slate-300 focus:border-gakit-maroon/40 focus:ring-2 focus:ring-gakit-maroon/10"
+                  className="h-10 w-full rounded-lg border border-default bg-panel pl-9 pr-9 text-sm text-secondary outline-none transition-colors placeholder:text-muted-foreground hover:border-default focus:border-strong/40 focus:ring-2 focus:ring-focus/10"
                 />
                 {query && (
                   <button
@@ -331,7 +331,7 @@ export function UsersTab({ active = true }: { active?: boolean }) {
                       setCurrentPage(1);
                     }}
                     aria-label="Clear search"
-                    className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon/30"
+                    className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus/30"
                   >
                     <X className="h-3.5 w-3.5" aria-hidden="true" />
                   </button>
@@ -345,7 +345,7 @@ export function UsersTab({ active = true }: { active?: boolean }) {
                     setCurrentPage(1);
                   }}
                   aria-label="Filter by role"
-                  className="h-10 w-full appearance-none rounded-lg border border-slate-200 bg-white pl-3 pr-9 text-sm text-slate-700 outline-none transition-colors hover:border-slate-300 focus:border-gakit-maroon/40 focus:ring-2 focus:ring-gakit-maroon/10"
+                  className="h-10 w-full appearance-none rounded-lg border border-default bg-panel pl-3 pr-9 text-sm text-secondary outline-none transition-colors hover:border-default focus:border-strong/40 focus:ring-2 focus:ring-focus/10"
                 >
                   <option value="all">All roles</option>
                   {roles.map((role) => (
@@ -355,7 +355,7 @@ export function UsersTab({ active = true }: { active?: boolean }) {
                   ))}
                 </select>
                 <ChevronDown
-                  className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+                  className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
                   aria-hidden="true"
                 />
               </div>
@@ -363,7 +363,7 @@ export function UsersTab({ active = true }: { active?: boolean }) {
                 <button
                   type="button"
                   onClick={resetFilters}
-                  className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon/40 focus-visible:ring-offset-2"
+                  className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-secondary transition-colors hover:bg-muted hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus/40 focus-visible:ring-offset-2"
                 >
                   <RotateCcw className="h-4 w-4" aria-hidden="true" />
                   Clear
@@ -385,14 +385,14 @@ export function UsersTab({ active = true }: { active?: boolean }) {
 
           {error ? (
             <div className="flex flex-col items-center justify-center gap-3 px-6 py-14 text-center">
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-red-50 text-red-600 ring-1 ring-red-100">
+              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-error-bg text-error-text ring-1 ring-error-border">
                 <AlertCircle className="h-5 w-5" aria-hidden="true" />
               </span>
               <div>
-                <p className="text-sm font-semibold text-slate-800">
+                <p className="text-sm font-semibold text-primary">
                   Unable to load users
                 </p>
-                <p className="mt-1 max-w-sm text-sm text-slate-500">
+                <p className="mt-1 max-w-sm text-sm text-muted-foreground">
                   Check your connection and try again. If the problem continues,
                   contact support.
                 </p>
@@ -411,62 +411,62 @@ export function UsersTab({ active = true }: { active?: boolean }) {
                 <table className="w-full text-sm">
                   <caption className="sr-only">Users</caption>
                   <thead>
-                    <tr className="border-b border-slate-200 bg-white">
+                    <tr className="border-b border-default bg-panel">
                       <th
                         scope="col"
-                        className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500 xl:px-5"
+                        className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground xl:px-5"
                       >
                         User
                       </th>
                       <th
                         scope="col"
-                        className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500 xl:px-5"
+                        className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground xl:px-5"
                       >
                         Role
                       </th>
                       <th
                         scope="col"
-                        className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500 xl:px-5"
+                        className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground xl:px-5"
                       >
                         Status
                       </th>
                       <th
                         scope="col"
-                        className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500 xl:px-5"
+                        className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground xl:px-5"
                       >
                         Activity
                       </th>
                       <th
                         scope="col"
-                        className="hidden px-4 py-3 text-left text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500 xl:table-cell xl:px-5"
+                        className="hidden px-4 py-3 text-left text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground xl:table-cell xl:px-5"
                       >
                         Created
                       </th>
                       <th
                         scope="col"
-                        className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500 xl:px-5"
+                        className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground xl:px-5"
                       >
                         Actions
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-default">
                     {users.map((user) => {
                       const identity = userIdentity(user);
                       return (
                         <tr
                           key={user.id}
-                          className="transition-colors hover:bg-slate-50/70"
+                          className="transition-colors hover:bg-page/70"
                         >
                           <td className="px-4 py-3.5 xl:px-5">
                             <div className="flex min-w-0 items-center gap-3">
                               <UserAvatar user={user} />
                               <div className="min-w-0 max-w-[22rem]">
-                                <div className="truncate text-sm font-semibold text-slate-900">
+                                <div className="truncate text-sm font-semibold text-primary">
                                   {identity.primary}
                                 </div>
                                 {identity.secondary && (
-                                  <div className="truncate text-xs text-slate-500">
+                                  <div className="truncate text-xs text-muted-foreground">
                                     {identity.secondary}
                                   </div>
                                 )}
@@ -479,10 +479,10 @@ export function UsersTab({ active = true }: { active?: boolean }) {
                           <td className="px-4 py-3.5 xl:px-5">
                             <UserStatusBadge status={user.status} />
                           </td>
-                          <td className="px-4 py-3.5 text-xs text-slate-600 xl:px-5">
+                          <td className="px-4 py-3.5 text-xs text-secondary xl:px-5">
                             <UserActivityLabel user={user} />
                           </td>
-                          <td className="hidden px-4 py-3.5 text-xs tabular-nums text-slate-500 xl:table-cell xl:px-5">
+                          <td className="hidden px-4 py-3.5 text-xs tabular-nums text-muted-foreground xl:table-cell xl:px-5">
                             {user.createdAt ? (
                               <time
                                 dateTime={user.createdAt}
@@ -549,7 +549,7 @@ export function UsersTab({ active = true }: { active?: boolean }) {
                 </table>
               </div>
 
-              <div className="divide-y divide-slate-100 lg:hidden">
+              <div className="divide-y divide-default lg:hidden">
                 {users.map((user) => {
                   const identity = userIdentity(user);
                   return (
@@ -558,11 +558,11 @@ export function UsersTab({ active = true }: { active?: boolean }) {
                         <div className="flex min-w-0 items-start gap-3">
                           <UserAvatar user={user} />
                           <div className="min-w-0">
-                            <div className="truncate text-sm font-semibold text-slate-900">
+                            <div className="truncate text-sm font-semibold text-primary">
                               {identity.primary}
                             </div>
                             {identity.secondary && (
-                              <div className="truncate text-xs text-slate-500">
+                              <div className="truncate text-xs text-muted-foreground">
                                 {identity.secondary}
                               </div>
                             )}
@@ -573,9 +573,9 @@ export function UsersTab({ active = true }: { active?: boolean }) {
                           {renderRowActions(user)}
                         </div>
                       </div>
-                      <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-slate-100 pt-3 text-xs sm:grid-cols-3">
+                      <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-default pt-3 text-xs sm:grid-cols-3">
                         <div>
-                          <dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                          <dt className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                             Role
                           </dt>
                           <dd className="mt-0.5">
@@ -583,18 +583,18 @@ export function UsersTab({ active = true }: { active?: boolean }) {
                           </dd>
                         </div>
                         <div>
-                          <dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                          <dt className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                             Activity
                           </dt>
-                          <dd className="mt-0.5 text-slate-600">
+                          <dd className="mt-0.5 text-secondary">
                             <UserActivityLabel user={user} />
                           </dd>
                         </div>
                         <div className="col-span-2 sm:col-span-1">
-                          <dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                          <dt className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                             Created
                           </dt>
-                          <dd className="mt-0.5 tabular-nums text-slate-600">
+                          <dd className="mt-0.5 tabular-nums text-secondary">
                             {user.createdAt ? (
                               <time
                                 dateTime={user.createdAt}
@@ -626,7 +626,7 @@ export function UsersTab({ active = true }: { active?: boolean }) {
                         </div>
                         <Skeleton className="h-6 w-20 rounded-full" />
                       </div>
-                      <div className="grid grid-cols-3 gap-3 border-t border-slate-100 pt-3">
+                      <div className="grid grid-cols-3 gap-3 border-t border-default pt-3">
                         <Skeleton className="h-3 w-16 rounded-md" />
                         <Skeleton className="h-3 w-20 rounded-md" />
                         <Skeleton className="h-3 w-16 rounded-md" />

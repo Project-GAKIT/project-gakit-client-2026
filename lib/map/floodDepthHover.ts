@@ -161,18 +161,18 @@ export function attachFloodDepthHover(map: any, layerId: string, sample: FloodDe
   const container: HTMLElement = map.getContainer();
   const canvas: HTMLElement = map.getCanvas();
   const tooltip = document.createElement('div');
-  tooltip.className = 'pointer-events-none absolute z-30 rounded-xl bg-white px-3 py-2.5 text-slate-800 shadow-[0_6px_20px_rgba(15,23,42,0.16)]';
+  tooltip.className = 'pointer-events-none absolute z-30 rounded-xl bg-panel px-3 py-2.5 text-primary shadow-panel';
   tooltip.style.display = 'none';
   tooltip.setAttribute('role', 'tooltip');
   const caption = document.createElement('div');
-  caption.className = 'text-xs font-medium leading-4 text-slate-600';
+  caption.className = 'text-xs font-medium leading-4 text-secondary';
   caption.textContent = 'Estimated depth';
   const value = document.createElement('div');
-  value.className = 'mt-0.5 text-lg font-semibold leading-6 tabular-nums text-gakit-maroon';
+  value.className = 'mt-0.5 text-lg font-semibold leading-6 tabular-nums text-accent-text';
   const context = document.createElement('div');
-  context.className = 'mt-1 text-xs font-semibold leading-4 text-slate-800 [overflow-wrap:anywhere]';
+  context.className = 'mt-1 text-xs font-semibold leading-4 text-primary [overflow-wrap:anywhere]';
   const time = document.createElement('div');
-  time.className = 'mt-1 text-xs leading-4 text-slate-600';
+  time.className = 'mt-1 text-xs leading-4 text-secondary';
   tooltip.append(caption, value, context, time);
   container.append(tooltip);
   let pending = 0;
@@ -198,7 +198,7 @@ export function attachFloodDepthHover(map: any, layerId: string, sample: FloodDe
       const reading = sample(last.lngLat.lng, last.lngLat.lat);
       if (!reading) { hide(); return; }
       value.textContent = reading.value;
-      value.className = reading.depthM !== undefined ? 'mt-0.5 text-lg font-semibold leading-6 tabular-nums text-gakit-maroon' : 'mt-0.5 text-sm font-semibold leading-5 text-slate-700';
+      value.className = reading.depthM !== undefined ? 'mt-0.5 text-lg font-semibold leading-6 tabular-nums text-accent-text' : 'mt-0.5 text-sm font-semibold leading-5 text-secondary';
       context.textContent = reading.location ?? (/^(simulated|estimated) (water )?depth$/i.test(reading.detail) ? '' : reading.detail);
       context.style.display = context.textContent ? 'block' : 'none';
       time.textContent = reading.time ?? '';

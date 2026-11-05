@@ -27,6 +27,7 @@ import type { Report } from '@/types/report';
 import type { WeatherAlert } from '@/types/weather';
 import { MobileSignOutButton } from './SideBar';
 import { TopoBackground } from '@/app/public-view/components/TopoBackground';
+import { DisplayPopover } from './header/DisplayPopover';
 import { SettingsDropdown } from './SettingsDropdown';
 import { ValidationModeBadge } from './header/ValidationModeBadge';
 
@@ -38,6 +39,7 @@ interface AdminHeaderProps {
   showTopo?: boolean;
   compact?: boolean;
   hideNotifications?: boolean;
+  showDisplay?: boolean;
   onNotificationClick?: (notificationId: string) => void;
 }
 
@@ -67,14 +69,14 @@ const WEATHER_TYPE_LABELS: Record<string, string> = {
 };
 
 const SEVERITY_ICON_CLASS: Record<string, string> = {
-  critical: 'bg-red-50 text-red-700',
-  warning: 'bg-orange-50 text-orange-700',
-  info: 'bg-blue-50 text-blue-700',
+  critical: 'bg-error-bg text-error-text',
+  warning: 'bg-caution-bg text-caution-text',
+  info: 'bg-info-bg text-info-text',
 };
 
 function mapWeatherToHeader(alert: WeatherAlert): HeaderNotification {
   const severityClass =
-    SEVERITY_ICON_CLASS[alert.severity] ?? 'bg-cyan-50 text-cyan-700';
+    SEVERITY_ICON_CLASS[alert.severity] ?? 'bg-info-bg text-info-text';
   return {
     id: `weather-${alert.id}`,
     title: isPagasaAlert(alert) ? shortTitle(alert) || alertTitle(alert) : alertTitle(alert),
@@ -102,7 +104,7 @@ function createNotifications(reports: Report[]): HeaderNotification[] {
         context: formatReportDepth(report.depth, report.depthCm),
         createdAt: report.updatedAt,
         icon: ShieldAlert,
-        iconClass: 'bg-orange-50 text-orange-700',
+        iconClass: 'bg-caution-bg text-caution-text',
       }];
     }
 
@@ -117,7 +119,7 @@ function createNotifications(reports: Report[]): HeaderNotification[] {
         context: formatReportDepth(report.depth, report.depthCm),
         createdAt: report.createdAt,
         icon: AlertTriangle,
-        iconClass: 'bg-red-50 text-red-700',
+        iconClass: 'bg-error-bg text-error-text',
       }];
     }
 
@@ -129,7 +131,7 @@ function createNotifications(reports: Report[]): HeaderNotification[] {
         context: formatReportDepth(report.depth, report.depthCm),
         createdAt: report.createdAt,
         icon: AlertTriangle,
-        iconClass: 'bg-amber-50 text-amber-700',
+        iconClass: 'bg-warning-bg text-warning-text',
       }];
     }
 
@@ -147,6 +149,7 @@ export function AdminHeader({
   showTopo = false,
   compact = false,
   hideNotifications = false,
+  showDisplay = true,
   onNotificationClick,
 }: AdminHeaderProps) {
   const [recentReports, setRecentReports] = useState<Report[]>([]);
@@ -340,28 +343,28 @@ export function AdminHeader({
           setIsOpen(false);
           onNotificationClick?.(notification.id);
         }}
-        className="group flex w-full items-start gap-2 px-3 py-2.5 text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gakit-maroon"
+        className="group flex w-full items-start gap-2 px-3 py-2.5 text-left transition-colors hover:bg-page focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
       >
         <span className={`mt-0.5 shrink-0 rounded-lg p-1.5 ${notification.iconClass}`}>
           <NotificationIcon className="h-3.5 w-3.5" />
         </span>
         <span className="min-w-0 flex-1">
           <span className="flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-wide">
-            <span className="truncate text-slate-500">{notification.badge?.label || 'Flood report'}</span>
+            <span className="truncate text-muted-foreground">{notification.badge?.label || 'Flood report'}</span>
             {!isRead && <span className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-hazard-critical" aria-label="Unread" />}
           </span>
-          <span className="mt-0.5 block text-xs font-semibold leading-4 text-slate-900 line-clamp-2">
+          <span className="mt-0.5 block text-xs font-semibold leading-4 text-primary line-clamp-2">
             {notification.title}
           </span>
-          <span className="mt-0.5 block text-[11px] leading-4 text-slate-600 line-clamp-2">
+          <span className="mt-0.5 block text-[11px] leading-4 text-secondary line-clamp-2">
             {notification.detail}
           </span>
-          <span className="mt-1 flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 text-[10px] text-slate-400">
+          <span className="mt-1 flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 text-[10px] text-muted-foreground">
             {notification.context && <span className="min-w-0 truncate capitalize">{notification.context}</span>}
             <time dateTime={notification.createdAt} className="shrink-0">{formatDateTime(notification.createdAt)}</time>
           </span>
         </span>
-        <ChevronRight className="mt-5 h-3.5 w-3.5 shrink-0 text-slate-300 group-hover:text-gakit-maroon" />
+        <ChevronRight className="mt-5 h-3.5 w-3.5 shrink-0 text-muted-foreground group-hover:text-primary" />
       </button>
     );
   };
@@ -388,25 +391,25 @@ export function AdminHeader({
   };
 
   return (
-    <header className={`relative flex shrink-0 items-center justify-between border-b border-slate-200 bg-slate-50 ${compact ? 'h-14 gap-2 px-3 py-2 md:px-4' : 'h-16 gap-4 px-4 py-3 md:h-24 md:px-9 md:py-4'}`}>
+    <header className={`relative flex shrink-0 items-center justify-between border-b border-default bg-page ${compact ? 'h-14 gap-2 px-3 py-2 md:px-4' : 'h-16 gap-4 px-4 py-3 md:h-24 md:px-9 md:py-4'}`}>
       {showTopo && (
         <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-          <TopoBackground className="opacity-[0.15]" />
+          <TopoBackground />
         </div>
       )}
       <div className="relative flex min-w-0 items-center gap-4">
         <div className="min-w-0">
           <div className="flex items-center gap-3">
-            <h1 className={`truncate font-bold tracking-[-0.02em] text-slate-900 ${compact ? 'text-base md:text-lg' : 'text-lg md:text-xl lg:text-[1.75rem]'}`}>
+            <h1 className={`truncate font-bold tracking-[-0.02em] text-primary ${compact ? 'text-base md:text-lg' : 'text-lg md:text-xl lg:text-[1.75rem]'}`}>
               {title}
             </h1>
             {badge && (
-              <span className="shrink-0 rounded bg-amber-100/80 px-2 py-0.5 text-[10px] font-bold tracking-wider text-amber-800 ring-1 ring-inset ring-amber-200">
+              <span className="shrink-0 rounded bg-warning-bg/80 px-2 py-0.5 text-[10px] font-bold tracking-wider text-warning-text ring-1 ring-inset ring-warning-border">
                 {badge}
               </span>
             )}
           </div>
-          <p className={compact ? 'sr-only' : 'mt-1 hidden truncate text-sm text-slate-500 md:block'}>
+          <p className={compact ? 'sr-only' : 'mt-1 hidden truncate text-sm text-muted-foreground md:block'}>
             {description}
           </p>
         </div>
@@ -425,30 +428,30 @@ export function AdminHeader({
             }}
             className={`relative rounded-full p-2.5 transition-all duration-150 active:scale-95 ${
               isOpen
-                ? 'bg-slate-200 text-slate-900 ring-1 ring-slate-300/80 font-bold'
-                : 'bg-slate-50 ring-1 ring-slate-200 hover:bg-slate-100 hover:text-gakit-maroon'
+                ? 'bg-muted text-primary ring-1 ring-default/80 font-bold'
+                : 'bg-page ring-1 ring-default hover:bg-muted hover:text-primary'
             }`}
           >
-            <Bell className={`h-5 w-5 ${isOpen ? 'text-gakit-maroon' : 'text-slate-600'}`} />
+            <Bell className={`h-5 w-5 ${isOpen ? 'text-secondary' : 'text-secondary'}`} />
             {unreadCount > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-hazard-critical px-1 text-[10px] font-bold text-white">
+              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-hazard-critical px-1 text-[10px] font-bold text-on-accent">
                 {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             )}
           </button>
 
           {isOpen && (
-            <div className="fixed inset-x-4 top-16 z-[1300] w-auto overflow-hidden rounded-2xl border border-canvas-grey bg-white shadow-xl md:absolute md:inset-x-auto md:right-0 md:top-auto md:mt-3 md:w-80">
-              <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2">
+            <div className="fixed inset-x-4 top-16 z-[1300] w-auto overflow-hidden rounded-2xl border border-default bg-panel shadow-xl md:absolute md:inset-x-auto md:right-0 md:top-auto md:mt-3 md:w-80">
+              <div className="flex items-center justify-between border-b border-default px-3 py-2">
                 <div className="flex items-center gap-2">
-                  <p className="text-xs font-bold text-slate-900">Alerts</p>
-                  <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-500">Last 48 hours</span>
+                  <p className="text-xs font-bold text-primary">Alerts</p>
+                  <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">Last 48 hours</span>
                 </div>
                 {unreadCount > 0 && (
                   <button
                     type="button"
                     onClick={markAllAsRead}
-                    className="text-[10px] font-semibold text-gakit-maroon hover:underline"
+                    className="text-[10px] font-semibold text-secondary hover:underline"
                   >
                     Mark all read
                   </button>
@@ -456,20 +459,20 @@ export function AdminHeader({
               </div>
               <div className="max-h-[min(24rem,55dvh)] overflow-y-auto overscroll-contain">
                 {recentNotifications.length === 0 ? (
-                  <p className="px-3 py-5 text-center text-xs text-slate-500">
+                  <p className="px-3 py-5 text-center text-xs text-muted-foreground">
                     No notifications in the last 48 hours
                   </p>
                 ) : (
                   <>
-                    <div className="flex border-b border-canvas-grey">
+                    <div className="flex border-b border-default">
                       <button
                         type="button"
                         onClick={() => setTab('unread')}
                         aria-pressed={tab === 'unread'}
                         className={`flex-1 px-3 py-1.5 text-[11px] font-semibold transition-colors ${
                           tab === 'unread'
-                            ? 'border-b-2 border-gakit-maroon text-gakit-maroon'
-                            : 'text-slate-500 hover:text-slate-700'
+                            ? 'border-b-2 border-accent-text text-accent-text'
+                            : 'text-muted-foreground hover:text-secondary'
                         }`}
                       >
                         Unread{unreadCount > 0 ? ` (${unreadCount})` : ''}
@@ -480,8 +483,8 @@ export function AdminHeader({
                         aria-pressed={tab === 'read'}
                         className={`flex-1 px-3 py-1.5 text-[11px] font-semibold transition-colors ${
                           tab === 'read'
-                            ? 'border-b-2 border-gakit-maroon text-gakit-maroon'
-                            : 'text-slate-500 hover:text-slate-700'
+                            ? 'border-b-2 border-accent-text text-accent-text'
+                            : 'text-muted-foreground hover:text-secondary'
                         }`}
                       >
                         Read{readNotifications.length > 0 ? ` (${readNotifications.length})` : ''}
@@ -489,20 +492,20 @@ export function AdminHeader({
                     </div>
                     {tab === 'unread' ? (
                       unreadNotifications.length === 0 ? (
-                        <p className="px-3 py-5 text-center text-xs text-slate-500">
+                        <p className="px-3 py-5 text-center text-xs text-muted-foreground">
                           No unread notifications
                         </p>
                       ) : (
-                        <div className="divide-y divide-canvas-grey">
+                        <div className="divide-y divide-default">
                           {unreadNotifications.map(renderItem)}
                         </div>
                       )
                     ) : readNotifications.length === 0 ? (
-                      <p className="px-3 py-5 text-center text-xs text-slate-500">
+                      <p className="px-3 py-5 text-center text-xs text-muted-foreground">
                         No read notifications
                       </p>
                     ) : (
-                      <div className="divide-y divide-canvas-grey">
+                      <div className="divide-y divide-default">
                         {readNotifications.map(renderItem)}
                       </div>
                     )}
@@ -513,6 +516,7 @@ export function AdminHeader({
           )}
         </div>
         }
+        {showDisplay && <DisplayPopover compact />}
         <SettingsDropdown />
         <ValidationModeBadge />
         <div className="lg:hidden">

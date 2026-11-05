@@ -81,44 +81,44 @@ export function LoginPage() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col bg-gradient-to-br from-maroon-50 via-white to-canvas-light md:flex-row">
-      <section className="flex w-full items-center justify-center bg-white/90 px-6 py-10 backdrop-blur md:w-[43%] md:px-10 md:py-16">
+    <main className="flex min-h-screen flex-col bg-gradient-to-br from-accent-subtle via-panel to-page md:flex-row">
+      <section className="flex w-full items-center justify-center bg-panel/90 px-6 py-10 backdrop-blur md:w-[43%] md:px-10 md:py-16">
         <div className="w-full max-w-md">
           <Link
             href="/"
-            className="mb-10 inline-flex items-center gap-2 text-sm font-semibold text-slate-600 transition-colors hover:text-gakit-maroon"
+            className="mb-10 inline-flex items-center gap-2 text-sm font-semibold text-secondary transition-colors hover:text-primary"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Home
           </Link>
           <div className="mb-8">
-            <h1 className="font-heading text-3xl font-bold tracking-tight text-slate-950">Welcome back</h1>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
+            <h1 className="font-heading text-3xl font-bold tracking-tight text-primary">Welcome back</h1>
+            <p className="mt-2 text-sm leading-6 text-secondary">
               Public flood reports are anonymous and don&apos;t require an account.
             </p>
           </div>
 
           <button
             onClick={handleGoogleLogin}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-canvas-grey px-4 py-3 font-semibold text-slate-700 transition-colors hover:border-gakit-maroon hover:bg-maroon-50"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-default px-4 py-3 font-semibold text-secondary transition-colors hover:border-strong hover:bg-muted"
           >
             <GoogleLogo />
             Continue with Gmail
           </button>
 
           <div className="flex items-center gap-3 my-6">
-            <div className="h-px flex-1 bg-canvas-grey" />
-            <span className="text-xs font-medium text-slate-400">or</span>
-            <div className="h-px flex-1 bg-canvas-grey" />
+            <div className="h-px flex-1 bg-muted" />
+            <span className="text-xs font-medium text-muted-foreground">or</span>
+            <div className="h-px flex-1 bg-muted" />
           </div>
 
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <label htmlFor="email" className="mb-2 block text-sm font-semibold text-slate-900">
+              <label htmlFor="email" className="mb-2 block text-sm font-semibold text-primary">
                 Email address
               </label>
               <div className="relative">
-                <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                   id="email"
                   type="email"
@@ -127,17 +127,17 @@ export function LoginPage() {
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   placeholder="name@example.com"
-                  className="w-full rounded-xl border border-canvas-grey bg-white py-3 pl-10 pr-4 transition-colors placeholder:text-slate-400 focus:border-gakit-maroon focus:outline-none focus:ring-2 focus:ring-gakit-maroon/20"
+                  className="w-full rounded-xl border border-default bg-panel py-3 pl-10 pr-4 transition-colors placeholder:text-muted-foreground focus:border-strong focus:outline-none focus:ring-2 focus:ring-focus/20"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="mb-2 block text-sm font-semibold text-slate-900">
+              <label htmlFor="password" className="mb-2 block text-sm font-semibold text-primary">
                 Password
               </label>
               <div className="relative">
-                <KeyRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <KeyRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
@@ -146,12 +146,12 @@ export function LoginPage() {
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   placeholder="Enter your password"
-                  className="w-full rounded-xl border border-canvas-grey bg-white py-3 pl-10 pr-11 transition-colors placeholder:text-slate-400 focus:border-gakit-maroon focus:outline-none focus:ring-2 focus:ring-gakit-maroon/20"
+                  className="w-full rounded-xl border border-default bg-panel py-3 pl-10 pr-11 transition-colors placeholder:text-muted-foreground focus:border-strong focus:outline-none focus:ring-2 focus:ring-focus/20"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((visible) => !visible)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 transition-colors hover:text-slate-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground transition-colors hover:text-secondary"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -160,7 +160,7 @@ export function LoginPage() {
             </div>
 
             {error && (
-              <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div role="alert" className="rounded-xl border border-error-border bg-error-bg px-4 py-3 text-sm text-error-text">
                 {error}
               </div>
             )}
@@ -169,7 +169,7 @@ export function LoginPage() {
               <button
                 type="button"
                 onClick={() => setIsForgotModalOpen(true)}
-                className="font-semibold text-gakit-maroon underline-offset-4 transition-colors hover:text-maroon-800 hover:underline"
+                className="font-semibold text-secondary underline-offset-4 transition-colors hover:text-primary hover:underline"
               >
                 Forgot password?
               </button>
@@ -178,17 +178,17 @@ export function LoginPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full rounded-xl bg-gakit-maroon px-6 py-3 font-semibold text-white shadow-lg shadow-gakit-maroon/20 transition-colors hover:bg-maroon-800 disabled:cursor-not-allowed disabled:opacity-60"
+              className="w-full rounded-xl bg-accent px-6 py-3 font-semibold text-on-accent shadow-lg shadow-gakit-maroon/20 transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting ? 'Signing in...' : 'Sign in'}
             </button>
           </form>
 
-          <div className="mt-8 border-t border-canvas-grey pt-6 text-center text-sm text-slate-600">
+          <div className="mt-8 border-t border-default pt-6 text-center text-sm text-secondary">
             Don&apos;t have an account?{' '}
             <button
               onClick={() => setIsRequestModalOpen(true)}
-              className="font-semibold text-gakit-maroon hover:text-maroon-800"
+              className="font-semibold text-secondary hover:text-primary"
             >
               Request Access
             </button>
@@ -206,18 +206,18 @@ export function LoginPage() {
           sizes="60vw"
           className="object-cover object-center"
         />
-        <div className="absolute inset-0 bg-gakit-maroon/35" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
+        <div className="absolute inset-0 bg-accent/35" />
+        <div className="absolute inset-0 bg-gradient-to-t from-scrim/70 via-scrim/25 to-transparent" />
         <div className="relative z-10 max-w-3xl p-12">
-          <h2 className="font-heading text-5xl font-bold leading-tight text-white">
+          <h2 className="font-heading text-5xl font-bold leading-tight text-on-accent">
             Geohazard Assessment & Knowledge Integration Tool
           </h2>
-          <p className="mt-5 text-lg text-white/85">
+          <p className="mt-5 text-lg text-on-accent/85">
             Submit, validate, and monitor flood reports so communities and responders can make faster decisions.
           </p>
-          <div className="mt-8 flex gap-3 text-sm font-medium text-white/90">
-            <span className="rounded-full border border-white/25 bg-black/10 px-3 py-1.5">Secure access</span>
-            <span className="rounded-full border border-white/25 bg-black/10 px-3 py-1.5">Operational tools</span>
+          <div className="mt-8 flex gap-3 text-sm font-medium text-on-accent/90">
+            <span className="rounded-full border border-default/25 bg-scrim/10 px-3 py-1.5">Secure access</span>
+            <span className="rounded-full border border-default/25 bg-scrim/10 px-3 py-1.5">Operational tools</span>
           </div>
         </div>
       </section>
@@ -295,17 +295,17 @@ function ForgotPasswordModal({
       ariaLabelledBy="forgot-password-title"
       panelClassName="max-h-[calc(100vh-2rem)] overflow-y-auto"
     >
-      <div className="flex items-center justify-between border-b border-canvas-grey p-5">
+      <div className="flex items-center justify-between border-b border-default p-5">
         <div>
-          <h2 id="forgot-password-title" className="text-lg font-bold text-slate-900">
+          <h2 id="forgot-password-title" className="text-lg font-bold text-primary">
             Reset your password
           </h2>
-          <p className="mt-1 text-sm text-slate-600">We&apos;ll send a secure reset link.</p>
+          <p className="mt-1 text-sm text-secondary">We&apos;ll send a secure reset link.</p>
         </div>
         <button
           type="button"
           onClick={onClose}
-          className="rounded-lg p-1 text-slate-500 transition-colors hover:bg-canvas-light"
+          className="rounded-lg p-1 text-muted-foreground transition-colors hover:bg-page"
           aria-label="Close password reset"
         >
           <X className="h-5 w-5" />
@@ -314,17 +314,17 @@ function ForgotPasswordModal({
 
       <div className="p-5">
         {sent ? (
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
+          <div className="rounded-xl border border-success-border bg-success-bg p-4 text-sm text-success-text">
             If this email belongs to a GAKIT account, a password-reset link is on its way. Check your inbox and spam folder.
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="reset-email" className="mb-2 block text-sm font-semibold text-slate-900">
+              <label htmlFor="reset-email" className="mb-2 block text-sm font-semibold text-primary">
                 Email address
               </label>
               <div className="relative">
-                <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                   id="reset-email"
                   type="email"
@@ -333,13 +333,13 @@ function ForgotPasswordModal({
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   placeholder="name@example.com"
-                  className="w-full rounded-xl border border-canvas-grey py-3 pl-10 pr-4 placeholder:text-slate-400 focus:border-gakit-maroon focus:outline-none focus:ring-2 focus:ring-gakit-maroon/20"
+                  className="w-full rounded-xl border border-default py-3 pl-10 pr-4 placeholder:text-muted-foreground focus:border-strong focus:outline-none focus:ring-2 focus:ring-focus/20"
                 />
               </div>
             </div>
 
             {error && (
-              <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div role="alert" className="rounded-xl border border-error-border bg-error-bg px-4 py-3 text-sm text-error-text">
                 {error}
               </div>
             )}
@@ -347,7 +347,7 @@ function ForgotPasswordModal({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full rounded-xl bg-gakit-maroon px-5 py-3 font-semibold text-white transition-colors hover:bg-maroon-800 disabled:cursor-not-allowed disabled:opacity-60"
+              className="w-full rounded-xl bg-accent px-5 py-3 font-semibold text-on-accent transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting ? 'Sending link...' : 'Email reset link'}
             </button>
@@ -368,32 +368,32 @@ function RequestAccessModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[1300] bg-black/40 flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl">
-        <div className="flex items-center justify-between p-5 border-b border-canvas-grey">
-          <h2 className="text-lg font-bold text-slate-900">Request account access</h2>
-          <button onClick={onClose} className="p-1 hover:bg-canvas-light rounded-lg">
-            <X className="w-5 h-5 text-slate-500" />
+    <div className="fixed inset-0 z-[1300] bg-scrim/40 flex items-center justify-center p-4">
+      <div className="bg-panel w-full max-w-md rounded-2xl shadow-2xl">
+        <div className="flex items-center justify-between p-5 border-b border-default">
+          <h2 className="text-lg font-bold text-primary">Request account access</h2>
+          <button onClick={onClose} className="p-1 hover:bg-page rounded-lg">
+            <X className="w-5 h-5 text-muted-foreground" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-secondary">
             This account is not registered yet. Please request access from the Project GAKIT administrator.
           </p>
 
-          <div className="bg-maroon-50 border border-gakit-maroon/20 rounded-lg p-4">
-            <div className="text-sm font-semibold text-slate-900">
+          <div className="bg-muted border border-strong/20 rounded-lg p-4">
+            <div className="text-sm font-semibold text-primary">
               For now
             </div>
-            <div className="text-sm text-slate-600 mt-1">
+            <div className="text-sm text-secondary mt-1">
               Contact your barangay, CDRRMO staff, or system admin to create an account.
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="w-full py-3 px-6 rounded-lg font-semibold bg-gakit-maroon hover:bg-maroon-800 text-white transition-colors"
+            className="w-full py-3 px-6 rounded-lg font-semibold bg-accent hover:bg-accent-hover text-on-accent transition-colors"
           >
             Got it
           </button>

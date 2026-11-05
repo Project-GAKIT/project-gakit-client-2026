@@ -53,9 +53,9 @@ fs.mkdirSync(output, { recursive: true });
       };
       for (const basemap of ['Light', 'Bright', 'Dark', 'Satellite']) {
         if (basemap !== 'Light') {
-          await page.getByRole('button', { name: 'Map display settings', exact: true }).click();
+          await page.getByRole('button', { name: 'Display settings', exact: true }).click();
           await page.getByRole('button', { name: basemap, exact: true }).click();
-          await page.getByRole('button', { name: 'Close display settings', exact: true }).click();
+          await page.keyboard.press('Escape');
         }
         await select([124.18, 8.25], false); // Iligan Bay
         await select([124.27, 7.96], false); // Lake Lanao

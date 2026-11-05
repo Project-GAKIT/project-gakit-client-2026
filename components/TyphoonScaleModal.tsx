@@ -51,29 +51,29 @@ export function TyphoonScaleModal({ isOpen, onClose }: TyphoonScaleModalProps) {
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        className="absolute inset-0 bg-scrim/40 backdrop-blur-sm"
         onClick={onClose}
       />
 
       {/* Modal Container */}
       <div
-        className="relative flex max-h-[88vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-canvas-grey bg-white shadow-2xl animate-in fade-in duration-100"
+        className="relative flex max-h-[88vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-default bg-panel shadow-2xl animate-in fade-in duration-100"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-canvas-grey p-4 md:px-5 md:py-4 bg-canvas-light/60">
+        <div className="flex items-center justify-between border-b border-default p-4 md:px-5 md:py-4 bg-page/60">
           <div className="flex items-center gap-3">
-            <span className="rounded-xl p-2 bg-maroon-50 text-gakit-maroon shrink-0 shadow-xs">
+            <span className="rounded-xl p-2 bg-muted text-secondary shrink-0 shadow-xs">
               <ShieldAlert className="h-5 w-5" />
             </span>
             <div>
               <h2
                 id="typhoon-scale-title"
-                className="text-base font-bold text-slate-900 leading-snug"
+                className="text-base font-bold text-primary leading-snug"
               >
                 Typhoon Track Legend
               </h2>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-muted-foreground">
                 DOST-PAGASA official classification scale
               </p>
             </div>
@@ -82,14 +82,14 @@ export function TyphoonScaleModal({ isOpen, onClose }: TyphoonScaleModalProps) {
             type="button"
             onClick={onClose}
             aria-label="Close legend modal"
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-canvas-light hover:text-slate-700 transition-colors"
+            className="rounded-lg p-1.5 text-muted-foreground hover:bg-page hover:text-secondary transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Categories List */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-5 space-y-3 divide-y divide-slate-100">
+        <div className="flex-1 overflow-y-auto p-4 md:p-5 space-y-3 divide-y divide-default">
           {PRIMARY_TYPHOON_CATEGORIES.map((code) => {
             const cfg = TYPHOON_CATEGORY_CONFIG[code];
             if (!cfg) return null;
@@ -111,17 +111,17 @@ export function TyphoonScaleModal({ isOpen, onClose }: TyphoonScaleModalProps) {
                 {/* Info Block */}
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-baseline justify-between gap-1.5 mb-1">
-                    <span className="text-sm font-bold text-slate-900 leading-tight">
+                    <span className="text-sm font-bold text-primary leading-tight">
                       {cfg.name}
                     </span>
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 bg-canvas-lighter border border-canvas-grey/80 px-2 py-0.5 rounded-full">
-                      <Wind className="w-3 h-3 text-slate-400" />
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-secondary bg-muted border border-default/80 px-2 py-0.5 rounded-full">
+                      <Wind className="w-3 h-3 text-muted-foreground" />
                       <span>{cfg.windRange}</span>
                     </span>
                   </div>
 
                   {cfg.description && (
-                    <p className="text-xs text-slate-500 leading-relaxed">
+                    <p className="text-xs text-muted-foreground leading-relaxed">
                       {cfg.description}
                     </p>
                   )}
@@ -132,12 +132,12 @@ export function TyphoonScaleModal({ isOpen, onClose }: TyphoonScaleModalProps) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between gap-3 border-t border-canvas-grey p-4 md:px-5 md:py-3.5">
+        <div className="flex items-center justify-between gap-3 border-t border-default p-4 md:px-5 md:py-3.5">
           <a
             href="https://bagong.pagasa.dost.gov.ph/"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block text-[10px] text-slate-400 hover:text-gakit-maroon hover:underline"
+            className="inline-block text-[10px] text-muted-foreground hover:text-primary hover:underline"
             title="Tropical cyclone tracking data by DOST-PAGASA"
           >
             © DOST-PAGASA
@@ -145,7 +145,7 @@ export function TyphoonScaleModal({ isOpen, onClose }: TyphoonScaleModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg bg-gakit-maroon px-4 py-2 text-sm font-semibold text-white hover:bg-maroon-800 transition-colors shadow-xs"
+            className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-on-accent hover:bg-accent-hover transition-colors shadow-xs"
           >
             Close
           </button>

@@ -157,7 +157,7 @@ export function DashboardOverview({
       {error && (
         <div
           role="alert"
-          className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900"
+          className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-warning-border bg-warning-bg px-4 py-3 text-xs text-warning-text"
         >
           <p>
             {snapshot
@@ -183,7 +183,7 @@ export function DashboardOverview({
       )}
       {snapshot && (
         <>
-          <p className="text-[11px] text-slate-500">Recent observations · last 24 hours. Reported conditions may have changed; older unresolved work is shown separately.</p>
+          <p className="text-[11px] text-muted-foreground">Recent observations · last 24 hours. Reported conditions may have changed; older unresolved work is shown separately.</p>
           <div className="grid gap-3 lg:grid-cols-[minmax(0,1.7fr)_minmax(16rem,1fr)]">
             <PriorityReports
               snapshot={snapshot}
@@ -201,33 +201,33 @@ export function DashboardOverview({
           </div>
         </>
       )}
-      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 text-[10px] text-slate-500">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 text-[10px] text-muted-foreground">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          {snapshot && <span className={`inline-flex items-center gap-1 ${delayed ? 'text-amber-700' : ''}`}>
+          {snapshot && <span className={`inline-flex items-center gap-1 ${delayed ? 'text-warning-text' : ''}`}>
             <Clock3 className="h-3 w-3" />{delayed ? 'Last available snapshot' : 'Updated'} {manilaTime(snapshot.asOf)} PHT
           </span>}
-          <span className={advisoryDelayed ? 'text-amber-700' : ''}>
+          <span className={advisoryDelayed ? 'text-warning-text' : ''}>
             Advisories: {!feeds.alerts.checkedAt && feeds.alerts.status !== 'error' ? 'checking' : advisoryDelayed ? 'update unavailable' : 'retrieved'}
           </span>
           {snapshot && <span>{snapshot.automation.enabled ? `${snapshot.automation.queued} assessments queued` : 'Background reassessment paused'}</span>}
           {snapshot && snapshot.automation.failed > 0 && snapshot.automation.firstFailedReportId && (
-            <button type="button" className="font-semibold text-amber-700 underline underline-offset-2"
+            <button type="button" className="font-semibold text-warning-text underline underline-offset-2"
               onClick={() => onReviewReports?.({ reportId: snapshot.automation.firstFailedReportId! })}>
               {snapshot.automation.failed} failed assessment{snapshot.automation.failed === 1 ? '' : 's'}
             </button>
           )}
         </div>
         <div className="flex items-center gap-3">
-          <a href="/" target="_blank" rel="noreferrer" className="font-semibold text-gakit-maroon">Open map ↗</a>
+          <a href="/" target="_blank" rel="noreferrer" className="font-semibold text-secondary">Open map ↗</a>
           <button type="button" onClick={() => setReload((value) => value + 1)} disabled={refreshing}
-            className="inline-flex items-center gap-1 font-semibold text-slate-600 disabled:opacity-50">
+            className="inline-flex items-center gap-1 font-semibold text-secondary disabled:opacity-50">
             {refreshing ? <Spinner size="xs" label="Refreshing dashboard" /> : <RefreshCw className="h-3 w-3" aria-hidden="true" />} Refresh
           </button>
         </div>
       </div>
       {stats ? <ArchiveSection monthly={monthly} years={years} selectedYear={selectedYear} onYearChange={setSelectedYear}
           active={active} refreshKey={selectedYear === CURRENT_YEAR ? `${snapshot?.asOf ?? ''}:${reload}` : reload} />
-        : snapshot && <div className={`${PANEL_CLASS} px-4 py-2 text-[10px] text-slate-500`}>Submission archive is currently unavailable.</div>}
+        : snapshot && <div className={`${PANEL_CLASS} px-4 py-2 text-[10px] text-muted-foreground`}>Submission archive is currently unavailable.</div>}
     </div>
   );
 }

@@ -6,9 +6,9 @@ export function ScenarioDepthLegend() {
   const { focusRoads } = useScenarioDisplay();
   return (
     <div role="region" aria-label="Map depth legend"
-      className="hidden border-t border-slate-100 pt-2 md:block">
-      <p className="mb-2 text-[11px] font-semibold text-slate-600">{focusRoads ? 'Estimated road depth' : 'Estimated depth'}</p>
-      <div className="grid grid-cols-3 gap-0.5 text-center text-[10px] leading-4 tabular-nums text-slate-500">
+      className="hidden border-t border-default pt-2 md:block">
+      <p className="mb-2 text-[11px] font-semibold text-secondary">{focusRoads ? 'Estimated road depth' : 'Estimated depth'}</p>
+      <div className="grid grid-cols-3 gap-0.5 text-center text-[10px] leading-4 tabular-nums text-muted-foreground">
         {[
           { color: '#EAB308', label: '< 0.5 m' },
           { color: '#F97316', label: '0.5–1.5 m' },

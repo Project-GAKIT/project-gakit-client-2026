@@ -66,22 +66,22 @@ export interface StatusMeta {
 export const STATUS_META: Record<ReportStatus, StatusMeta> = {
   UNVERIFIED: {
     label: 'Pending',
-    badgeClass: 'bg-amber-50 text-amber-800 border-amber-200',
+    badgeClass: 'bg-warning-bg text-warning-text border-warning-border',
     color: '#F59E0B',
   },
   VERIFIED: {
     label: 'Validated',
-    badgeClass: 'bg-green-50 text-green-800 border-green-200',
+    badgeClass: 'bg-success-bg text-success-text border-success-border',
     color: '#22C55E',
   },
   ANOMALY: {
     label: 'Pending',
-    badgeClass: 'bg-amber-50 text-amber-800 border-amber-200',
+    badgeClass: 'bg-warning-bg text-warning-text border-warning-border',
     color: '#F59E0B',
   },
   REJECTED: {
     label: 'Rejected',
-    badgeClass: 'bg-rose-50 text-rose-700 border-rose-200',
+    badgeClass: 'bg-error-bg text-error-text border-error-border',
     color: '#F43F5E',
   },
 };

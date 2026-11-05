@@ -393,10 +393,10 @@ export function useMapPopups({
       typhoonHoverPopupRef.current
         .setLngLat(lngLat)
         .setHTML(
-          `<div style="font-family: var(--font-inter), system-ui, sans-serif; font-size: 11px; font-weight: 600; color: #0f172a; padding: 2px 4px; white-space: nowrap; display: flex; align-items: center; gap: 4px;">
-            ${isCurrent ? '<span style="color: #0284c7; font-weight: 700;">Current:</span>' : ''}
+          `<div style="font-family: var(--font-inter), system-ui, sans-serif; font-size: 11px; font-weight: 600; color: rgb(var(--text-primary)); padding: 2px 4px; white-space: nowrap; display: flex; align-items: center; gap: 4px;">
+            ${isCurrent ? '<span style="color: rgb(var(--info-text)); font-weight: 700;">Current:</span>' : ''}
             <span>${dateLabel}</span>
-            ${typeCode ? `<span style="color: #64748b; font-size: 10px;">(${typeCode})</span>` : ''}
+            ${typeCode ? `<span style="color: rgb(var(--text-muted)); font-size: 10px;">(${typeCode})</span>` : ''}
           </div>`
         );
 

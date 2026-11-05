@@ -3,19 +3,27 @@ import {
   ROAD_CASING_OPACITY,
   ROAD_MAJOR_OPACITY,
   ROAD_MINOR_COLOR,
+  ROAD_MINOR_COLOR_DARK,
   ROAD_MINOR_OPACITY,
   ROAD_PRIMARY_COLOR,
+  ROAD_PRIMARY_COLOR_DARK,
   ROAD_SECONDARY_COLOR,
+  ROAD_SECONDARY_COLOR_DARK,
+  isDarkBasemap,
+  type BasemapId,
   ROADS_MAJOR_MIN_ZOOM,
   ROADS_MINOR_MIN_ZOOM,
 } from '@/constants/publicMap';
+import { getBasemapRoadOverlayAnchor } from '@/lib/map/basemapLayers';
 
 export const ROAD_CASING_LAYER_ID = 'iligan-roads-casing';
+export const ROAD_MINOR_CASING_LAYER_ID = 'iligan-roads-minor-casing';
 export const ROAD_MAJOR_LAYER_ID = 'iligan-roads-major';
 export const ROAD_MINOR_LAYER_ID = 'iligan-roads-minor';
 
 export const ROAD_LAYER_IDS = [
   ROAD_CASING_LAYER_ID,
+  ROAD_MINOR_CASING_LAYER_ID,
   ROAD_MAJOR_LAYER_ID,
   ROAD_MINOR_LAYER_ID,
 ] as const;
@@ -48,59 +56,38 @@ const classFilter = (classes: string[]) => [
   false,
 ];
 
-// Widths track the Positron basemap's hierarchy (majors read strongest, locals
-// stay thin) and grow with zoom so streets don't become ribbons at z16+.
-const MAJOR_WIDTH = [
-  'interpolate',
-  ['linear'],
-  ['zoom'],
-  10, 0.8,
-  13, 1.8,
-  16, 4.2,
-  18, 9,
-];
-const MAJOR_CASING_WIDTH = [
-  'interpolate',
-  ['linear'],
-  ['zoom'],
-  10, 2.2,
-  13, 3.4,
-  16, 6.2,
-  18, 11.5,
-];
-const MINOR_WIDTH = [
-  'interpolate',
-  ['linear'],
-  ['zoom'],
-  12, 0.5,
-  14, 1.0,
-  16, 2.2,
-  18, 4.5,
-];
+// Shared by context roads and flood-depth highlights on every map surface.
+export const ROAD_STROKE_WIDTH = ['interpolate', ['linear'], ['zoom'], 11, 1.5, 15, 4, 18, 9];
+export const ROAD_OUTLINE_WIDTH = ['interpolate', ['linear'], ['zoom'], 11, 3, 15, 7, 18, 13];
 
 // Neutral road context; flood focus supplies the depth colors when active.
 export const addRoadLayers = (
   map: any,
   sourceId: string,
   before?: string,
-  visible = true
+  visible = true,
+  basemap?: BasemapId
 ) => {
   requestedRoadVisibility.set(map, visible);
   const visibility = visible && !roadFocusActive.has(map) ? 'visible' : 'none';
+  const dark = isDarkBasemap(basemap);
 
-  map.addLayer(
+  for (const { id, classes, minzoom } of [
+    { id: ROAD_CASING_LAYER_ID, classes: MAJOR_CLASSES, minzoom: ROADS_MAJOR_MIN_ZOOM },
+    { id: ROAD_MINOR_CASING_LAYER_ID, classes: MINOR_CLASSES, minzoom: ROADS_MINOR_MIN_ZOOM },
+  ]) map.addLayer(
     {
-      id: ROAD_CASING_LAYER_ID,
+      id,
       type: 'line',
       source: sourceId,
       ...SOURCE_LAYER,
-      minzoom: ROADS_MAJOR_MIN_ZOOM,
-      filter: classFilter(MAJOR_CLASSES),
+      minzoom,
+      filter: classFilter(classes),
       layout: { visibility, 'line-cap': 'round', 'line-join': 'round' },
       paint: {
         'line-color': ROAD_CASING_COLOR,
         'line-opacity': ROAD_CASING_OPACITY,
-        'line-width': MAJOR_CASING_WIDTH,
+        'line-width': ROAD_OUTLINE_WIDTH,
       },
     },
     before
@@ -120,11 +107,11 @@ export const addRoadLayers = (
           'match',
           ['get', 'class'],
           ['trunk', 'primary'],
-          ROAD_PRIMARY_COLOR,
-          ROAD_SECONDARY_COLOR,
+          dark ? ROAD_PRIMARY_COLOR_DARK : ROAD_PRIMARY_COLOR,
+          dark ? ROAD_SECONDARY_COLOR_DARK : ROAD_SECONDARY_COLOR,
         ],
         'line-opacity': ROAD_MAJOR_OPACITY,
-        'line-width': MAJOR_WIDTH,
+        'line-width': ROAD_STROKE_WIDTH,
       },
     },
     before
@@ -140,16 +127,37 @@ export const addRoadLayers = (
       filter: classFilter(MINOR_CLASSES),
       layout: { visibility, 'line-cap': 'round', 'line-join': 'round' },
       paint: {
-        'line-color': ROAD_MINOR_COLOR,
+        'line-color': dark ? ROAD_MINOR_COLOR_DARK : ROAD_MINOR_COLOR,
         'line-opacity': ROAD_MINOR_OPACITY,
-        'line-width': MINOR_WIDTH,
+        'line-width': ROAD_STROKE_WIDTH,
       },
     },
     before
   );
+  reorderRoadLayers(map);
 };
 
-// Toggles visibility for all road layers.
+// Keep road casings, centers, and minor roads above footprint fills and below
+// native labels after either layer family gets reinserted.
+export const reorderRoadLayers = (map: any) => {
+  if (!map) return;
+  try {
+    const labelLayer = getBasemapRoadOverlayAnchor(map);
+    const anchor = labelLayer ?? (map.getLayer?.('report-clusters') ? 'report-clusters' : undefined);
+    if (anchor) {
+      let before = anchor;
+      for (const id of [...ROAD_LAYER_IDS].reverse()) {
+        if (!map.getLayer?.(id)) continue;
+        map.moveLayer(id, before);
+        before = id;
+      }
+    }
+  } catch {
+    /* style not loaded yet */
+  }
+};
+
+// Toggles visibility for all road layers and restores their stacking order.
 export const applyRoadsVisibility = (map: any, visible: boolean) => {
   if (!map) return;
   requestedRoadVisibility.set(map, visible);
@@ -161,6 +169,7 @@ export const applyRoadsVisibility = (map: any, visible: boolean) => {
     ROAD_LAYER_IDS.forEach((id) => {
       if (map?.getLayer?.(id)) map.setLayoutProperty(id, 'visibility', visibility);
     });
+    reorderRoadLayers(map);
   } catch {
     /* style not loaded yet */
   }

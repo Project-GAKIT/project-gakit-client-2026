@@ -49,7 +49,7 @@ export function ProfileSection({
       <div>
         <label
           htmlFor="display-name"
-          className="mb-2 block text-sm font-semibold text-slate-700"
+          className="mb-2 block text-sm font-semibold text-secondary"
         >
           Display name
         </label>
@@ -61,15 +61,15 @@ export function ProfileSection({
           maxLength={120}
           autoComplete="name"
           placeholder="e.g. Juan Dela Cruz"
-          className="w-full rounded-lg border border-canvas-grey bg-canvas-light px-3 py-2.5 text-sm text-slate-700 outline-none transition-colors placeholder:text-slate-400 focus:border-gakit-maroon/40 focus:bg-white focus:ring-2 focus:ring-gakit-maroon/10"
+          className="w-full rounded-lg border border-default bg-page px-3 py-2.5 text-sm text-secondary outline-none transition-colors placeholder:text-muted-foreground focus:border-strong/40 focus:bg-panel focus:ring-2 focus:ring-focus/10"
         />
-        <p className="mt-1.5 text-xs text-slate-500">
+        <p className="mt-1.5 text-xs text-muted-foreground">
           Shown in the portal header, sidebar, and user management.
         </p>
       </div>
 
       {error && (
-        <div role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+        <div role="alert" className="rounded-lg bg-error-bg px-3 py-2 text-sm text-error-text">
           {error}
         </div>
       )}
@@ -82,7 +82,7 @@ export function ProfileSection({
         <button
           type="submit"
           disabled={!canSave}
-          className="rounded-lg bg-gakit-maroon px-4 py-2 text-sm font-semibold text-white hover:bg-maroon-800 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-on-accent hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
         >
           {saving ? 'Saving…' : 'Save changes'}
         </button>

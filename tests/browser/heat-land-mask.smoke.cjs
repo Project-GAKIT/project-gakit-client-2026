@@ -86,9 +86,9 @@ const raster = moduleUrl(compile('lib/map/heatIndex.ts')
     await page.waitForTimeout(1800);
     const light = await sample();
     assert.equal(light.sea, 0); assert.equal(light.land, 255); assert.equal(light.resampling, 'linear');
-    await page.getByRole('button', { name: 'Map display settings', exact: true }).click();
+    await page.getByRole('button', { name: 'Display settings', exact: true }).click();
     await page.getByRole('button', { name: 'Satellite', exact: true }).click();
-    await page.getByRole('button', { name: 'Close display settings', exact: true }).click();
+    await page.keyboard.press('Escape');
     await page.waitForTimeout(2500);
     const satellite = await sample();
     assert.equal(satellite.sea, 0); assert.equal(satellite.land, 255); assert(satellite.waterFeatures > 0);

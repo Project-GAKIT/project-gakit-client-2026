@@ -1,3 +1,11 @@
+/* Imports expand before Tailwind's base -> components -> utilities layers.
+ * Route styles own geometry only. All theme styles ship with the root bundle. */
+@import '../styles/tokens.css';
+@import '../styles/themes.css';
+@import '../styles/base.css';
+@import '../styles/components.css';
+@import '../styles/integrations.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,27 +17,18 @@
 }
 
 :root {
-  color-scheme: light;
   font-family: 'Cal Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
     Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  /*
-   * Map HUD Surface Tokens
-   * Tweak desktop translucency, blur depth, and borders in this single place!
-   */
-  --hud-bg-desktop: rgba(255, 255, 255, 0.92);
-  --hud-blur-desktop: 12px;
-  --hud-border-desktop: rgba(203, 213, 225, 0.85); /* Slate-200/300 crisp border */
-  --hud-inner-bg-desktop: rgba(248, 250, 252, 0.80);
 }
 
 @layer utilities {
   /* Large expanded card (WeatherChip, ReportControls, DataLayerControls, Search Dropdowns) */
   .hud-card {
-    @apply rounded-2xl bg-white shadow-xl border border-slate-200/90;
+    @apply rounded-2xl bg-panel shadow-xl border border-default/90;
   }
   @media (min-width: 768px) {
     .hud-card {
@@ -37,13 +36,13 @@
       backdrop-filter: blur(var(--hud-blur-desktop));
       -webkit-backdrop-filter: blur(var(--hud-blur-desktop));
       border-color: var(--hud-border-desktop);
-      box-shadow: 0 12px 32px -4px rgba(15, 23, 42, 0.12), 0 4px 12px -2px rgba(15, 23, 42, 0.06);
+      box-shadow: var(--shadow-panel);
     }
   }
 
   /* Compact collapsed pill / button / toggle bar (Weather pill, Layers pill, Locate button, Zoom widget) */
   .hud-pill {
-    @apply rounded-2xl bg-white shadow-md border border-slate-200/90 transition-all duration-150;
+    @apply rounded-2xl bg-panel shadow-md border border-default/90 transition-all duration-150;
   }
   @media (min-width: 768px) {
     .hud-pill {
@@ -51,14 +50,14 @@
       backdrop-filter: blur(var(--hud-blur-desktop));
       -webkit-backdrop-filter: blur(var(--hud-blur-desktop));
       border-color: var(--hud-border-desktop);
-      box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+      box-shadow: 0 4px 14px -2px rgb(var(--scrim) / 0.08), 0 2px 6px -1px rgb(var(--scrim) / 0.04);
     }
   }
 
   /* Keep the sidebar's overflow easy to discover and drag. */
   .sidebar-scroll {
     scrollbar-width: thin;
-    scrollbar-color: #64748b rgba(226, 232, 240, 0.65);
+    scrollbar-color: rgb(var(--text-muted)) rgb(var(--border-default) / 0.65);
   }
   @supports selector(::-webkit-scrollbar) {
     .sidebar-scroll {
@@ -70,15 +69,15 @@
     width: 8px;
   }
   .sidebar-scroll::-webkit-scrollbar-track {
-    background: rgba(226, 232, 240, 0.65);
+    background: rgb(var(--border-default) / 0.65);
     border-radius: 9999px;
   }
   .sidebar-scroll::-webkit-scrollbar-thumb {
-    background: #64748b;
+    background: rgb(var(--text-muted));
     border-radius: 9999px;
   }
   .sidebar-scroll::-webkit-scrollbar-thumb:hover {
-    background: #475569;
+    background: rgb(var(--text-secondary));
   }
 
   /* Sleek icon-rail hover label expansion — strictly desktop hover devices (pointer: fine) */
@@ -112,8 +111,8 @@ body {
 
 body {
   font-weight: 500;
-  background: #ffffff;
-  color: #0f172a;
+  background: rgb(var(--surface-panel));
+  color: rgb(var(--text-primary));
 }
 
 #__next {
@@ -146,145 +145,6 @@ body {
   }
 }
 
-/* MapLibre popup — matches map control styling */
-.maplibregl-popup {
-  background: transparent !important;
-  border: none !important;
-  pointer-events: none !important;
-}
-
-.maplibregl-popup-content {
-  background: rgba(255, 255, 255, 0.96) !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
-  border: 1px solid rgba(226, 232, 240, 0.9) !important;
-  border-radius: 12px !important;
-  box-shadow: 0 12px 32px -4px rgba(15, 23, 42, 0.14), 0 4px 12px -2px rgba(15, 23, 42, 0.06) !important;
-  padding: 8px 10px !important;
-  margin: 0 !important;
-  overflow: hidden !important;
-  font-family: 'Cal Sans', system-ui, sans-serif !important;
-  pointer-events: auto !important;
-}
-
-.maplibregl-popup-close-button {
-  pointer-events: auto !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 24px !important;
-  height: 24px !important;
-  top: 6px !important;
-  right: 6px !important;
-  border-radius: 6px !important;
-  color: #64748b !important;
-  font-size: 16px !important;
-  font-family: system-ui, sans-serif !important;
-  line-height: 1 !important;
-  background: transparent !important;
-  border: none !important;
-  cursor: pointer !important;
-  touch-action: manipulation !important;
-  -webkit-tap-highlight-color: transparent !important;
-  transition: all 0.15s ease !important;
-}
-
-/* Expanded hit target for finger taps on mobile */
-.maplibregl-popup-close-button::before {
-  content: '';
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  bottom: -6px;
-  left: -6px;
-}
-
-.maplibregl-popup-close-button:hover,
-.maplibregl-popup-close-button:active {
-  background: #f1f5f9 !important;
-  color: #0f172a !important;
-}
-
-.maplibregl-popup-tip {
-  display: none;
-}
-
-.maplibregl-popup.gakit-report-popup,
-.maplibregl-popup.gakit-report-hover {
-  z-index: 1010;
-}
-.maplibregl-popup.gakit-report-popup .maplibregl-popup-content {
-  background: #fff !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  padding: 14px !important;
-  border-radius: 16px !important;
-}
-.report-pin-card { width: 230px; max-width: calc(100vw - 4rem); color: #0f172a; }
-.report-pin-header { display: flex; align-items: center; gap: 8px; padding-right: 24px; }
-.report-pin-heading { margin: 0; font-size: 11px; font-weight: 700; }
-.report-pin-status { display: inline-flex; align-items: center; border: 1px solid #e2e8f0; border-radius: 999px; padding: 2px 6px; color: #64748b; background: #f8fafc; font-size: 10px; line-height: 1.4; font-weight: 600; }
-.report-pin-status[data-status="VERIFIED"] { color: #166534; border-color: #bbf7d0; background: #f0fdf4; }
-.report-pin-status[data-status="UNVERIFIED"], .report-pin-status[data-status="ANOMALY"] { color: #92400e; border-color: #fde68a; background: #fffbeb; }
-.report-pin-label { margin: 12px 0 2px; color: #64748b; font-size: 10px; }
-.report-pin-depth { margin: 0; color: #0f172a; font-size: 17px; line-height: 1.35; font-weight: 700; letter-spacing: -0.025em; }
-.report-pin-location { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; margin: 8px 0 0; color: #475569; font-size: 11px; line-height: 1.5; }
-.report-pin-time { margin: 10px 0 0; padding-top: 8px; border-top: 1px solid #f1f5f9; color: #64748b; font-size: 10px; }
-.maplibregl-popup.gakit-report-hover .maplibregl-popup-content {
-  background: #fff !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  pointer-events: none !important;
-  padding: 9px 11px !important;
-}
-.report-pin-preview { position: relative; }
-.report-pin-preview-accent { position: absolute; top: -9px; left: -11px; height: 3px; border-radius: 3px; }
-.report-pin-preview-depth { margin: 0; color: #0f172a; font-size: 12px; line-height: 1.4; font-weight: 700; }
-.report-pin-preview-meta { display: flex; align-items: center; gap: 8px; margin: 5px 0 0; color: #64748b; font-size: 10px; }
-
-/* Barangay hover popup — subtle label, no card chrome */
-.maplibregl-popup.barangay-popup .maplibregl-popup-content {
-  background: rgba(255, 255, 255, 0.9) !important;
-  border: none !important;
-  border-radius: 6px !important;
-  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.18) !important;
-  padding: 4px 8px !important;
-}
-
-/* Typhoon point hover tooltip */
-.maplibregl-popup.typhoon-hover-popup .maplibregl-popup-content {
-  background: rgba(255, 255, 255, 0.96) !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
-  border: 1px solid rgba(226, 232, 240, 0.9) !important;
-  border-radius: 8px !important;
-  box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.12) !important;
-  padding: 4px 8px !important;
-  pointer-events: none !important;
-}
-
-/* React-toastify custom styles */
-.Toastify__toast-container {
-  z-index: 9999 !important;
-}
-
-.Toastify__toast {
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-.Toastify__toast--success {
-  background: #10B981;
-}
-
-.Toastify__toast--error {
-  background: #EF4444;
-}
-
-.Toastify__toast--info {
-  background: #2563EB;
-}
-
 @keyframes gakitPinDrop {
   0% {
     opacity: 0;
@@ -315,7 +175,7 @@ body {
 }
 
 .gakit-skeleton {
-  background: linear-gradient(90deg, #e2e8f0 0%, #eef2f6 40%, #e2e8f0 80%);
+  background: linear-gradient(90deg, rgb(var(--border-default)) 0%, rgb(var(--surface-muted)) 40%, rgb(var(--border-default)) 80%);
   background-size: 800px 100%;
   animation: gakitShimmer 1.3s linear infinite;
 }
@@ -415,34 +275,95 @@ body {
   }
 }
 
+.ui-slider,
+.flood-timeline-slider {
+  --slider-accent: rgb(var(--accent-text));
+  appearance: none;
+  background: transparent;
+  border-radius: 9999px;
+  cursor: pointer;
+  touch-action: pan-y;
+}
+
+.ui-slider::-webkit-slider-runnable-track,
 .flood-timeline-slider::-webkit-slider-runnable-track {
-  height: 4px;
+  height: 5px;
   border-radius: 9999px;
-  background: var(--flood-timeline-track, #cbd5e1);
+  background: var(--flood-timeline-track, linear-gradient(to right, var(--slider-accent) var(--slider-progress, 0%), rgb(var(--surface-muted)) var(--slider-progress, 0%)));
 }
 
+.ui-slider::-moz-range-track,
 .flood-timeline-slider::-moz-range-track {
-  height: 4px;
+  height: 5px;
   border-radius: 9999px;
-  background: var(--flood-timeline-track, #cbd5e1);
+  background: var(--flood-timeline-track, linear-gradient(to right, var(--slider-accent) var(--slider-progress, 0%), rgb(var(--surface-muted)) var(--slider-progress, 0%)));
 }
 
+.ui-slider::-webkit-slider-thumb,
 .flood-timeline-slider::-webkit-slider-thumb {
   appearance: none;
-  width: 14px;
-  height: 14px;
-  margin-top: -5px;
-  border: 3px solid #7a0019;
+  width: 18px;
+  height: 18px;
+  margin-top: -6.5px;
+  border: 2px solid var(--slider-accent);
   border-radius: 50%;
-  background: white;
+  background: rgb(var(--surface-panel));
+  box-shadow: 0 1px 3px rgb(var(--scrim) / .18);
+  transition: box-shadow 140ms ease, background-color 140ms ease;
 }
 
+.ui-slider::-moz-range-thumb,
 .flood-timeline-slider::-moz-range-thumb {
-  width: 8px;
-  height: 8px;
-  border: 3px solid #7a0019;
+  box-sizing: border-box;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--slider-accent);
   border-radius: 50%;
-  background: white;
+  background: rgb(var(--surface-panel));
+  box-shadow: 0 1px 3px rgb(var(--scrim) / .18);
+  transition: box-shadow 140ms ease, background-color 140ms ease;
+}
+
+.ui-slider:enabled:hover::-webkit-slider-thumb,
+.flood-timeline-slider:enabled:hover::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px rgb(var(--focus-ring) / .12), 0 1px 3px rgb(var(--scrim) / .18);
+}
+
+.ui-slider:enabled:hover::-moz-range-thumb,
+.flood-timeline-slider:enabled:hover::-moz-range-thumb {
+  box-shadow: 0 0 0 4px rgb(var(--focus-ring) / .12), 0 1px 3px rgb(var(--scrim) / .18);
+}
+
+.ui-slider:focus-visible,
+.flood-timeline-slider:focus-visible {
+  outline: none;
+}
+
+.ui-slider:focus-visible::-webkit-slider-thumb,
+.flood-timeline-slider:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 2px rgb(var(--surface-panel)), 0 0 0 4px rgb(var(--focus-ring));
+}
+
+.ui-slider:focus-visible::-moz-range-thumb,
+.flood-timeline-slider:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 2px rgb(var(--surface-panel)), 0 0 0 4px rgb(var(--focus-ring));
+}
+
+.ui-slider:enabled:active::-webkit-slider-thumb,
+.flood-timeline-slider:enabled:active::-webkit-slider-thumb {
+  background: var(--slider-accent);
+}
+
+.ui-slider:enabled:active::-moz-range-thumb,
+.flood-timeline-slider:enabled:active::-moz-range-thumb {
+  background: var(--slider-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-slider::-webkit-slider-thumb,
+  .flood-timeline-slider::-webkit-slider-thumb { transition: none; }
+  .ui-slider::-moz-range-thumb,
+  .flood-timeline-slider::-moz-range-thumb { transition: none; }
 }
 
 /* Loading dots (jumping) */

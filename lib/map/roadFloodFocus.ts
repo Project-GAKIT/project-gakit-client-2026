@@ -1,7 +1,8 @@
 import { attachFloodDepthHover, type FloodDepthReading } from './floodDepthHover';
 import type { LiveRasterController } from './liveRasterController';
 import { getLocalRoads, type RoadIndex, type RoadRecord } from './roadGeocoding';
-import { setRoadFocusActive } from './roadLayers';
+import { ROAD_OUTLINE_WIDTH, ROAD_STROKE_WIDTH, setRoadFocusActive } from './roadLayers';
+import { ROAD_CASING_COLOR, ROAD_CASING_OPACITY } from '@/constants/publicMap';
 
 export const ROAD_FOCUS_SOURCE = 'flood-road-focus';
 export const ROAD_FOCUS_LAYER = 'flood-road-focus-depth';
@@ -91,11 +92,11 @@ export function attachRoadFloodFocus(map: any, raster: LiveRasterController, ras
     if (!map.getSource(ROAD_FOCUS_SOURCE)) map.addSource(ROAD_FOCUS_SOURCE, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
     if (!map.getLayer(CASING)) map.addLayer({ id: CASING, type: 'line', source: ROAD_FOCUS_SOURCE,
       layout: { 'line-cap': 'round', 'line-join': 'round' },
-      paint: { 'line-color': '#fff', 'line-width': ['interpolate', ['linear'], ['zoom'], 11, 3, 15, 7, 18, 13] } }, before);
+      paint: { 'line-color': ROAD_CASING_COLOR, 'line-opacity': ROAD_CASING_OPACITY, 'line-width': ROAD_OUTLINE_WIDTH } }, before);
     if (!map.getLayer(ROAD_FOCUS_LAYER)) map.addLayer({ id: ROAD_FOCUS_LAYER, type: 'line', source: ROAD_FOCUS_SOURCE,
       layout: { 'line-cap': 'round', 'line-join': 'round' },
       paint: { 'line-color': ['match', ['get', 'band'], 0, '#94a3b8', 1, '#fde047', 2, '#eab308', 3, '#f97316', 4, '#dc2626', '#94a3b8'],
-        'line-width': ['interpolate', ['linear'], ['zoom'], 11, 1.5, 15, 4, 18, 9] } }, before);
+        'line-width': ROAD_STROKE_WIDTH } }, before);
     opacity();
     const bounds = map.getBounds();
     const roads = index.inBounds(bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth());

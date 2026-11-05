@@ -83,9 +83,9 @@ function fixture(hour, stale = false) {
         assert(delta > 5, `Heat toggle must alter the actual map pixels (delta=${delta})`);
         await toggle.click();
         await page.getByText(/^Valid .* PHT$/).waitFor();
-        await page.getByRole('button', { name: 'Map display settings', exact: true }).click();
+        await page.getByRole('button', { name: 'Display settings', exact: true }).click();
         await page.getByRole('button', { name: 'Satellite', exact: true }).click();
-        await page.getByRole('button', { name: 'Close display settings', exact: true }).click();
+        await page.keyboard.press('Escape');
         await page.waitForTimeout(2500);
         await page.screenshot({ path: path.join(output, 'satellite-heat.png') });
         assert.equal(await toggle.getAttribute('aria-checked'), 'true');

@@ -8,13 +8,13 @@ export function WeatherBulletinBadge({ alert }: { alert: WeatherAlert }) {
     : rainfall === 'red' ? 'Red' : thunderstorm === 'watch' ? 'Watch'
       : thunderstorm === 'advisory' || alert.alertType === 'heavy_rain'
         ? 'Advisory' : alert.severity;
-  const colors = rainfall === 'yellow' ? 'border-yellow-200 bg-yellow-100 text-yellow-900'
-    : rainfall === 'orange' ? 'border-orange-200 bg-orange-100 text-orange-900'
-      : rainfall === 'red' ? 'border-red-200 bg-red-100 text-red-900'
-        : thunderstorm === 'watch' ? 'border-blue-200 bg-blue-50 text-blue-800'
-          : thunderstorm === 'advisory' ? 'border-amber-200 bg-amber-50 text-amber-900'
-            : alert.severity === 'critical' ? 'border-red-200 bg-red-50 text-red-700'
-              : alert.severity === 'warning' ? 'border-orange-200 bg-orange-50 text-orange-700'
-                : 'border-blue-200 bg-blue-50 text-blue-800';
+  const colors = rainfall === 'yellow' ? 'border-warning-border bg-warning-bg text-warning-text'
+    : rainfall === 'orange' ? 'border-caution-border bg-caution-bg text-caution-text'
+      : rainfall === 'red' ? 'border-error-border bg-error-bg text-error-text'
+        : thunderstorm === 'watch' ? 'border-info-border bg-info-bg text-info-text'
+          : thunderstorm === 'advisory' ? 'border-warning-border bg-warning-bg text-warning-text'
+            : alert.severity === 'critical' ? 'border-error-border bg-error-bg text-error-text'
+              : alert.severity === 'warning' ? 'border-caution-border bg-caution-bg text-caution-text'
+                : 'border-info-border bg-info-bg text-info-text';
   return <span className={`inline-flex shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] font-semibold ${colors}`}>{label}</span>;
 }

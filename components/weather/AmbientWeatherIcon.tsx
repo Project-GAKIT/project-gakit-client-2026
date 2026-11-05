@@ -132,7 +132,7 @@ export function AmbientWeatherIcon({
       <div
         className={`${paused ? styles.paused : ""} flex h-9 w-9 shrink-0 items-center justify-center rounded-xl shadow-2xs ${
           darkMode
-            ? 'bg-slate-800/90 text-slate-200 border border-slate-700/80 shadow-slate-500/10'
+            ? 'bg-slate-800/90 text-slate-200 border border-slate-700/80 shadow-scrim/10'
             : 'bg-slate-100 text-slate-700 border border-slate-200/80'
         } ${className}`}
         aria-hidden="true"

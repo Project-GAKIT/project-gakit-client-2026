@@ -14,6 +14,6 @@ describe('road visibility during tile loading', () => {
     setRoadFocusActive(map, true);
     setRoadFocusActive(map, false);
     applyRoadsVisibility(map, false);
-    expect([...visibility.values()]).toEqual(['none', 'none', 'none']);
+    expect([...visibility.values()]).toEqual(ROAD_LAYER_IDS.map(() => 'none'));
   });
 });

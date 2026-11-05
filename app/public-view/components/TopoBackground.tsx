@@ -4,7 +4,7 @@ export function TopoBackground({ className = '' }: { className?: string }) {
   return (
     <div
       aria-hidden="true"
-      className={`pointer-events-none absolute inset-0 select-none overflow-hidden ${className}`}
+      className={`topo-background pointer-events-none absolute inset-0 select-none overflow-hidden ${className}`}
     >
       <svg
         className="h-full w-full object-cover"
@@ -13,7 +13,7 @@ export function TopoBackground({ className = '' }: { className?: string }) {
         preserveAspectRatio="xMidYMid slice"
         fill="none"
       >
-        <g stroke="#1a0004" strokeOpacity="0.32" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+        <g stroke="currentColor" strokeOpacity="0.32" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
           <path d="M-50,60 Q280,120 520,40 T960,110 T1420,50 T1980,80" />
           <path d="M-50,90 Q290,150 540,70 T980,140 T1440,80 T1980,110" />
           <path d="M-50,120 Q300,180 560,100 T1000,170 T1460,110 T1980,140" />
@@ -48,7 +48,7 @@ export function TopoBackground({ className = '' }: { className?: string }) {
           <path d="M-50,990 Q580,1110 940,1000 T1440,1060 T1940,970 T1980,1010" />
         </g>
 
-        <g stroke="#120003" strokeOpacity="0.48" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+        <g stroke="currentColor" strokeOpacity="0.48" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <path d="M-50,30 Q270,90 500,10 T940,80 T1400,20 T1980,50" />
           <path d="M-50,180 Q320,240 600,160 T1040,230 T1500,170 T1980,200" />
           <path d="M-50,330 C230,410 460,250 760,350 S1220,280 1500,380 S1800,290 1980,340" />
@@ -59,20 +59,20 @@ export function TopoBackground({ className = '' }: { className?: string }) {
           <path d="M-50,1050 Q620,1170 980,1060 T1480,1120 T1980,1030" />
         </g>
 
-        <g stroke="#1a0004" strokeOpacity="0.36" strokeWidth="1.2" strokeLinecap="round">
+        <g stroke="currentColor" strokeOpacity="0.36" strokeWidth="1.2" strokeLinecap="round">
           <path d="M1420,120 C1540,80 1680,100 1740,180 C1800,260 1720,340 1600,360 C1480,380 1360,300 1340,220 C1320,140 1380,130 1420,120 Z" />
-          <path d="M1450,145 C1540,110 1640,130 1690,190 C1740,250 1670,310 1580,325 C1490,340 1400,280 1385,220 C1370,160 1410,150 1450,145 Z" strokeWidth="1.7" stroke="#120003" strokeOpacity="0.52" />
+          <path d="M1450,145 C1540,110 1640,130 1690,190 C1740,250 1670,310 1580,325 C1490,340 1400,280 1385,220 C1370,160 1410,150 1450,145 Z" strokeWidth="1.7" stroke="currentColor" strokeOpacity="0.52" />
           <path d="M1480,170 C1540,140 1610,155 1645,200 C1680,245 1630,285 1560,295 C1490,305 1430,260 1420,215 C1410,170 1445,160 1480,170 Z" />
           <path d="M1510,195 C1545,170 1585,180 1605,210 C1625,240 1590,265 1545,270 C1500,275 1460,245 1455,215 C1450,185 1480,180 1510,195 Z" strokeDasharray="6 3" />
-          <circle cx="1530" cy="225" r="14" strokeWidth="1.6" stroke="#120003" strokeOpacity="0.55" />
+          <circle cx="1530" cy="225" r="14" strokeWidth="1.6" stroke="currentColor" strokeOpacity="0.55" />
         </g>
 
-        <g stroke="#1a0004" strokeOpacity="0.36" strokeWidth="1.2" strokeLinecap="round">
+        <g stroke="currentColor" strokeOpacity="0.36" strokeWidth="1.2" strokeLinecap="round">
           <path d="M220,680 C360,620 520,660 580,770 C640,880 540,990 400,1010 C260,1030 120,930 100,810 C80,700 160,690 220,680 Z" />
-          <path d="M250,710 C360,660 480,695 530,785 C580,875 500,955 390,970 C280,985 170,905 155,810 C140,725 200,715 250,710 Z" strokeWidth="1.7" stroke="#120003" strokeOpacity="0.52" />
+          <path d="M250,710 C360,660 480,695 530,785 C580,875 500,955 390,970 C280,985 170,905 155,810 C140,725 200,715 250,710 Z" strokeWidth="1.7" stroke="currentColor" strokeOpacity="0.52" />
           <path d="M280,740 C360,700 445,725 485,795 C525,865 460,925 380,935 C300,945 220,885 205,815 C190,750 240,740 280,740 Z" />
           <path d="M310,770 C365,740 415,755 440,805 C465,855 420,895 365,900 C310,905 260,865 250,815 C240,775 280,765 310,770 Z" strokeDasharray="6 3" />
-          <circle cx="345" cy="830" r="16" strokeWidth="1.6" stroke="#120003" strokeOpacity="0.55" />
+          <circle cx="345" cy="830" r="16" strokeWidth="1.6" stroke="currentColor" strokeOpacity="0.55" />
         </g>
       </svg>
     </div>

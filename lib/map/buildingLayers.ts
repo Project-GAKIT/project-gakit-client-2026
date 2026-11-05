@@ -8,6 +8,7 @@ import {
   BUILDING_FILL_COLOR,
   BUILDING_FILL_COLOR_DARK,
   BUILDING_FILL_OPACITY,
+  BUILDING_FILL_OPACITY_DARK,
   BUILDING_FILL_OUTLINE_COLOR,
   BUILDING_FILL_OUTLINE_COLOR_DARK,
   BUILDINGS_MIN_ZOOM,
@@ -15,6 +16,7 @@ import {
   isDarkBasemap,
 } from '@/constants/publicMap';
 import { getFirstBasemapSymbolLayerId } from '@/lib/map/basemapLayers';
+import { reorderRoadLayers } from '@/lib/map/roadLayers';
 
 export const BUILDING_FOOTPRINT_LAYER_ID = 'iligan-buildings-2d';
 export const BUILDING_EXTRUSION_LAYER_ID = 'iligan-buildings-3d';
@@ -76,11 +78,22 @@ export const addBuildingExtrusionLayer = (
 /**
  * Paints the building layers for the active basemap: the pale warm tones are
  * tuned for the light street maps (Positron, Bright), while dark palettes
- * (Fiord, Satellite) need cooler tones that lift barely off the background.
+ * (Dark Matter, Satellite) use subdued neutral grays just above the background.
  * Safe to call at any time; restyles whichever building variant is attached.
  */
 export const applyBuildingBasemapPaint = (map: any, basemap: BasemapId | undefined) => {
   const dark = isDarkBasemap(basemap);
+  // Dark Matter's native buildings have near-black interiors. They remain
+  // visible where our local PMTiles coverage is absent, so match both sources
+  // and use opaque fills to avoid different tones where footprints overlap.
+  if (basemap === 'dark') {
+    for (const layer of map.getStyle?.()?.layers ?? []) {
+      if (layer.type !== 'fill' || layer['source-layer'] !== 'building') continue;
+      map.setPaintProperty(layer.id, 'fill-color', BUILDING_FILL_COLOR_DARK);
+      map.setPaintProperty(layer.id, 'fill-outline-color', BUILDING_FILL_OUTLINE_COLOR_DARK);
+      map.setPaintProperty(layer.id, 'fill-opacity', BUILDING_FILL_OPACITY_DARK);
+    }
+  }
   if (map.getLayer(BUILDING_FOOTPRINT_LAYER_ID)) {
     map.setPaintProperty(
       BUILDING_FOOTPRINT_LAYER_ID,
@@ -91,6 +104,11 @@ export const applyBuildingBasemapPaint = (map: any, basemap: BasemapId | undefin
       BUILDING_FOOTPRINT_LAYER_ID,
       'fill-outline-color',
       dark ? BUILDING_FILL_OUTLINE_COLOR_DARK : BUILDING_FILL_OUTLINE_COLOR
+    );
+    map.setPaintProperty(
+      BUILDING_FOOTPRINT_LAYER_ID,
+      'fill-opacity',
+      dark ? BUILDING_FILL_OPACITY_DARK : BUILDING_FILL_OPACITY
     );
   }
   if (map.getLayer(BUILDING_EXTRUSION_LAYER_ID)) {
@@ -133,6 +151,7 @@ export const syncBuildingLayers = (
   // Freshly re-added layers carry the light palette paint, so restyle them for
   // the active basemap (dark palettes keep their lifted tones).
   if (basemap !== undefined) applyBuildingBasemapPaint(map, basemap);
+  reorderRoadLayers(map);
 };
 
 /**

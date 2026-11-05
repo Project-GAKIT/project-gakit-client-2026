@@ -284,11 +284,11 @@ export function AlertsTab({
 
   return (
     <section className="flex min-h-0 flex-col gap-3 xl:h-full">
-      <div className="rounded-2xl border border-canvas-grey bg-white p-3 shadow-sm shrink-0">
+      <div className="rounded-2xl border border-default bg-panel p-3 shadow-sm shrink-0">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h3 className="font-bold text-slate-900">Notification inbox</h3>
-            <p className="mt-1 text-sm text-slate-500" aria-live="polite">
+            <h3 className="font-bold text-primary">Notification inbox</h3>
+            <p className="mt-1 text-sm text-muted-foreground" aria-live="polite">
               {loading
                 ? 'Loading notifications...'
                 : view === 'archived'
@@ -304,7 +304,7 @@ export function AlertsTab({
               <button
                 type="button"
                 onClick={() => markManyAsRead(unreadIds)}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-canvas-grey bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-gakit-maroon hover:text-gakit-maroon"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-default bg-panel px-3 py-1.5 text-xs font-semibold text-secondary hover:border-strong hover:text-primary"
               >
                 <CheckCircle2 className="h-3.5 w-3.5" />
                 Mark all as read
@@ -314,7 +314,7 @@ export function AlertsTab({
             <div
               role="tablist"
               aria-label="Inbox view"
-              className="inline-flex rounded-lg border border-canvas-grey bg-canvas-light p-1"
+              className="inline-flex rounded-lg border border-default bg-page p-1"
             >
               {VIEW_OPTIONS.map(({ value, label, icon: Icon }) => {
                 const isSelected = view === value;
@@ -327,8 +327,8 @@ export function AlertsTab({
                     onClick={() => setView(value)}
                     className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-semibold transition-colors ${
                       isSelected
-                        ? 'bg-white text-gakit-maroon shadow-sm'
-                        : 'text-slate-600 hover:text-slate-900'
+                        ? 'bg-panel text-secondary shadow-sm'
+                        : 'text-secondary hover:text-primary'
                     }`}
                   >
                     <Icon className="h-4 w-4" />

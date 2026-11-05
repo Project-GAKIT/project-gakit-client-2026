@@ -49,18 +49,18 @@ export function ResendInviteModal({
     <Dialog isOpen onClose={dismiss} ariaLabelledBy={titleId} maxWidthClass="max-w-md">
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-maroon-50">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted">
             {result ? (
-              <Check className="h-5 w-5 text-emerald-600" />
+              <Check className="h-5 w-5 text-success-text" />
             ) : (
-              <MailPlus className="h-5 w-5 text-gakit-maroon" />
+              <MailPlus className="h-5 w-5 text-secondary" />
             )}
           </div>
           <div>
-            <h2 id={titleId} className="text-base font-semibold text-slate-900">
+            <h2 id={titleId} className="text-base font-semibold text-primary">
               {result ? 'Invitation resent' : 'Resend invitation'}
             </h2>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-muted-foreground">
               {result
                 ? `A fresh setup link was generated for ${identity}.`
                 : `Send a fresh setup link to ${identity}.`}
@@ -71,7 +71,7 @@ export function ResendInviteModal({
           type="button"
           onClick={dismiss}
           aria-label="Close"
-          className="rounded-lg p-1.5 text-slate-400 hover:bg-canvas-light hover:text-slate-600"
+          className="rounded-lg p-1.5 text-muted-foreground hover:bg-page hover:text-secondary"
         >
           <X className="h-5 w-5" />
         </button>
@@ -88,7 +88,7 @@ export function ResendInviteModal({
             <button
               type="button"
               onClick={onResent}
-              className="rounded-lg bg-gakit-maroon px-4 py-2 text-sm font-semibold text-white hover:bg-maroon-800"
+              className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-on-accent hover:bg-accent-hover"
             >
               Done
             </button>
@@ -97,14 +97,14 @@ export function ResendInviteModal({
       ) : (
         <>
           {serverError && (
-            <div className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+            <div className="mt-4 rounded-lg bg-error-bg px-3 py-2 text-sm text-error-text">
               {serverError}
             </div>
           )}
 
-          <p className="mt-4 text-sm text-slate-600">
+          <p className="mt-4 text-sm text-secondary">
             This replaces the previous invitation link for{' '}
-            <span className="font-semibold text-slate-800">
+            <span className="font-semibold text-primary">
               {user.email ?? 'the address on file'}
             </span>
             . The old link will no longer work.
@@ -115,7 +115,7 @@ export function ResendInviteModal({
               type="button"
               onClick={onClose}
               disabled={submitting}
-              className="rounded-lg border border-canvas-grey px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+              className="rounded-lg border border-default px-4 py-2 text-sm font-semibold text-secondary hover:bg-page disabled:opacity-50"
             >
               Cancel
             </button>
@@ -123,7 +123,7 @@ export function ResendInviteModal({
               type="button"
               onClick={() => void handleResend()}
               disabled={submitting}
-              className="inline-flex items-center gap-2 rounded-lg bg-gakit-maroon px-4 py-2 text-sm font-semibold text-white hover:bg-maroon-800 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-on-accent hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
             >
               {submitting && <Spinner size="sm" />}
               {submitting ? 'Sending…' : 'Resend invitation'}

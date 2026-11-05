@@ -1,0 +1,85 @@
+[data-public-map-shell] {
+  --map-edge-gap: 8px;
+}
+
+[data-public-map-shell] [data-map-header] {
+  top: max(var(--map-edge-gap), env(safe-area-inset-top, 0px));
+  left: var(--map-edge-gap);
+  right: var(--map-edge-gap);
+  width: auto;
+  max-width: none;
+  transform: none;
+}
+
+[data-public-map-shell] [data-map-sidebar] {
+  left: var(--map-edge-gap);
+}
+
+[data-public-map-shell] [data-map-navigation] {
+  right: var(--map-edge-gap);
+  gap: var(--map-edge-gap);
+}
+
+@media (min-width: 768px) {
+  [data-public-map-shell] [data-map-sidebar] [data-map-card-stack] > :not([hidden]) ~ :not([hidden]) {
+    margin-top: var(--map-edge-gap);
+    margin-bottom: 0;
+  }
+
+  [data-public-map-shell] [data-map-header] {
+    left: 50%;
+    right: auto;
+    width: calc(100% - 2 * var(--map-edge-gap));
+    max-width: 80rem;
+    transform: translateX(-50%);
+  }
+
+}
+
+@media (max-width: 767px) {
+  [data-public-map-shell] [data-map-sidebar] {
+    right: var(--map-edge-gap);
+    gap: var(--map-edge-gap);
+  }
+
+  [data-public-map-shell] [data-map-sidebar] > .mobile-map-panel {
+    max-width: none;
+  }
+
+  [data-public-map-shell] [data-map-mobile-toolbar] {
+    left: var(--map-edge-gap);
+    right: var(--map-edge-gap);
+    gap: var(--map-edge-gap);
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) repeat(4, minmax(0, 1fr));
+  }
+
+  [data-public-map-shell] [data-map-mobile-toolbar].hidden {
+    display: none;
+  }
+
+  [data-public-map-shell] [data-map-mobile-controls-slot],
+  [data-public-map-shell] [data-map-mobile-badges] {
+    display: grid;
+    grid-column: span 3;
+    grid-template-columns: subgrid;
+    gap: var(--map-edge-gap);
+  }
+
+  [data-public-map-shell] [data-map-mobile-toolbar] > div,
+  [data-public-map-shell] [data-map-mobile-toolbar] > div > button,
+  [data-public-map-shell] [data-map-mobile-badges] > button {
+    width: 100%;
+    min-width: 0;
+  }
+
+  [data-map-shell][data-public-map-shell] .map-header-dropdown {
+    left: var(--map-edge-gap) !important;
+    right: var(--map-edge-gap) !important;
+  }
+
+  [data-public-map-shell] [aria-label='Map navigation'] {
+    padding-inline: var(--map-edge-gap);
+    padding-bottom: max(var(--map-edge-gap), env(safe-area-inset-bottom, 0px));
+  }
+}

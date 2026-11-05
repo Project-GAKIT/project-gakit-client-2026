@@ -1,5 +1,6 @@
 'use client';
 
+import './PublicViewPage.css';
 import { locationFromGps } from '@/lib/reports/observationMetadata';
 
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
@@ -12,7 +13,7 @@ import { locationSearchAction } from '@/lib/map/locationSearchAction';
 import { ReportModal } from '@/components/ReportModal';
 import { MapPin, X } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
-import { PageLoader } from '@/components/ui/LoadingState';
+import { LoadingOverlay } from '@/components/ui/LoadingState';
 import { toast } from 'react-toastify';
 import { createReport, pingHealth, uploadReportPhoto } from './actions/publicView';
 import type { PreparedPhoto } from '@/lib/reports/photoUpload';
@@ -85,7 +86,7 @@ export function PublicViewPage({
   const [locationPromptMode, setLocationPromptMode] = useState<'assessment' | 'report'>('assessment');
   const [isManualLocationMode, setIsManualLocationMode] = useState(false);
   const [isSuccessOpen, setIsSuccessOpen] = useState(false);
-  const [mapDisplay, setMapDisplay] = useState<MapDisplaySettings & { showBarangayBoundaries: boolean; ready: boolean }>({ basemap: 'light', mode: '2d', showBuildings: true, showRoads: false, showBarangayBoundaries: false, ready: false });
+  const [mapDisplay, setMapDisplay] = useState<MapDisplaySettings & { showBarangayBoundaries: boolean; ready: boolean }>({ basemap: 'light', mode: '2d', showBuildings: true, showRoads: false, showBarangayBoundaries: false, showParBoundary: true, ready: false });
   const [isLocating, setIsLocating] = useState(false);
   const [isPreparing, setIsPreparing] = useState(false);
   const [withinCity, setWithinCity] = useState<boolean | null>(null);
@@ -795,13 +796,13 @@ export function PublicViewPage({
     isReportModalOpen, openAssessmentModalFor, openReportModalFor]);
 
   return (
-    <div data-map-shell className="relative h-[100dvh] w-full overflow-hidden bg-canvas-grey">
+    <div data-map-shell data-public-map-shell className="relative h-[100dvh] w-full overflow-hidden bg-muted">
       <div className={isCampusFocus ? 'contents md:hidden' : 'contents'}>
       <PublicHeader
         extraAction={<MapDisplayPopover {...mapDisplay} disabled={!mapDisplay.ready}
           onBasemapChange={value => mapRef.current?.setBasemap(value)}
           onModeChange={value => mapRef.current?.setMapMode(value)}
-          onBarangayBoundariesChange={value => mapRef.current?.setBarangayBoundariesVisible(value)}
+          onBarangayBoundariesChange={value => mapRef.current?.setBarangayBoundariesVisible(value)} onParBoundaryChange={value => mapRef.current?.setParBoundaryVisible(value)}
           onSmoothingChange={value => mapRef.current?.setPolygonSmoothing(value)}
           onBuildingsChange={value => mapRef.current?.setBuildingsVisible(value)}
           onRoadsChange={value => mapRef.current?.setRoadsVisible(value)}
@@ -830,9 +831,9 @@ export function PublicViewPage({
       >
         <main className="pb-14 md:pb-0">
           <section id="hazard-map" className="min-h-[100dvh] snap-start">
-            <div className="flex h-[100dvh] overflow-hidden bg-white">
+            <div className="flex h-[100dvh] overflow-hidden bg-panel">
               <div className="relative isolate flex-1 w-full h-full min-h-0">
-                <PageLoader isLoading={!isMapReady} label="Loading map…" />
+                {!isMapReady && <LoadingOverlay message="Loading map…" className="pointer-events-none" />}
                 <PublicMap
                   onCampusFocusChange={setIsCampusFocus}
                   hideDisplayControls
@@ -860,20 +861,20 @@ export function PublicViewPage({
             </div>
           </section>
 
-          <section id="about" className="relative min-h-screen overflow-hidden border-t border-maroon-900/30 bg-gakit-maroon scroll-mt-16 snap-start">
+          <section id="about" className="relative min-h-screen overflow-hidden border-t border-default bg-page scroll-mt-16 snap-start">
             <AboutTopoBackground />
-            <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/[0.06] via-transparent to-black/[0.10]" />
             <div className="relative z-10 mx-auto w-full max-w-6xl px-5 pt-16 pb-24 sm:px-8 sm:pt-20 sm:pb-28 lg:px-8 lg:pt-20 lg:pb-28">
-              <div className="flex flex-col gap-5 border-b border-white/[0.10] pb-6 sm:flex-row sm:items-end sm:justify-between sm:pb-7">
+              <div className="flex flex-col gap-5 border-b border-default pb-6 sm:flex-row sm:items-end sm:justify-between sm:pb-7">
                 <div className="flex items-center gap-3">
-                  <div className="inline-flex items-center gap-1.5 rounded-full bg-maroon-950/35 p-1 sm:p-1.5 ring-1 ring-white/10 backdrop-blur-md">
+                  <div className="inline-flex items-center gap-1.5 rounded-full bg-muted p-1 sm:p-1.5 ring-1 ring-default">
                     <button
                       type="button"
                       onClick={() => setAboutTab('about')}
-                      className={`min-h-[40px] sm:min-h-[42px] rounded-full px-6 font-heading text-[13px] font-bold tracking-wide transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-gakit-maroon ${
+                      aria-pressed={aboutTab === 'about'}
+                      className={`min-h-[40px] sm:min-h-[42px] rounded-full px-6 font-heading text-[13px] font-bold tracking-wide transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 ${
                         aboutTab === 'about'
-                          ? 'bg-white text-gakit-maroon shadow-[0_4px_16px_rgba(0,0,0,0.18)]'
-                          : 'text-white/75 hover:bg-white/10 hover:text-white'
+                          ? 'bg-panel text-primary shadow-sm'
+                          : 'text-secondary hover:bg-hover hover:text-primary'
                       }`}
                     >
                       About
@@ -881,22 +882,23 @@ export function PublicViewPage({
                     <button
                       type="button"
                       onClick={() => setAboutTab('privacy')}
-                      className={`min-h-[40px] sm:min-h-[42px] rounded-full px-5 sm:px-6 font-heading text-[13px] font-bold tracking-wide transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-gakit-maroon ${
+                      aria-pressed={aboutTab === 'privacy'}
+                      className={`min-h-[40px] sm:min-h-[42px] rounded-full px-5 sm:px-6 font-heading text-[13px] font-bold tracking-wide transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 ${
                         aboutTab === 'privacy'
-                          ? 'bg-white text-gakit-maroon shadow-[0_4px_16px_rgba(0,0,0,0.18)]'
-                          : 'text-white/75 hover:bg-white/10 hover:text-white'
+                          ? 'bg-panel text-primary shadow-sm'
+                          : 'text-secondary hover:bg-hover hover:text-primary'
                       }`}
                     >
                       Data &amp; Privacy
                     </button>
                   </div>
-                  <span className="hidden h-7 w-px bg-white/10 sm:block" aria-hidden />
-                  <span className="hidden font-heading text-[11px] font-semibold uppercase tracking-[0.18em] text-white/55 sm:block">
+                  <span className="hidden h-7 w-px bg-default sm:block" aria-hidden />
+                  <span className="hidden font-heading text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground sm:block">
                     {aboutTab === 'about' ? 'Project Overview' : 'Data Policy & Attribution'}
                   </span>
                 </div>
-                <div className="hidden items-center gap-2 text-white/45 lg:flex">
-                  <span className="h-px w-6 bg-white/15" aria-hidden />
+                <div className="hidden items-center gap-2 text-muted-foreground lg:flex">
+                  <span className="h-px w-6 bg-default" aria-hidden />
                   <span className="font-heading text-[10px] font-bold uppercase tracking-[0.2em]">Iligan City · MSU-IIT</span>
                 </div>
               </div>
@@ -911,20 +913,20 @@ export function PublicViewPage({
         <div
           role="status"
           aria-live="polite"
-          className="fixed left-1/2 top-20 z-[1250] flex w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 items-center gap-2.5 rounded-2xl border border-slate-200 bg-white/95 px-3 py-2.5 shadow-lg backdrop-blur-md"
+          className="fixed left-1/2 top-20 z-[1250] flex w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 items-center gap-2.5 rounded-2xl border border-default bg-panel/95 px-3 py-2.5 shadow-lg backdrop-blur-md"
         >
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-maroon-50 text-gakit-maroon">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-secondary">
             <MapPin className="h-4 w-4" aria-hidden />
           </span>
-          <p className="min-w-0 flex-1 text-xs leading-4 text-slate-600">
-            <span className="font-semibold text-slate-900">Pick a place on the map.</span>{' '}
+          <p className="min-w-0 flex-1 text-xs leading-4 text-secondary">
+            <span className="font-semibold text-primary">Pick a place on the map.</span>{' '}
             Search above or tap anywhere to start the tour there.
           </p>
           <button
             type="button"
             onClick={handleOnboardingCancelPick}
             aria-label="Cancel map selection"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
           >
             <X className="h-4 w-4" aria-hidden />
           </button>
@@ -953,7 +955,7 @@ export function PublicViewPage({
         <div
           role="status"
           aria-label="Preparing"
-          className="fixed top-4 left-1/2 z-[1350] flex -translate-x-1/2 items-center rounded-full border border-slate-200/80 bg-white/95 px-3 py-2 shadow-lg backdrop-blur-md"
+          className="fixed top-4 left-1/2 z-[1350] flex -translate-x-1/2 items-center rounded-full border border-default/80 bg-panel/95 px-3 py-2 shadow-lg backdrop-blur-md"
         >
           <Spinner size="sm" />
         </div>

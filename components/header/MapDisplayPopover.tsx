@@ -1,11 +1,10 @@
 'use client';
 
-import { useEffect, useId, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { ChevronUp, SlidersHorizontal, X } from 'lucide-react';
+import { DisplayPopover } from './DisplayPopover';
 import { BASEMAP_LABELS, type BasemapId } from '@/constants/publicMap';
 
-export interface MapDisplaySettings { basemap: BasemapId; mode: '2d' | '3d'; showBuildings: boolean; smoothPolygons?: boolean; showRoads?: boolean; focusRoads?: boolean }
+export interface MapDisplaySettings { basemap: BasemapId; mode: '2d' | '3d'; showBuildings: boolean; smoothPolygons?: boolean; showRoads?: boolean; focusRoads?: boolean; showParBoundary?: boolean }
 
 // Static thumbnails captured from the real basemaps (scripts/generate-basemap-previews.cjs)
 // around Iligan City. They are only fetched when this popover opens and cost
@@ -20,25 +19,26 @@ const BASEMAP_PREVIEWS: Array<{ value: BasemapId; src: string }> = [
 type DisplaySetting = { label: string; description: string; checked: boolean; change: (checked: boolean) => void };
 
 function DisplaySectionHeading({ children }: { children: ReactNode }) {
-  return <p className="text-[10px] font-semibold uppercase leading-3 tracking-wide text-slate-500">{children}</p>;
+  return <p className="text-[10px] font-semibold uppercase leading-3 tracking-wide text-muted-foreground">{children}</p>;
 }
 
 function DisplaySettingRow({ label, description, checked, change }: DisplaySetting) {
   return (
-    <div className="flex items-center justify-between gap-3 border-t border-slate-100 pt-2">
+    <div className="flex items-center justify-between gap-3 border-t border-default pt-2">
       <div>
         <p className="text-xs font-semibold leading-4">{label}</p>
-        <p className="text-[10px] leading-3.5 text-slate-400">{description}</p>
+        <p className="text-[10px] leading-3.5 text-muted-foreground">{description}</p>
       </div>
       <button type="button" role="switch" aria-label={label} aria-checked={checked} onClick={() => change(!checked)}
-        className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon focus-visible:ring-offset-2 ${checked ? 'bg-gakit-maroon' : 'bg-slate-300'}`}>
-        <span className={`h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${checked ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
+        className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full ring-1 ring-inset transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 ${checked ? 'bg-accent ring-accent' : 'bg-switch-off ring-switch-edge'}`}>
+        <span className={`h-4 w-4 rounded-full bg-on-accent shadow-sm transition-transform ${checked ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
       </button>
     </div>
   );
 }
 
-export function MapDisplayPopover({ basemap, mode, showBuildings, onBasemapChange, onModeChange, onBuildingsChange, smoothPolygons = true, onSmoothingChange, showBarangayBoundaries = false, onBarangayBoundariesChange, showRoads = false, onRoadsChange, focusRoads = false, onFocusRoadsChange, disabled = false, className = '', placement = 'below', compact = false, align = 'end' }: MapDisplaySettings & {
+export function MapDisplayPopover({ basemap, mode, showBuildings, onBasemapChange, onModeChange, onBuildingsChange, smoothPolygons = true, onSmoothingChange, showBarangayBoundaries = false, onBarangayBoundariesChange, showRoads = false, onRoadsChange, focusRoads = false, onFocusRoadsChange, showParBoundary = true, onParBoundaryChange, disabled = false, className = '', placement = 'below', compact = false, align = 'end' }: MapDisplaySettings & {
+  onParBoundaryChange?: (visible: boolean) => void;
   onBasemapChange: (basemap: BasemapId) => void;
   onModeChange: (mode: '2d' | '3d') => void;
   onBuildingsChange: (visible: boolean) => void;
@@ -54,72 +54,27 @@ export function MapDisplayPopover({ basemap, mode, showBuildings, onBasemapChang
   align?: 'start' | 'end';
   compact?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
-  const [popupPosition, setPopupPosition] = useState({ top: 0, left: 8, width: 304, maxHeight: 400 });
-  const container = useRef<HTMLDivElement>(null);
-  const trigger = useRef<HTMLButtonElement>(null);
-  const id = useId();
-  const close = () => { setOpen(false); trigger.current?.focus(); };
-  useEffect(() => {
-    if (!open) return;
-    const outside = (event: PointerEvent) => {
-      if (!container.current?.contains(event.target as Node)) setOpen(false);
-    };
-    const escape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') { event.stopPropagation(); setOpen(false); trigger.current?.focus(); }
-    };
-    const resize = () => setOpen(false);
-    if (align === 'start') window.addEventListener('resize', resize);
-    document.addEventListener('pointerdown', outside);
-    window.addEventListener('keydown', escape, true);
-    return () => { document.removeEventListener('pointerdown', outside); window.removeEventListener('keydown', escape, true); window.removeEventListener('resize', resize); };
-  }, [open, align]);
   return (
-    <div ref={container} className={`relative ${className}`}>
-      <button ref={trigger} type="button" onClick={event => {
-        if (!open && align === 'start') {
-          const bounds = event.currentTarget.getBoundingClientRect();
-          const workspace = container.current?.closest('[data-map-workspace]')?.getBoundingClientRect();
-          const leftEdge = Math.max(8, (workspace?.left ?? 0) + 8);
-          const rightEdge = Math.min(window.innerWidth - 8, (workspace?.right ?? window.innerWidth) - 8);
-          const width = Math.min(304, rightEdge - leftEdge);
-          const top = bounds.bottom + 8;
-          setPopupPosition({ top, left: Math.max(leftEdge, Math.min(bounds.left, rightEdge - width)), width,
-            maxHeight: Math.max(80, Math.min(window.innerHeight, workspace?.bottom ?? window.innerHeight) - top - 8) });
-        }
-        setOpen(value => !value);
-      }} aria-label="Map display settings" title="Map display settings"
-        aria-expanded={open} aria-controls={id} className={`flex items-center justify-center rounded-full font-semibold text-slate-600 transition-colors hover:bg-slate-100 ${compact ? `${align === 'start' ? 'h-[30px]' : 'h-8'} flex-row gap-1.5 px-2 text-[11px]` : 'h-10 min-w-10 flex-col gap-0.5 px-1 text-[9px] md:h-9 md:flex-row md:gap-1.5 md:px-2.5 md:text-[11px]'} ${open ? 'bg-slate-100 text-gakit-maroon ring-1 ring-slate-300' : ''}`}>
-        <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
-        Display
-      </button>
-      {open && <>
-        {align !== 'start' && <div className="fixed inset-0 z-[1290] bg-black/20 md:hidden" onClick={close} aria-hidden="true" />}
-        <div id={id} role="region" aria-label="Map display settings" data-header-dropdown={(align !== 'start' && placement === 'below') || undefined}
-          style={align === 'start' ? { position: 'fixed', ...popupPosition } : undefined}
-          className={align === 'start' ? 'z-[1300] overflow-y-auto overscroll-contain rounded-2xl border border-slate-200 bg-white text-slate-800 shadow-xl' : `${placement === 'below' ? 'map-header-dropdown' : ''} fixed inset-x-4 top-16 z-[1300] mx-auto max-h-[calc(100dvh-10rem-env(safe-area-inset-bottom,0px))] max-w-[320px] overflow-y-auto overscroll-contain rounded-2xl border border-slate-200 bg-white/95 p-3 text-slate-800 shadow-xl backdrop-blur-xl md:absolute md:inset-x-auto md:right-0 md:w-72 md:max-h-[calc(100dvh-5rem)] ${placement === 'above' ? 'md:top-auto md:bottom-full md:mb-2' : 'md:top-12'}`}>
-          <div className={align === 'start' ? 'flex items-center justify-between gap-2 border-b border-slate-100 px-3 py-2' : 'mb-2 flex items-center justify-between border-b border-slate-100 pb-1.5'}>
-            <h3 className="text-xs font-bold">Map display settings</h3>
-            <button type="button" onClick={close} aria-label="Close display settings" className="rounded p-1 text-slate-400 hover:bg-slate-100">{align === 'start' ? <ChevronUp className="h-4 w-4" aria-hidden="true" /> : <X className="h-4 w-4" />}</button>
-          </div>
-          <fieldset disabled={disabled} className={`space-y-2 disabled:opacity-50 ${align === 'start' ? 'px-3 pb-3 pt-2' : ''}`}>
-            <legend className="sr-only">Map appearance</legend>
+    <DisplayPopover className={className} placement={placement} compact={compact} align={align}>
+          <fieldset disabled={disabled} className="space-y-2 disabled:opacity-50">
+            <legend className="mb-2 text-sm font-semibold text-primary">Map</legend>
             <div>
               <div className="mb-1"><DisplaySectionHeading>Basemap</DisplaySectionHeading></div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-4 gap-1.5">
                 {BASEMAP_PREVIEWS.map(({ value, src }) => (
                   <button key={value} type="button" aria-pressed={basemap === value} onClick={() => onBasemapChange(value)}
-                    className={`group overflow-hidden rounded-lg border text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon focus-visible:ring-offset-1 ${basemap === value ? 'border-gakit-maroon shadow-sm ring-1 ring-gakit-maroon' : 'border-slate-200 hover:border-slate-300'}`}>
+                    className={`group min-w-0 overflow-hidden rounded-md border text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-1 ${basemap === value ? 'border-strong shadow-sm ring-1 ring-focus' : 'border-default hover:border-default'}`}>
                     {/* Decorative: the label below already names the button. */}
                     {/* eslint-disable-next-line @next/next/no-img-element -- tiny static WebP served directly; no optimizer roundtrip needed */}
                     <img src={src} alt="" width={256} height={160} loading="lazy" decoding="async"
-                      className="block aspect-[8/5] w-full object-cover" />
-                    <span className={`block px-2 py-0.5 text-center text-[11px] font-semibold ${basemap === value ? 'text-gakit-maroon' : 'text-slate-500 group-hover:text-slate-800'}`}>{BASEMAP_LABELS[value]}</span>
+                      className="block aspect-[3/2] w-full object-cover" />
+                    <span className={`block truncate px-0.5 py-1 text-center text-[9px] font-semibold leading-3 ${basemap === value ? 'text-secondary' : 'text-muted-foreground group-hover:text-primary'}`}>{BASEMAP_LABELS[value]}</span>
                   </button>
                 ))}
               </div>
             </div>
             {[
+              ...(onParBoundaryChange ? [{ label: 'PAR outline', description: 'Show the Philippine Area of Responsibility boundary', checked: showParBoundary, change: onParBoundaryChange }] : []),
               { label: '3D view', description: 'Tilt the map and show terrain relief', checked: mode === '3d', change: (checked: boolean) => onModeChange(checked ? '3d' : '2d') },
               ...(onSmoothingChange ? [{ label: 'Polygon smoothing', description: 'Round hazard edges and blend simulation colors; visual only', checked: smoothPolygons, change: onSmoothingChange }] : []),
               { label: 'Buildings', description: 'Show building footprints or 3D structures', checked: showBuildings, change: onBuildingsChange },
@@ -135,9 +90,7 @@ export function MapDisplayPopover({ basemap, mode, showBuildings, onBasemapChang
               ...(onBarangayBoundariesChange ? [{ label: 'Barangay boundaries', description: 'Show barangay borders and report summaries', checked: showBarangayBoundaries, change: onBarangayBoundariesChange }] : []),
             ].map(setting => <DisplaySettingRow key={setting.label} {...setting} />)}
           </fieldset>
-          {disabled && <p className="mt-2 text-[10px] text-slate-400">Loading map…</p>}
-        </div>
-      </>}
-    </div>
+          {disabled && <p className="mt-2 text-[10px] text-muted-foreground">Loading map…</p>}
+    </DisplayPopover>
   );
 }

@@ -39,7 +39,7 @@ export function FloodReferenceIllustration({
 
   return (
     <div
-      className={`relative overflow-hidden rounded-xl bg-sky-50/60 ${className}`}
+      className={`relative overflow-hidden rounded-xl bg-info-bg/60 ${className}`}
       role="img"
       aria-label={`${label} flood-depth reference${depthCm > 0 ? ` at about ${Math.round(depthCm)} centimeters` : ''}`}
     >
@@ -72,7 +72,7 @@ export function FloodReferenceIllustration({
         />
       </div>
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-sky-200" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-info-bg" />
     </div>
   );
 }

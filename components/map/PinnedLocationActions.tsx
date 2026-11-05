@@ -52,7 +52,7 @@ export function PinnedLocationActions({ mapRef, location, onAssess, onReport, on
       ref={cardRef}
       role="group"
       aria-label="Pinned location actions"
-      className="pointer-events-auto absolute z-[1001] flex w-max items-center gap-0.5 rounded-2xl border border-slate-200 bg-white/95 px-1 py-0.5 shadow-md backdrop-blur-sm"
+      className="pointer-events-auto absolute z-[1001] flex w-max items-center gap-0.5 rounded-2xl border border-default bg-panel/95 px-1 py-0.5 shadow-md backdrop-blur-sm"
       style={{ transform: 'translate(-50%, -100%)' }}
       onPointerDown={event => event.stopPropagation()}
       onClick={event => event.stopPropagation()}
@@ -66,7 +66,7 @@ export function PinnedLocationActions({ mapRef, location, onAssess, onReport, on
       <button
         type="button"
         onClick={onAssess}
-        className="flex h-9 items-center gap-1 whitespace-nowrap rounded-lg px-2 text-[11px] font-semibold text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon"
+        className="flex h-9 items-center gap-1 whitespace-nowrap rounded-lg px-2 text-[11px] font-semibold text-secondary hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
       >
         <ShieldCheck className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
         Assess location
@@ -74,7 +74,7 @@ export function PinnedLocationActions({ mapRef, location, onAssess, onReport, on
       <button
         type="button"
         onClick={onReport}
-        className="flex h-9 items-center gap-1 whitespace-nowrap rounded-lg px-2 text-[11px] font-semibold text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon"
+        className="flex h-9 items-center gap-1 whitespace-nowrap rounded-lg px-2 text-[11px] font-semibold text-secondary hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
       >
         <MapPinPlus className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
         Report flooding
@@ -83,7 +83,7 @@ export function PinnedLocationActions({ mapRef, location, onAssess, onReport, on
         type="button"
         onClick={onDismiss}
         aria-label="Dismiss location actions"
-        className="flex h-9 w-6 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon"
+        className="flex h-9 w-6 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
       >
         <X className="h-3 w-3" aria-hidden="true" />
       </button>

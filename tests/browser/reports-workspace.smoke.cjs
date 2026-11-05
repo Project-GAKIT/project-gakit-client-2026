@@ -192,11 +192,11 @@ function assertCameraUnchanged(actual, expected, message) {
     assert((await panel.innerText()).includes('last 48 hours'));
     assert(!(await map.innerText()).includes('last 48 hours'),'Time window moved into card');
     assert.equal(await page.getByRole('button',{name:'Fullscreen',exact:true}).innerText(),'','Fullscreen is icon-only');
-    await page.getByRole('button',{name:'Map display settings',exact:true}).click();
-    await withinMap(page.getByRole('region',{name:'Map display settings',exact:true}));
+    await page.getByRole('button',{name:'Display settings',exact:true}).click();
+    await withinMap(page.getByRole('region',{name:'Display settings',exact:true}));
     assert.equal(await page.getByRole('button',{name:'Light',exact:true}).getAttribute('aria-pressed'),'true','Light basemap is the default');
     assert.equal(await page.getByRole('switch',{name:'Barangay boundaries',exact:true}).getAttribute('aria-checked'),'false','Boundaries and telemetry start off');
-    await page.getByRole('button',{name:'Close display settings',exact:true}).click();
+    await page.keyboard.press('Escape');
     await withinViewport(panel.getByRole('button',{name:'Next',exact:true}));
     await panel.getByRole('button',{name:'Next',exact:true}).click();
     await page.waitForFunction(()=>window.requests.at(-1).page===2);
@@ -221,9 +221,9 @@ function assertCameraUnchanged(actual, expected, message) {
     await page.evaluate(()=>window.maps[0].jumpTo({center:[124.24,8.23],zoom:15.5}));
     const camera=await page.evaluate(()=>({center:window.maps[0].getCenter().toArray(),zoom:window.maps[0].getZoom()}));
     assert.equal(await map.getByRole('status').count(),0,'No telemetry by default');
-    await page.getByRole('button',{name:'Map display settings',exact:true}).click();
+    await page.getByRole('button',{name:'Display settings',exact:true}).click();
     await page.getByRole('switch',{name:'Barangay boundaries',exact:true}).click();
-    await page.getByRole('button',{name:'Close display settings',exact:true}).click();
+    await page.keyboard.press('Escape');
     await page.waitForFunction(()=>window.maps[0].queryRenderedFeatures({layers:['barangay-fill']}).length>0);
     const hoverPoint=await page.evaluate(()=>{
       const map=window.maps[0],bounds=map.getContainer().getBoundingClientRect(),edge=map.getContainer().clientWidth-map.getPadding().right;
@@ -243,9 +243,9 @@ function assertCameraUnchanged(actual, expected, message) {
     assert.equal(await map.locator('svg > path[stroke-dasharray="4 4"]').count(),0,'No connector line');
     await screenshot('desktop-telemetry');
     await page.mouse.move(20,20);
-    await page.getByRole('button',{name:'Map display settings',exact:true}).click();
+    await page.getByRole('button',{name:'Display settings',exact:true}).click();
     await page.getByRole('switch',{name:'Barangay boundaries',exact:true}).click();
-    await page.getByRole('button',{name:'Close display settings',exact:true}).click();
+    await page.keyboard.press('Escape');
     await screenshot('desktop-floating-table');
     await page.getByRole('button',{name:'Hide reports',exact:true}).click();
     assert(!await panel.isVisible());assert(Math.abs((await withinViewport(map)).width-mapBox.width)<2,'Canvas remains full width');
@@ -346,9 +346,9 @@ function assertCameraUnchanged(actual, expected, message) {
       assert((await workspace.boundingBox()).y+(await workspace.boundingBox()).height<=navTop,'Report bar clears compact navbar');
 
       assert.equal(await workspace.getAttribute('data-sheet'),'collapsed');
-      await page.getByRole('button',{name:'Map display settings',exact:true}).click();
+      await page.getByRole('button',{name:'Display settings',exact:true}).click();
       await page.getByRole('switch',{name:'Barangay boundaries',exact:true}).click();
-      await page.getByRole('button',{name:'Close display settings',exact:true}).click();
+      await page.keyboard.press('Escape');
       const mobileBarangayPoint=await page.evaluate(()=>{
         const map=window.maps[0],b=map.getContainer().getBoundingClientRect();
         for(let y=180;y<b.height-80;y+=40)for(let x=40;x<b.width-30;x+=40)if(map.queryRenderedFeatures([x,y],{layers:['barangay-fill']}).length)return {x:b.x+x,y:b.y+y};
@@ -364,9 +364,9 @@ function assertCameraUnchanged(actual, expected, message) {
       await metricsCard.waitFor();
       assert((await metricsCard.boundingBox()).y>=pillsBox.y+pillsBox.height+6,'Expanded mobile telemetry clears map badges');
       await screenshot('mobile-'+width+'-telemetry');
-      await page.getByRole('button',{name:'Map display settings',exact:true}).click();
+      await page.getByRole('button',{name:'Display settings',exact:true}).click();
       await page.getByRole('switch',{name:'Barangay boundaries',exact:true}).click();
-      await page.getByRole('button',{name:'Close display settings',exact:true}).click();
+      await page.keyboard.press('Escape');
       await layersButton.click();
       await withinMap(page.getByRole('region',{name:'Map layers',exact:true}));
       await screenshot('mobile-'+width+'-layers');

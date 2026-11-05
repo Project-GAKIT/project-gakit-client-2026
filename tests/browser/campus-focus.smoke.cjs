@@ -29,7 +29,7 @@ const base = process.env.GAKIT_BASE_URL || 'http://localhost:3000';
         report('00000000-0000-4000-8000-000000000002', [124.251, 8.23], 'Outside campus report fixture', 10_000),
       ] } }));
       await page.goto(base, { waitUntil: 'domcontentloaded' });
-      await page.getByRole('button', { name: 'Map display settings', exact: true }).waitFor({ state: 'visible' });
+      await page.getByRole('button', { name: 'Display settings', exact: true }).waitFor({ state: 'visible' });
       if (width < 768) {
         const locationPrompt = page.getByRole('dialog', { name: 'See reports near you', exact: true });
         await locationPrompt.waitFor();

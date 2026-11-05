@@ -56,14 +56,14 @@ export function MapHeaderControls({ open, onToggle, layers, reports, layersCount
           setPosition({ top, left: Math.max(leftEdge, Math.min(bounds.left, rightEdge - width)), width,
             maxHeight: Math.max(80, Math.min(window.innerHeight, workspace?.bottom ?? window.innerHeight) - top - 8) });
           onToggle(open === panel ? null : panel);
-        }} className={`relative inline-flex h-8 items-center gap-1.5 rounded-full border border-slate-200 px-2 text-[11px] font-semibold text-slate-600 shadow-sm hover:bg-slate-100 ${open === panel ? 'bg-slate-100 ring-1 ring-slate-300' : 'bg-white'}`}>
+        }} className={`relative inline-flex h-8 items-center gap-1.5 rounded-full border border-default px-2 text-[11px] font-semibold text-secondary shadow-sm hover:bg-muted ${open === panel ? 'bg-muted ring-1 ring-default' : 'bg-panel'}`}>
         <Icon className="h-4 w-4" aria-hidden="true" />{panel === 'reports' ? <><span className="hidden sm:inline">Flood reports</span><span className="sm:hidden">Reports</span></> : label}
-        {count > 0 && <span aria-label={`${count} ${panel === 'layers' ? 'active layers' : 'visible reports'}`} className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-gakit-maroon px-1 text-[9px] font-bold tabular-nums text-white">{count}</span>}
+        {count > 0 && <span aria-label={`${count} ${panel === 'layers' ? 'active layers' : 'visible reports'}`} className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[9px] font-bold tabular-nums text-on-accent">{count}</span>}
       </button>;
     })}
     {open && <div id={`${id}-${open}`} role="region" aria-label={open === 'layers' ? 'Map layers' : 'Flood report visibility'}
       style={{ position: 'fixed', ...position }}
-      className="z-[1300] overflow-y-auto overscroll-contain rounded-2xl text-slate-800">
+      className="z-[1300] overflow-y-auto overscroll-contain rounded-2xl text-primary">
       {open === 'layers' ? layers : reports}
     </div>}
   </div>;

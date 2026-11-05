@@ -61,45 +61,45 @@ export function EditUserRoleModal({
     <Dialog isOpen onClose={onClose} ariaLabelledBy={titleId} maxWidthClass="max-w-md">
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-maroon-50">
-            <ShieldCheck className="h-5 w-5 text-gakit-maroon" />
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted">
+            <ShieldCheck className="h-5 w-5 text-secondary" />
           </div>
           <div>
-            <h2 id={titleId} className="text-base font-semibold text-slate-900">
+            <h2 id={titleId} className="text-base font-semibold text-primary">
               Edit role
             </h2>
-            <p className="text-sm text-slate-500">Change what this user can access.</p>
+            <p className="text-sm text-muted-foreground">Change what this user can access.</p>
           </div>
         </div>
         <button
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="rounded-lg p-1.5 text-slate-400 hover:bg-canvas-light hover:text-slate-600"
+          className="rounded-lg p-1.5 text-muted-foreground hover:bg-page hover:text-secondary"
         >
           <X className="h-5 w-5" />
         </button>
       </div>
 
-      <div className="mt-5 rounded-lg border border-canvas-grey bg-canvas-light px-3 py-2.5">
-        <div className="text-sm font-semibold text-slate-900">
+      <div className="mt-5 rounded-lg border border-default bg-page px-3 py-2.5">
+        <div className="text-sm font-semibold text-primary">
           {user.name?.trim() || 'No name'}
         </div>
-        <div className="text-xs text-slate-500">{user.email ?? 'No email'}</div>
+        <div className="text-xs text-muted-foreground">{user.email ?? 'No email'}</div>
       </div>
 
       {serverError && (
-        <div className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+        <div className="mt-4 rounded-lg bg-error-bg px-3 py-2 text-sm text-error-text">
           {serverError}
         </div>
       )}
 
       <label className="mt-5 block">
-        <span className="text-sm font-semibold text-slate-700">Role</span>
+        <span className="text-sm font-semibold text-secondary">Role</span>
         <select
           value={role}
           onChange={(event) => setRole(event.target.value)}
-          className="mt-1.5 w-full rounded-lg border border-canvas-grey bg-canvas-light px-3 py-2.5 text-sm text-slate-700 outline-none transition-colors focus:border-gakit-maroon/40 focus:bg-white focus:ring-2 focus:ring-gakit-maroon/10"
+          className="mt-1.5 w-full rounded-lg border border-default bg-page px-3 py-2.5 text-sm text-secondary outline-none transition-colors focus:border-strong/40 focus:bg-panel focus:ring-2 focus:ring-focus/10"
         >
           {role === '' && <option value="">Select a role…</option>}
           {hasOrphanRole && <option value={currentRole}>{currentRole}</option>}
@@ -115,7 +115,7 @@ export function EditUserRoleModal({
         </select>
       </label>
 
-      <p className="mt-3 text-xs text-slate-500">
+      <p className="mt-3 text-xs text-muted-foreground">
         Custom roles have the same access as staff. Only the built-in{' '}
         <span className="font-semibold">admin</span> role unlocks the
         Administration portal.
@@ -126,7 +126,7 @@ export function EditUserRoleModal({
           type="button"
           onClick={onClose}
           disabled={submitting}
-          className="rounded-lg border border-canvas-grey px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+          className="rounded-lg border border-default px-4 py-2 text-sm font-semibold text-secondary hover:bg-page disabled:opacity-50"
         >
           Cancel
         </button>
@@ -134,7 +134,7 @@ export function EditUserRoleModal({
           type="button"
           onClick={handleSubmit}
           disabled={!canSubmit}
-          className="inline-flex items-center gap-2 rounded-lg bg-gakit-maroon px-4 py-2 text-sm font-semibold text-white hover:bg-maroon-800 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-on-accent hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
         >
           {submitting && <Spinner size="sm" />}
           {submitting ? 'Saving…' : 'Save changes'}

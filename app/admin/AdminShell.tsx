@@ -86,7 +86,7 @@ export function AdminShell({ initialAuth }: { initialAuth?: AuthSnapshot }) {
   };
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-slate-50/80">
+    <div className="flex h-dvh overflow-hidden bg-page/80">
       <SideBar
         activeTab={activeTab}
         items={adminFeatures}
@@ -96,7 +96,7 @@ export function AdminShell({ initialAuth }: { initialAuth?: AuthSnapshot }) {
         showTopo
       />
 
-      <div className="h-full min-w-0 flex-1 flex flex-col overflow-hidden bg-white lg:rounded-[2rem] lg:rounded-l-[2.75rem]">
+      <div className="h-full min-w-0 flex-1 flex flex-col overflow-hidden bg-panel lg:rounded-[2rem] lg:rounded-l-[2.75rem]">
         <AdminHeader
           title={activeFeature.title}
           description={activeFeature.description}

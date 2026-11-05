@@ -31,8 +31,8 @@ export function FilterChips<T extends string>({
             onClick={() => onSelect(optionValue)}
             className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
               isActive
-                ? 'bg-gakit-maroon text-white'
-                : 'bg-canvas-light text-slate-600 hover:bg-slate-100'
+                ? 'bg-accent text-on-accent'
+                : 'bg-page text-secondary hover:bg-muted'
             }`}
           >
             <Icon className="h-3.5 w-3.5 shrink-0" />

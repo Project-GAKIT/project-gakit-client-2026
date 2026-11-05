@@ -71,7 +71,7 @@ export function FloodDepthScale({
       <div className="relative w-7">
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 text-center text-[9px] font-medium leading-none text-slate-400"
+          className="pointer-events-none absolute inset-x-0 text-center text-[9px] font-medium leading-none text-muted-foreground"
           style={{ bottom: `calc(${pctOf(MAX_DEPTH_CM)}% + 3px)` }}
         >
           cm
@@ -80,7 +80,7 @@ export function FloodDepthScale({
         <div className="absolute inset-x-0 bottom-0" style={{ height: `${pctOf(MAX_DEPTH_CM)}%` }}>
           <div
             aria-hidden
-            className="absolute left-1/2 h-full w-3.5 -translate-x-1/2 rounded-full bg-slate-100 ring-1 ring-slate-200/80"
+            className="absolute left-1/2 h-full w-3.5 -translate-x-1/2 rounded-full bg-muted ring-1 ring-default/80"
           >
             <div
               className="absolute left-1/2 top-0 h-full w-[6px] -translate-x-1/2 rounded-full"
@@ -94,7 +94,7 @@ export function FloodDepthScale({
             <span
               key={cmValue}
               aria-hidden
-              className="absolute left-0 right-0 h-px bg-white/50"
+              className="absolute left-0 right-0 h-px bg-panel/50"
               style={{ bottom: `${pctOfScale(cmValue)}%` }}
             />
           ))}
@@ -108,7 +108,7 @@ export function FloodDepthScale({
             aria-valuemax={MAX_DEPTH_CM}
             aria-valuenow={shownCm ?? STRIP_CM}
             aria-orientation="vertical"
-            className="absolute -inset-x-2 inset-y-0 cursor-pointer touch-none outline-none focus-visible:ring-2 focus-visible:ring-gakit-maroon"
+            className="absolute -inset-x-2 inset-y-0 cursor-pointer touch-none outline-none focus-visible:ring-2 focus-visible:ring-focus"
             onPointerDown={(event) => {
               if (disabled) return;
               trackRectRef.current = event.currentTarget.getBoundingClientRect();
@@ -204,21 +204,21 @@ export function FloodDepthScale({
             style={{ bottom: thumbBottom }}
           >
             <div
-              className={`flex h-full w-full items-center justify-center rounded-lg border border-white bg-white ring-1 ring-slate-300 transition-shadow duration-150 ease-out motion-reduce:transition-none ${
-                pressed ? 'shadow-[0_0_0_3px_rgba(123,17,19,0.1)]' : 'shadow-md'
+              className={`flex h-full w-full items-center justify-center rounded-lg border border-default bg-panel ring-1 ring-default transition-shadow duration-150 ease-out motion-reduce:transition-none ${
+                pressed ? 'shadow-panel' : 'shadow-md'
               }`}
             >
-              <div className="flex gap-0.5"><span className="h-2 w-0.5 rounded-full bg-slate-400" /><span className="h-2 w-0.5 rounded-full bg-slate-400" /></div>
+              <div className="flex gap-0.5"><span className="h-2 w-0.5 rounded-full bg-hover" /><span className="h-2 w-0.5 rounded-full bg-hover" /></div>
             </div>
 
             {preview != null && (
               <div
-                className={`pointer-events-auto absolute right-full mr-2 whitespace-nowrap rounded-lg bg-slate-800/95 px-1.5 py-0.5 text-[10px] font-semibold text-white shadow ${
+                className={`pointer-events-auto absolute right-full mr-2 whitespace-nowrap rounded-lg bg-contrast/95 px-1.5 py-0.5 text-[10px] font-semibold text-on-accent shadow ${
                   chipHigh ? 'top-1' : 'bottom-1'
                 }`}
               >
                 {preview} cm
-                <span className="ml-1 font-normal text-white/70">
+                <span className="ml-1 font-normal text-on-accent/70">
                   {fallbackCategoryLabel(depthCodeFromCm(Math.min(preview, MAX_DEPTH_CM)))}
                 </span>
               </div>
@@ -229,7 +229,7 @@ export function FloodDepthScale({
 
       <div
         aria-hidden
-        className="pointer-events-none relative w-6 text-left text-[9px] font-medium leading-none text-slate-400"
+        className="pointer-events-none relative w-6 text-left text-[9px] font-medium leading-none text-muted-foreground"
       >
         {Array.from({ length: MAX_DEPTH_CM / TICK_STEP_CM + 1 }, (_, index) => {
           const cmValue = index * TICK_STEP_CM;
@@ -237,7 +237,7 @@ export function FloodDepthScale({
           return (
             <span
               key={cmValue}
-              className={`absolute left-0 translate-y-1/2 ${isMax ? 'font-semibold text-red-700' : ''}`}
+              className={`absolute left-0 translate-y-1/2 ${isMax ? 'font-semibold text-error-text' : ''}`}
               style={{ bottom: `${pctOf(cmValue)}%` }}
             >
               {isMax ? `${cmValue}${overflowing ? '+' : ''}` : cmValue}

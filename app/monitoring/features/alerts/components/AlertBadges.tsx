@@ -18,37 +18,37 @@ export const TYPE_META: Record<
   'new-report': {
     label: 'New report',
     icon: BellRing,
-    className: 'bg-blue-50 text-blue-700',
+    className: 'bg-info-bg text-info-text',
   },
   'needs-review': {
     label: 'Needs review',
     icon: ShieldAlert,
-    className: 'bg-amber-50 text-amber-700',
+    className: 'bg-warning-bg text-warning-text',
   },
   flagged: {
     label: 'Flagged',
     icon: AlertTriangle,
-    className: 'bg-orange-50 text-orange-700',
+    className: 'bg-caution-bg text-caution-text',
   },
   rejected: {
     label: 'Rejected',
     icon: CheckCircle2,
-    className: 'bg-slate-100 text-slate-600',
+    className: 'bg-muted text-secondary',
   },
   weather: {
     label: 'Weather alert',
     icon: CloudRain,
-    className: 'bg-cyan-50 text-cyan-700',
+    className: 'bg-info-bg text-info-text',
   },
 };
 
 export const SEVERITY_CLASS: Record<Severity, string> = {
-  critical: 'bg-red-50 text-red-700 border-red-200',
-  warning: 'bg-orange-50 text-orange-700 border-orange-200',
-  info: 'bg-blue-50 text-blue-700 border-blue-200',
-  high: 'bg-orange-50 text-orange-700 border-orange-200',
-  medium: 'bg-amber-50 text-amber-700 border-amber-200',
-  low: 'bg-slate-100 text-slate-600 border-slate-200',
+  critical: 'bg-error-bg text-error-text border-error-border',
+  warning: 'bg-caution-bg text-caution-text border-caution-border',
+  info: 'bg-info-bg text-info-text border-info-border',
+  high: 'bg-caution-bg text-caution-text border-caution-border',
+  medium: 'bg-warning-bg text-warning-text border-warning-border',
+  low: 'bg-muted text-secondary border-default',
 };
 
 export function NotificationTypeBadge({ type }: { type: NotificationType }) {
@@ -80,10 +80,10 @@ export const WEATHER_TYPE_META: Record<
   AlertType,
   { icon: typeof CloudRain; className: string }
 > = {
-  thunderstorm: { icon: AlertTriangle, className: 'bg-cyan-50 text-cyan-700' },
-  heavy_rain: { icon: CloudRain, className: 'bg-cyan-50 text-cyan-700' },
-  extreme_heat: { icon: Flame, className: 'bg-orange-50 text-orange-700' },
-  daily_digest: { icon: Thermometer, className: 'bg-slate-100 text-slate-600' },
+  thunderstorm: { icon: AlertTriangle, className: 'bg-info-bg text-info-text' },
+  heavy_rain: { icon: CloudRain, className: 'bg-info-bg text-info-text' },
+  extreme_heat: { icon: Flame, className: 'bg-caution-bg text-caution-text' },
+  daily_digest: { icon: Thermometer, className: 'bg-muted text-secondary' },
 };
 
 export function AlertTypeBadge({ notification }: { notification: Notification }) {
