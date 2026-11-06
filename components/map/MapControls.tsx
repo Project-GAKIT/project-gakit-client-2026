@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { RainfallWeatherControls } from '@/components/map/RainfallWeatherControls';
 import type { RainfallWeatherControlState } from '@/hooks/useRainfallLayer';
 import { typhoonIconURL } from '@/lib/map/typhoonIcons';
+import { formatRainfallTime } from '@/lib/map/weatherTime';
 
 import { DEPTH_RANK } from '@/lib/map/barangayStats';
 import { DEPTH_BAR_COLOR, DEPTH_LABELS, formatReportDepth, timeAgo } from '@/lib/reports/reportFormatting';
@@ -50,11 +51,6 @@ import { TyphoonScaleModal } from '@/components/TyphoonScaleModal';
 
 const JAXA_GSMAP_URL = 'https://sharaku.eorc.jaxa.jp/GSMaP/';
 
-const formatRainfallTime = (isoUtc: string) => {
-  const date = new Date(`${isoUtc}Z`);
-  if (Number.isNaN(date.getTime())) return 'as of unknown time';
-  return `as of ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-};
 
 const formatTyphoonTime = (isoString?: string | null) => {
   if (!isoString) return null;
@@ -971,6 +967,14 @@ export function DataLayerControls({
 }: DataLayerControlsProps) {
   const [showScaleModal, setShowScaleModal] = useState(false);
   const [showSimulationInfo, setShowSimulationInfo] = useState(false);
+  const [satelliteNow, setSatelliteNow] = useState(0);
+  useEffect(() => {
+    if (!showHimawariIR) return;
+    const update = () => setSatelliteNow(Date.now());
+    const first = setTimeout(update, 0);
+    const timer = setInterval(update, 60_000);
+    return () => { clearTimeout(first); clearInterval(timer); };
+  }, [showHimawariIR]);
   const { blended } = resolveRainfallAttribution(rainfallSource, rainfallHours);
   // Mirrors activeLayersCount in MapSidebar so Clear layers turns off everything the
   // count badge considers active.
@@ -1357,6 +1361,7 @@ export function DataLayerControls({
               Recent published scans · 10-min intervals
               {himawariObservedAt && <p className="mt-1" data-satellite-observed-at={himawariObservedAt}>
                 Latest scan: {new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(himawariObservedAt))} PHT
+                {satelliteNow - Date.parse(himawariObservedAt) > 30 * 60_000 && <span className="ml-1 text-warning-text" data-satellite-delayed>· Delayed</span>}
               </p>}
             </div>
             <div>

@@ -14,8 +14,6 @@ export function ensureAssessmentLandMask(map: any): void {
       paint: { 'fill-opacity': 0 },
     });
   }
-  // Share the coastline download with the heat overlay and warm it before a tap.
-  void loadHeatLandMask().catch(() => {});
 }
 
 function pointInRing(lon: number, y: number, ring: Float64Array): boolean {

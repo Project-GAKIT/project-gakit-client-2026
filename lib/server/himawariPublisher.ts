@@ -33,6 +33,8 @@ export async function publishSatelliteFrames(store: SatellitePublicationStore,
   let upstreamUnavailable = false;
   try { candidates = await discover(); }
   catch { candidates = []; upstreamUnavailable = true; }
+  const sourceLatest = candidates.filter(s => Number.isFinite(scanEpoch(s))
+    && scanEpoch(s) <= now && now - scanEpoch(s) <= SATELLITE_RETENTION_MS).sort().at(-1) ?? null;
   candidates = [...new Set([...candidates, ...(previous?.frames.map(f => f.stamp) ?? [])])]
     .filter(s => Number.isFinite(scanEpoch(s)) && scanEpoch(s) <= now && now - scanEpoch(s) <= SATELLITE_RETENTION_MS)
     .sort().reverse().slice(0, 8);
@@ -63,7 +65,13 @@ export async function publishSatelliteFrames(store: SatellitePublicationStore,
     && now - scanEpoch(s) > SATELLITE_RETENTION_MS && !protectedStamps.has(s));
   // Failure here is visible to the scheduler, but the newly published feed remains valid.
   if (expired.length) await store.removeFrames(expired);
+  const latest = manifest.frames.at(-1)!.stamp;
+  const sourceAgeMinutes = sourceLatest ? (now - scanEpoch(sourceLatest)) / 60_000 : null;
+  const publicationLagMinutes = sourceLatest ? Math.max(0, (scanEpoch(sourceLatest) - scanEpoch(latest)) / 60_000) : null;
+  const delayed = now - scanEpoch(latest) > 30 * 60_000;
+  const delayCause = upstreamUnavailable ? 'unavailable'
+    : publicationLagMinutes !== null && publicationLagMinutes > 0 ? 'publication'
+    : delayed && sourceAgeMinutes !== null && sourceAgeMinutes > 30 ? 'source' : null;
   return { published: frames.length, rendered, deleted: expired.length, failed,
-    upstreamUnavailable, latest: manifest.frames.at(-1)!.stamp,
-    delayed: now - scanEpoch(manifest.frames.at(-1)!.stamp) > 30 * 60_000 };
+    upstreamUnavailable, latest, delayed, sourceLatest, sourceAgeMinutes, publicationLagMinutes, delayCause };
 }

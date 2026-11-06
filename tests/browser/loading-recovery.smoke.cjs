@@ -51,14 +51,12 @@ const base = process.env.GAKIT_BASE_URL || 'http://localhost:3000';
     const iconPage = await context.newPage();
     const icons = [];
     await iconPage.route('**/icons/pagasa/*.png', route => { icons.push(route); });
-    const iconRequest = iconPage.waitForRequest('**/icons/pagasa/*.png');
     await iconPage.goto(base + '/', { waitUntil: 'domcontentloaded' });
     await iconPage.locator('[data-public-map-shell]').waitFor();
-    await iconRequest;
     await iconPage.locator('[role="status"][aria-label="Loading page"][aria-hidden="false"]').waitFor({ state: 'hidden', timeout: 14000 });
-    assert(icons.length > 0, 'Icon requests are still pending when the map becomes ready');
+    assert.equal(icons.length, 0, 'Disabled typhoon tracking never requests category icons');
     await Promise.all(icons.map(route => route.abort()));
-    console.log('Pending typhoon icons do not block map readiness');
+    console.log('Disabled typhoon icons do not compete with map startup');
     await iconPage.close();
 
     const recoveryPage = await context.newPage();

@@ -212,6 +212,106 @@ export const applyRainfallPaint = (map: any, hours: number) => {
   // When rainfall-grid is a raster layer, colors are rendered directly onto the raster image.
 };
 
+/** Disabled hazard archives are registered only when first selected. */
+export function ensureHazardLayers(map: any, state: Pick<OverlayLayerState,
+  'showFloodHazard' | 'showLandslide' | 'showStormSurge' | 'stormSurgeAdvisory' | 'smoothPolygons'>): void {
+  const protocol = state.smoothPolygons !== false ? 'smoothpmtiles' : 'pmtiles';
+  // --- Flood hazard vector tile layer (PMTiles) ---
+  if (state.showFloodHazard && !map.getSource('flood-hazard')) {
+    map.addSource('flood-hazard', {
+      type: 'vector',
+      url: `${protocol}:///data/lanao-del-norte-flood-zones.pmtiles`,
+      attribution:
+        'Flood data: <a href="https://noah.upd.edu.ph/" target="_blank" rel="noopener">UP RI NOAH</a> (ODbL)',
+    });
+
+    map.addLayer({
+      id: 'flood-hazard-fill',
+      type: 'fill',
+      source: 'flood-hazard',
+      'source-layer': 'flood-zones',
+      paint: {
+        'fill-color': [
+          'match',
+          ['get', 'risk_level'],
+          'high',    FLOOD_HAZARD_COLORS.high,
+          'medium',  FLOOD_HAZARD_COLORS.medium,
+          'low',     FLOOD_HAZARD_COLORS.low,
+          'rgba(0,0,0,0.15)',
+        ],
+        'fill-opacity': 0.75,
+        'fill-antialias': false,
+      },
+    });
+  }
+
+  // --- Landslide susceptibility (PMTiles) ---
+  if (state.showLandslide && !map.getSource('landslide')) {
+    map.addSource('landslide', {
+      type: 'vector',
+      url: `${protocol}:///data/lanao-del-norte-landslide.pmtiles`,
+      attribution:
+        'Landslide data: <a href="https://noah.upd.edu.ph/" target="_blank" rel="noopener">UP RI NOAH</a>',
+    });
+    map.addLayer({
+      id: 'landslide-fill',
+      type: 'fill',
+      source: 'landslide',
+      'source-layer': 'landslide',
+      paint: {
+        'fill-color': [
+          'match',
+          ['get', 'LH'],
+          1, LANDSLIDE_COLORS.low,
+          2, LANDSLIDE_COLORS.medium,
+          3, LANDSLIDE_COLORS.high,
+          'rgba(0,0,0,0.15)',
+        ],
+        'fill-opacity': 0.75,
+        'fill-antialias': false,
+      },
+    });
+  }
+
+  // --- Storm surge advisories 1..4 (one source per archive; single-active) ---
+  for (const n of [1, 2, 3, 4] as const) {
+    const sourceId = `storm-surge-ssa${n}`;
+    const layerId = `storm-surge-ssa${n}-fill`;
+    if (state.showStormSurge && state.stormSurgeAdvisory === n && !map.getSource(sourceId)) {
+      map.addSource(sourceId, {
+        type: 'vector',
+        url: `${protocol}:///data/lanao-del-norte-storm-surge-ssa${n}.pmtiles`,
+        attribution:
+          'Storm surge: <a href="https://noah.upd.edu.ph/" target="_blank" rel="noopener">UP RI NOAH</a>',
+      });
+      map.addLayer({
+        id: layerId,
+        type: 'fill',
+        source: sourceId,
+        'source-layer': `storm_surge_ssa${n}`,
+        paint: {
+          'fill-color': [
+            'match',
+            ['to-number', ['get', 'HAZ']],
+            1, STORM_SURGE_HAZ_COLORS[1],
+            2, STORM_SURGE_HAZ_COLORS[2],
+            3, STORM_SURGE_HAZ_COLORS[3],
+            STORM_SURGE_HAZ_COLORS[1],
+          ],
+          'fill-opacity': 0.75,
+          'fill-antialias': false,
+        },
+      });
+    }
+  }
+
+  const before = map.getLayer('simulation-flood-grid') ? 'simulation-flood-grid'
+    : map.getLayer('rainfall-grid') ? 'rainfall-grid' : undefined;
+  if (before) for (const id of ['flood-hazard-fill', 'landslide-fill', ...[1, 2, 3, 4].map(n => `storm-surge-ssa${n}-fill`)]) {
+    if (map.getLayer(id)) map.moveLayer(id, before);
+  }
+}
+
 // Adds the project sources/layers (flood hazard, rainfall, reports,
 // selected-location, 3D terrain) idempotently. Runs on the initial style load
 // and again after every basemap switch (2D <-> 3D).
@@ -237,94 +337,7 @@ export const setupOverlayLayers = async (
     }
     syncBuildingLayers(map, 'iligan-buildings', state.mapMode, state.basemap);
     applyBuildingsVisibility(map, state.mapMode, state.showBuildings);
-    // --- Flood hazard vector tile layer (PMTiles) ---
-    if (!map.getSource('flood-hazard')) {
-      map.addSource('flood-hazard', {
-        type: 'vector',
-        url: 'pmtiles:///data/lanao-del-norte-flood-zones.pmtiles',
-        attribution:
-          'Flood data: <a href="https://noah.upd.edu.ph/" target="_blank" rel="noopener">UP RI NOAH</a> (ODbL)',
-      });
-
-      map.addLayer({
-        id: 'flood-hazard-fill',
-        type: 'fill',
-        source: 'flood-hazard',
-        'source-layer': 'flood-zones',
-        paint: {
-          'fill-color': [
-            'match',
-            ['get', 'risk_level'],
-            'high',    FLOOD_HAZARD_COLORS.high,
-            'medium',  FLOOD_HAZARD_COLORS.medium,
-            'low',     FLOOD_HAZARD_COLORS.low,
-            'rgba(0,0,0,0.15)',
-          ],
-          'fill-opacity': 0.75,
-          'fill-antialias': false,
-        },
-      });
-    }
-
-    // --- Landslide susceptibility (PMTiles) ---
-    if (!map.getSource('landslide')) {
-      map.addSource('landslide', {
-        type: 'vector',
-        url: 'pmtiles:///data/lanao-del-norte-landslide.pmtiles',
-        attribution:
-          'Landslide data: <a href="https://noah.upd.edu.ph/" target="_blank" rel="noopener">UP RI NOAH</a>',
-      });
-      map.addLayer({
-        id: 'landslide-fill',
-        type: 'fill',
-        source: 'landslide',
-        'source-layer': 'landslide',
-        paint: {
-          'fill-color': [
-            'match',
-            ['get', 'LH'],
-            1, LANDSLIDE_COLORS.low,
-            2, LANDSLIDE_COLORS.medium,
-            3, LANDSLIDE_COLORS.high,
-            'rgba(0,0,0,0.15)',
-          ],
-          'fill-opacity': 0.75,
-          'fill-antialias': false,
-        },
-      });
-    }
-
-    // --- Storm surge advisories 1..4 (one source per archive; single-active) ---
-    for (const n of [1, 2, 3, 4] as const) {
-      const sourceId = `storm-surge-ssa${n}`;
-      const layerId = `storm-surge-ssa${n}-fill`;
-      if (!map.getSource(sourceId)) {
-        map.addSource(sourceId, {
-          type: 'vector',
-          url: `pmtiles:///data/lanao-del-norte-storm-surge-ssa${n}.pmtiles`,
-          attribution:
-            'Storm surge: <a href="https://noah.upd.edu.ph/" target="_blank" rel="noopener">UP RI NOAH</a>',
-        });
-        map.addLayer({
-          id: layerId,
-          type: 'fill',
-          source: sourceId,
-          'source-layer': `storm_surge_ssa${n}`,
-          paint: {
-            'fill-color': [
-              'match',
-              ['to-number', ['get', 'HAZ']],
-              1, STORM_SURGE_HAZ_COLORS[1],
-              2, STORM_SURGE_HAZ_COLORS[2],
-              3, STORM_SURGE_HAZ_COLORS[3],
-              STORM_SURGE_HAZ_COLORS[1],
-            ],
-            'fill-opacity': 0.75,
-            'fill-antialias': false,
-          },
-        });
-      }
-    }
+    ensureHazardLayers(map, state);
 
     // --- Near real-time rainfall raster (JAXA GSMaP) ---
     if (!map.getSource('rainfall')) {
@@ -492,7 +505,7 @@ export const setupOverlayLayers = async (
 
     // 3. Official PAGASA category symbols for observed and forecast positions.
     // Icons enrich the tracker; their downloads must not gate map startup.
-    void registerTyphoonIcons(map, isCurrent);
+
     // Renders nodes for official classifications ('STY', 'TY', 'STS', 'TS', 'TD', 'LPA' + agency aliases like 'AA', 'LOW')
     const officialCategoryFilter = [
       'all',
@@ -570,6 +583,8 @@ export const setupOverlayLayers = async (
       },
     });
   }
+
+  if (state.showTyphoonTrack) void registerTyphoonIcons(map, isCurrent);
 
     // Apply current toggle state (handles case where user toggled before load)
   const typhoonVis = state.showTyphoonTrack ?? false;

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MutableRefObject } from 'react';
 import * as maplibregl from 'maplibre-gl';
+import { registerTyphoonIcons } from '@/lib/map/typhoonIcons';
 import {
   enrichTyphoonTrackGeoJson,
   fetchHistoricalStorms,
@@ -66,6 +67,9 @@ export function useTyphoonLayer(
     const isHistorical = Boolean(selectedHistoricalStormRef.current || data.isHistorical);
     const enrichedTrack = data.track ? enrichTyphoonTrackGeoJson(data.track, { isHistorical }) : null;
     const typhoonSource = map.getSource('typhoon-track') as any;
+    if (showTyphoonTrackRef.current && enrichedTrack) {
+      void registerTyphoonIcons(map, () => map === mapRef.current && map.getSource('typhoon-track') === typhoonSource);
+    }
     if (typhoonSource && enrichedTrack) {
       typhoonSource.setData(enrichedTrack);
     }

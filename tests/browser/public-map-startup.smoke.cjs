@@ -9,6 +9,12 @@ const base = process.env.GAKIT_BASE_URL || 'http://localhost:3000';
     for (const width of [390, 1440]) {
       const page = await browser.newPage({ viewport: { width, height: 1000 } });
       const errors = [];
+      const buildings = [];
+      const lazyAssets = [];
+      page.on('request', request => {
+        if (/lanao-del-norte-(?:flood-zones|landslide|storm-surge).*\.pmtiles|\/icons\/pagasa\/|phl-heat-land\.geojson/.test(request.url())) lazyAssets.push(request.url());
+      });
+      await page.route('**/data/iligan-buildings.pmtiles', route => { buildings.push(route); });
       page.on('pageerror', error => errors.push(error.message));
       await page.addInitScript(() => {
         localStorage.setItem('gakit:first-visit-seen', 'true');
@@ -51,6 +57,9 @@ const base = process.env.GAKIT_BASE_URL || 'http://localhost:3000';
       await page.waitForFunction(() => document.querySelector('[role="status"][aria-label="Loading page"]')?.getAttribute('aria-hidden') === 'true', {}, { timeout: 30000 });
       assert(reports.length > 0, 'Reports remain pending while the ready map is usable');
       assert.equal(await page.locator('canvas.maplibregl-canvas').count(), 1);
+      assert(buildings.length > 0, 'Optional building archive is still pending');
+      assert.deepEqual(lazyAssets, [], 'Disabled hazards, icons and assessment coastline are lazy');
+      await Promise.all(buildings.splice(0).map(route => route.abort()));
       const before = await page.evaluate(() => window.startupLoaderEvents);
       assert(before.every(e => e.count <= 1 && !e.label.includes('Loading flood reports')));
       holdReports = false;

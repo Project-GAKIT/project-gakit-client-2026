@@ -14,6 +14,7 @@ import { useBasemapStyle } from '@/hooks/useBasemapStyle';
 import { useMapGlassActivity } from '@/hooks/useMapGlassActivity';
 import { attachAdaptiveGlass, mapGlassScope } from '@/lib/map/adaptiveGlass';
 import { syncParBoundary } from '@/lib/map/parBoundary';
+import { basemapSourceIds, onBasemapFrame } from '@/lib/map/mapStartup';
 import { Focus, Locate, X } from 'lucide-react';
 import { IIT_BOUNDS, isInsideIit, syncCampusFocus } from '@/lib/map/campusFocus';
 import { ensureCampusSatelliteProtocol } from '@/lib/map/campusSatellite';
@@ -36,7 +37,6 @@ import {
 import {
   ILIGAN_CENTER,
   getIliganBarangays,
-  preloadGeoData,
   reverseGeocode,
   type GeoJsonCollection,
 } from '@/lib/map/geoUtils';
@@ -60,6 +60,7 @@ import {
   riskLevelFilter,
   landslideFilter,
   setupOverlayLayers,
+  ensureHazardLayers,
   type MapMode,
 } from '@/lib/map/overlayLayers';
 import {
@@ -389,6 +390,7 @@ export function PublicMap({
   const layersReadyRef = useRef(false);
   const { overlayLabel: displayLoadingLabel, run: updateDisplay } = useMapDisplayLoading(mapRef, layersReadyRef);
   const onReadyFiredRef = useRef(false);
+  const startupReadyCleanupRef = useRef<(() => void) | null>(null);
 
   const reportsLayer = useReportsLayer(reportFilters);
   const { backendReports, isLoadingReports, reportsRef, loadMapReports } = reportsLayer;
@@ -406,7 +408,6 @@ export function PublicMap({
 
   useEffect(() => {
     let cancelled = false;
-    preloadGeoData();
     getIliganBarangays().then((geo) => {
       if (!cancelled) setBarangayGeojson(geo);
     });
@@ -885,6 +886,8 @@ export function PublicMap({
     (map: any) => {
       const revision = styleRevision.current;
       const isCurrent = () => revision === styleRevision.current && map === mapRef.current;
+      const basemapSources = basemapSourceIds(map);
+      startupReadyCleanupRef.current?.();
       void (async () => {
         await setupOverlayLayers(map, maplibregl, {
           showFloodHazard: showFloodHazardRef.current,
@@ -930,10 +933,8 @@ export function PublicMap({
             onReadyFiredRef.current = true;
             onReadyRef.current?.();
           };
-          // Layer registration finishes before its vector tiles render. Keep
-          // the shared startup loader until the first complete map frame.
-          if (map.loaded()) notifyReady();
-          else map.once('idle', notifyReady);
+          // Optional overlays must not hold the entire page behind their I/O.
+          startupReadyCleanupRef.current = onBasemapFrame(map, basemapSources, notifyReady);
         }
 
         // Apply rainfall data that was fetched before the map finished loading.
@@ -1272,6 +1273,7 @@ export function PublicMap({
       selectedMarkerRef.current?.remove();
       selectedMarkerRef.current = null;
       setMapReady(false);
+      startupReadyCleanupRef.current?.();
       map.remove();
       mapRef.current = null;
     };
@@ -1325,6 +1327,7 @@ export function PublicMap({
     if (!map || !layersReadyRef.current) return;
 
     try {
+      ensureHazardLayers(map, { showFloodHazard, showLandslide, showStormSurge, stormSurgeAdvisory, smoothPolygons });
       const layers: Array<[string, boolean]> = [
         ['flood-hazard-fill', showFloodHazard],
         ['landslide-fill', showLandslide],

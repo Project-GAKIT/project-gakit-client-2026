@@ -1,5 +1,6 @@
 # Dependencies
 /node_modules
+/infra/satellite-publisher/node_modules/
 /.pnp
 .pnp.js
 

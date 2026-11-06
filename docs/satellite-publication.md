@@ -36,7 +36,10 @@ reader needs only its existing public Supabase URL.
 
 `node scripts/publish-satellite.cjs` compiles the existing TypeScript renderer
 and publication modules with the locked TypeScript dependency. It requires
-Node 22 or newer and installed project dependencies; it starts neither Next nor
+Node 22 or newer. Actions installs only the pinned TypeScript, Sharp, and Supabase
+dependencies in `infra/satellite-publisher`; no application install or postinstall
+hooks run. The CLI reuses those dependencies (or existing root dependencies for
+local maintenance) and starts neither Next nor
 the Python API. For a local maintenance run, after stopping the scheduler:
 
 ```powershell
@@ -135,3 +138,13 @@ These isolate browser delivery with a stub map and are not production latency
 guarantees. One live overlapping scan used 397,207 PNG bytes versus 347,926 WebP
 bytes (12% less), with zero differences in visible RGB or alpha. Fully transparent
 pixels may have different hidden RGB values.
+
+## Freshness diagnostics
+
+The job reports `sourceLatest`, `sourceAgeMinutes`, and `publicationLagMinutes`
+separately. `delayCause: source` means publication has caught up but the upstream
+scan is older than 30 minutes; `publication` means a newer available scan was not
+published. Source delays produce a workflow warning while download, render, or
+publication failures still fail the job. The map retains the actual scan time
+and shows a compact Delayed label while its newest usable image is over 30
+minutes old. A successful run never implies that the source has a new scan.
