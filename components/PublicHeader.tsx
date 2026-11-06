@@ -5,13 +5,12 @@ import { cloneElement, isValidElement, useCallback, useEffect, useLayoutEffect, 
 import Image from 'next/image';
 import { ChevronLeft, Info, MapPinPlus, MapPinned } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { getDisplayName, getStaffRole, homePathForRole, type AuthSnapshot, type StaffRole } from '@/lib/auth/roles';
+import { getDisplayName, getStaffRole, type AuthSnapshot, type StaffRole } from '@/lib/auth/roles';
 import { useActiveAlerts } from '@/lib/weather/weatherStore';
 import { alertDescription, alertTitle } from '@/lib/weather/weatherCodes';
 import { isPagasaAlert, pagasaSubtitle, shortTitle } from '@/lib/weather/pagasa';
 import type { WeatherAlert } from '@/types/weather';
 import { useRouteLoader } from './RouteLoader';
-import { usePrefetchRoute } from '@/hooks/usePrefetchRoute';
 import { SignOutConfirmDialog } from './SideBar';
 import { NotificationBell } from './NotificationBell';
 import type { NotificationItem } from './NotificationBell';
@@ -245,17 +244,9 @@ export function PublicHeader({
     router.refresh();
   }
 
-  const home = role ? homePathForRole(role) : null;
   const bentoTiles = useMemo(() => getBentoTilesForRole(role)
     .filter(tile => !showSectionNav || tile.id !== 'public-hazard-map'), [role, showSectionNav]);
-  usePrefetchRoute(home ?? '/login');
-
-  // Prefetch all portal routes during idle time for fast switching
-  useEffect(() => {
-    bentoTiles.forEach((tile) => {
-      router.prefetch(tile.href);
-    });
-  }, [bentoTiles, router]);
+  // Bento links prefetch when the menu opens; initial bandwidth belongs to the map.
   const requestSignOut = !isChecking && (name || email || role) ? () => {
     setIsInfoOpen(false);
     setShowSignOutConfirm(true);
