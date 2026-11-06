@@ -38,11 +38,25 @@ export function pointOnPhilippineLand(polygons: MaskPolygon[], lat: number, lon:
   );
 }
 
-/** Do not select water or accept an unverified point while boundary tiles load. */
+export class MapLocationPending extends Error {
+  constructor() { super('Map data at this spot is still loading. Please try again shortly.'); }
+}
+
+/** Check the selected point; unrelated tiles must not disable a visible land area. */
 export async function canAssessMapLocation(map: any, lat: number, lng: number): Promise<boolean> {
   const land = await loadHeatLandMask();
   if (!pointOnPhilippineLand(land, lat, lng)) return false;
   const layer = map.getLayer(ASSESSMENT_WATER_LAYER);
-  if (!layer || !map.isSourceLoaded(layer.source)) return false;
-  return map.queryRenderedFeatures(map.project([lng, lat]), { layers: [ASSESSMENT_WATER_LAYER] }).length === 0;
+  if (!layer) throw new MapLocationPending();
+  const point = map.project([lng, lat]);
+  if (map.queryRenderedFeatures(point, { layers: [ASSESSMENT_WATER_LAYER] }).length) return false;
+  if (map.isSourceLoaded(layer.source)) return true;
+  // Rendered geometry from this same vector source proves the local tile is
+  // available, even while a different tile in the viewport is still pending.
+  const localLayers = (map.getStyle()?.layers ?? []).filter((candidate: any) =>
+    candidate.source === layer.source && candidate.id !== ASSESSMENT_WATER_LAYER
+    && candidate.layout?.visibility !== 'none' && ['fill', 'line', 'fill-extrusion'].includes(candidate.type)
+    && candidate.paint?.['fill-opacity'] !== 0).map((candidate: any) => candidate.id);
+  if (localLayers.length && map.queryRenderedFeatures(point, { layers: localLayers }).length) return true;
+  throw new MapLocationPending();
 }

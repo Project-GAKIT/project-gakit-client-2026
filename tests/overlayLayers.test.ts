@@ -24,7 +24,7 @@ vi.mock('@/lib/map/heatLandMask', async importOriginal => ({
   loadHeatLandMask: vi.fn().mockResolvedValue([]),
 }));
 
-import { ensureHazardLayers, setupOverlayLayers } from '@/lib/map/overlayLayers';
+import { applyBuildingsVisibility, ensureHazardLayers, setupOverlayLayers } from '@/lib/map/overlayLayers';
 import { HIMAWARI_PLACEHOLDER_DATA_URL } from '@/lib/map/himawari';
 
 function createMockMap() {
@@ -278,4 +278,15 @@ describe('setupOverlayLayers himawari source', () => {
     expect(simLayer.type).toBe('raster');
     expect(simLayer.source).toBe('simulation-flood');
   });
+});
+
+
+it('applies building toggles while unrelated source data is loading', () => {
+  const map = { isStyleLoaded: () => false, getStyle: () => ({ layers: [] }),
+    getLayer: (id: string) => id === 'iligan-buildings-2d' ? {} : undefined,
+    setLayoutProperty: vi.fn(), setPaintProperty: vi.fn(), moveLayer: vi.fn() };
+  applyBuildingsVisibility(map, '2d', false);
+  expect(map.setLayoutProperty).toHaveBeenLastCalledWith('iligan-buildings-2d', 'visibility', 'none');
+  applyBuildingsVisibility(map, '2d', true);
+  expect(map.setLayoutProperty).toHaveBeenLastCalledWith('iligan-buildings-2d', 'visibility', 'visible');
 });
