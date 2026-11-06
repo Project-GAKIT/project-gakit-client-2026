@@ -1,3 +1,4 @@
+import { decodeRainfallNumeric, type RainfallNumeric } from './rainfallNumeric';
 import { cachedGet } from '@/lib/backend/apiCache';
 import type { ForecastWeather, ForecastWeatherFrame } from '@/types/forecastWeather';
 import { publishedWeatherJSON, publicWeatherBase } from '@/lib/map/weatherPublication';
@@ -126,4 +127,65 @@ export function forecastCoordinates(grid: ForecastWeather): [number, number][] {
 
 export function forecastTime(time: string): string {
   return new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(time)) + ' PHT';
+}
+
+const numericFrames = new Map<string, Promise<RainfallNumeric>>();
+const numericRequests = new Map<string, AbortController>();
+
+/** Load only the selected immutable frame; retain at most eight numeric grids. */
+export function fetchForecastRainfall(grid: ForecastWeather, frame: ForecastWeatherFrame): Promise<RainfallNumeric> | null {
+  if (!grid.rainNumeric) return null;
+  const raster = forecastRasterUrl(grid, frame);
+  if (!raster) return null;
+  const url = raster.replace(/\.(?:webp|png)$/, '.json.gz');
+  const cached = numericFrames.get(url);
+  if (cached) {
+    numericFrames.delete(url);
+    numericFrames.set(url, cached);
+    return cached;
+  }
+  if (numericFrames.size >= 8) {
+    const oldest = numericFrames.keys().next().value!;
+    numericRequests.get(oldest)?.abort();
+    numericRequests.delete(oldest);
+    numericFrames.delete(oldest);
+  }
+  const controller = new AbortController();
+  numericRequests.set(url, controller);
+  const promise = (async () => {
+    const api = `${process.env.NEXT_PUBLIC_API_URL ?? ''}${frame.rasterUrl.replace(/\.(?:webp|png)$/, '.json.gz')}`;
+    const read = async (target: string) => {
+      const response = await fetch(target, { signal: AbortSignal.any([controller.signal, AbortSignal.timeout(8_000)]) });
+      if (!response.ok) throw new Error('Forecast numeric frame unavailable');
+      const buffer = await response.arrayBuffer();
+      if (buffer.byteLength > 1_200_000) throw new Error('Forecast grid exceeds size limit');
+      const bytes = new Uint8Array(buffer);
+      const body = bytes[0] === 31 && bytes[1] === 139
+        ? new Blob([buffer]).stream().pipeThrough(new DecompressionStream('gzip')) : new Blob([buffer]).stream();
+      const reader = body.getReader();
+      const chunks: Uint8Array[] = [];
+      let length = 0;
+      try {
+        for (;;) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          length += value.length;
+          if (length > 1_200_000) { await reader.cancel(); throw new Error('Forecast grid exceeds size limit'); }
+          chunks.push(value);
+        }
+      } finally { reader.releaseLock(); }
+      const decoded = new Uint8Array(length);
+      let offset = 0;
+      for (const chunk of chunks) { decoded.set(chunk, offset); offset += chunk.length; }
+      controller.signal.throwIfAborted();
+      const result = decodeRainfallNumeric({ ...JSON.parse(new TextDecoder().decode(decoded)), observedAt: frame.rainWindowEndAt });
+      return { ...result, observedAt: frame.rainWindowEndAt };
+    };
+    try { return await read(url); } catch (error) { if (url === api || controller.signal.aborted) throw error; return read(api); }
+  })().catch(error => {
+    if (numericFrames.get(url) === promise) { numericFrames.delete(url); numericRequests.delete(url); }
+    throw error;
+  });
+  numericFrames.set(url, promise);
+  return promise;
 }

@@ -87,7 +87,7 @@ export function ScenarioMap({ scenarioId, currentFrame, bounds, onRasterStateCha
 
   const [mapLoaded, setMapLoaded] = useState(false);
   const { basemap, mode, renderMode, enableBuildings, enableRoads, focusRoads, showParBoundary } = useScenarioDisplay();
-  useFloodDepthHover(mapRef, rasterController, 'simulation-flood-layer', mapLoaded && !focusRoads);
+  useFloodDepthHover(mapRef, rasterController, 'simulation-flood-layer', mapLoaded && !focusRoads, true);
   useRoadFloodFocus(mapRef, rasterController, 'simulation-flood-layer', mapLoaded && !!currentFrame && focusRoads);
   useEffect(() => {
     if (mapLoaded && demoFocus) mapRef.current?.easeTo({ center: [demoFocus.longitude, demoFocus.latitude], zoom: 16, duration: 500 });
