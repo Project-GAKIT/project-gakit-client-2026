@@ -19,6 +19,7 @@ import { Focus, Locate, X } from 'lucide-react';
 import { IIT_BOUNDS, isInsideIit, syncCampusFocus } from '@/lib/map/campusFocus';
 import { ensureCampusSatelliteProtocol } from '@/lib/map/campusSatellite';
 import { Spinner } from '@/components/ui/Spinner';
+import { PageLoader } from '@/components/ui/LoadingState';
 import { FloodSimulationTimeline } from '@/components/map/FloodSimulationTimeline';
 import { PinnedLocationActions, type PinActions } from '@/components/map/PinnedLocationActions';
 import { toast } from 'react-toastify';
@@ -1397,7 +1398,7 @@ export function PublicMap({
         />
       )}
       {errorNotice}
-      {displayLoadingLabel && <div role="status" className="pointer-events-none absolute bottom-12 left-3 z-[990] rounded-lg border border-default bg-panel px-3 py-2 text-xs text-secondary shadow-sm">{displayLoadingLabel}</div>}
+      <PageLoader isLoading={Boolean(displayLoadingLabel)} label={displayLoadingLabel ?? 'Loading map…'} />
 
       {showBarangayBoundaries &&
         hoveredBarangay &&
