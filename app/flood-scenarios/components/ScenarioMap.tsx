@@ -18,7 +18,7 @@ import {
   TERRAIN_ENCODING,
   BUILDINGS_PMTILES_URL,
   ROADS_PMTILES_URL,
-  FLAT_EXTRUSION_LIGHT,
+  BUILDING_EXTRUSION_LIGHT,
   TERRAIN_EXAGGERATION,
   REPORT_MARKER_COLORS,
   REPORT_MARKER_IMAGE_IDS,
@@ -281,7 +281,7 @@ export function ScenarioMap({ scenarioId, currentFrame, bounds, onRasterStateCha
       if (modeRef.current === '3d') {
         map.setTerrain({ source: 'terrain-source', exaggeration: TERRAIN_EXAGGERATION });
       }
-      map.setLight(FLAT_EXTRUSION_LIGHT);
+      map.setLight(BUILDING_EXTRUSION_LIGHT);
 
       // Flood images are added by the selected-frame effect after map load.
 
@@ -322,7 +322,7 @@ export function ScenarioMap({ scenarioId, currentFrame, bounds, onRasterStateCha
           if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', enableBuildingsRef.current ? 'visible' : 'none');
         }
         if (buildingModeRef.current === '3d') {
-          map.setLight(FLAT_EXTRUSION_LIGHT);
+          map.setLight(BUILDING_EXTRUSION_LIGHT);
         }
 
         // 6. Iligan road network (PMTiles). Inserted directly beneath the
@@ -452,7 +452,7 @@ export function ScenarioMap({ scenarioId, currentFrame, bounds, onRasterStateCha
       if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', enableBuildings ? 'visible' : 'none');
     }
     if (buildingMode === '3d') {
-      map.setLight(FLAT_EXTRUSION_LIGHT);
+      map.setLight(BUILDING_EXTRUSION_LIGHT);
     }
   }, [basemap, buildingMode, enableBuildings, mapLoaded]);
 

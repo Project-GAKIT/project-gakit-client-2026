@@ -15,7 +15,7 @@ import {
   BasemapId,
   BUILDING_EXTRUSION_VERTICAL_GRADIENT,
   BUILDINGS_PMTILES_URL,
-  FLAT_EXTRUSION_LIGHT,
+  BUILDING_EXTRUSION_LIGHT,
   isDarkBasemap,
   TERRAIN_EXAGGERATION,
   REPORT_MARKER_COLORS,
@@ -149,7 +149,7 @@ export const applyBuildingsVisibility = (
         }
       }
       if (shouldShow3D && map.setLight) {
-        map.setLight(FLAT_EXTRUSION_LIGHT);
+        map.setLight(BUILDING_EXTRUSION_LIGHT);
       }
     }
 
