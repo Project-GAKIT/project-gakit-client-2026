@@ -6,7 +6,9 @@ import path from 'node:path';
 // Preserve the source bundles used by the generators and scientific checks.
 // The app reads small manifests and fetches only the selected frame's PNG.
 const root = fileURLToPath(new URL('../', import.meta.url));
-const source = path.join(root, 'public/data/scenarios');
+const source = process.argv.includes('--source')
+  ? path.resolve(process.argv[process.argv.indexOf('--source') + 1])
+  : path.join(root, 'public/data/scenarios');
 const output = process.argv.includes('--output')
   ? path.resolve(process.argv[process.argv.indexOf('--output') + 1])
   : path.join(root, 'public/data/scenario-assets');

@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "check:styling": "node scripts/check-styling.mjs",
     "test": "vitest run",
+    "test:changed": "vitest run --changed",
     "postinstall": "node scripts/sync-maplibre-worker.mjs"
   },
   "dependencies": {
