@@ -66,16 +66,13 @@ export const TERRAIN_ATTRIBUTION = '<a href="https://mapterhorn.com/attribution/
 // sit on the OpenFreeMap Positron basemap in the same warm grey, never the
 // cool slate that reads as a foreign overlay.
 export const BUILDING_FILL_COLOR = '#dfdeda';
-export const BUILDING_FILL_OUTLINE_COLOR = '#d0ceca';
-export const BUILDING_FILL_OPACITY = 0.65;
-export const BUILDING_EXTRUSION_COLOR = '#dedcd7';
+export const BUILDING_FILL_OPACITY = 1;
+export const BUILDING_EXTRUSION_COLOR = BUILDING_FILL_COLOR;
 // Neutral charcoal keeps buildings just above Dark Matter's ground without
 // the blue cast or bright outlines of the previous Fiord building palette.
 export const BUILDING_FILL_COLOR_DARK = '#242424';
-export const BUILDING_FILL_OPACITY_DARK = 1;
-export const BUILDING_FILL_OUTLINE_COLOR_DARK = '#2c2c2c';
-export const BUILDING_EXTRUSION_COLOR_DARK = '#303030';
-export const BUILDING_EXTRUSION_OPACITY = 0.75;
+export const BUILDING_EXTRUSION_COLOR_DARK = BUILDING_FILL_COLOR_DARK;
+export const BUILDING_EXTRUSION_OPACITY = 1;
 export const BUILDING_EXTRUSION_HEIGHT = 6;
 export const BUILDING_EXTRUSION_BASE = 0;
 export const BUILDINGS_MIN_ZOOM = 13;
@@ -105,17 +102,14 @@ export const ROAD_PRIMARY_COLOR_DARK = '#a3a3a3';
 export const ROAD_SECONDARY_COLOR_DARK = '#858585';
 export const ROAD_MINOR_COLOR_DARK = '#777777';
 
-// Flattened 3D shading. MapLibre shades fill-extrusion walls with a vertical
-// gradient (darker at the base) and lights them from a default 0.5-intensity
-// key; both make extruded volumes read as shaded blocks. Every map surface
-// therefore pins the gradient off and swaps in the same soft, near-ambient
-// light, so buildings render as flat plates at a consistent brightness.
+// Directional shading distinguishes building faces without outlines or wall
+// gradients. Opaque buildings avoid the extra translucent depth pass.
 export const BUILDING_EXTRUSION_VERTICAL_GRADIENT = false;
-export const FLAT_EXTRUSION_LIGHT: LightSpecification = {
+export const BUILDING_EXTRUSION_LIGHT: LightSpecification = {
   anchor: 'viewport',
-  position: [1.15, 0, 0],
+  position: [1.15, 210, 30],
   color: '#ffffff',
-  intensity: 0.25,
+  intensity: 0.5,
 };
 
 // Terrain relief: shared vertical exaggeration plus the deliberately faint

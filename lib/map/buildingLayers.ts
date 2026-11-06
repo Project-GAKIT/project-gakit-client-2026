@@ -8,9 +8,6 @@ import {
   BUILDING_FILL_COLOR,
   BUILDING_FILL_COLOR_DARK,
   BUILDING_FILL_OPACITY,
-  BUILDING_FILL_OPACITY_DARK,
-  BUILDING_FILL_OUTLINE_COLOR,
-  BUILDING_FILL_OUTLINE_COLOR_DARK,
   BUILDINGS_MIN_ZOOM,
   type BasemapId,
   isDarkBasemap,
@@ -43,7 +40,7 @@ export const addBuildingFootprintLayer = (
       paint: {
         'fill-color': BUILDING_FILL_COLOR,
         'fill-opacity': BUILDING_FILL_OPACITY,
-        'fill-outline-color': BUILDING_FILL_OUTLINE_COLOR,
+        'fill-antialias': false,
       },
     },
     before
@@ -83,16 +80,13 @@ export const addBuildingExtrusionLayer = (
  */
 export const applyBuildingBasemapPaint = (map: any, basemap: BasemapId | undefined) => {
   const dark = isDarkBasemap(basemap);
-  // Dark Matter's native buildings have near-black interiors. They remain
-  // visible where our local PMTiles coverage is absent, so match both sources
-  // and use opaque fills to avoid different tones where footprints overlap.
-  if (basemap === 'dark') {
-    for (const layer of map.getStyle?.()?.layers ?? []) {
-      if (layer.type !== 'fill' || layer['source-layer'] !== 'building') continue;
-      map.setPaintProperty(layer.id, 'fill-color', BUILDING_FILL_COLOR_DARK);
-      map.setPaintProperty(layer.id, 'fill-outline-color', BUILDING_FILL_OUTLINE_COLOR_DARK);
-      map.setPaintProperty(layer.id, 'fill-opacity', BUILDING_FILL_OPACITY_DARK);
-    }
+  // Provider buildings also stay opaque and unoutlined outside local coverage.
+  for (const layer of map.getStyle?.()?.layers ?? []) {
+    if (layer.type !== 'fill' || layer['source-layer'] !== 'building') continue;
+    map.setPaintProperty(layer.id, 'fill-antialias', false);
+    map.setPaintProperty(layer.id, 'fill-outline-color', null);
+    map.setPaintProperty(layer.id, 'fill-opacity', BUILDING_FILL_OPACITY);
+    map.setPaintProperty(layer.id, 'fill-color', dark ? BUILDING_FILL_COLOR_DARK : BUILDING_FILL_COLOR);
   }
   if (map.getLayer(BUILDING_FOOTPRINT_LAYER_ID)) {
     map.setPaintProperty(
@@ -102,13 +96,8 @@ export const applyBuildingBasemapPaint = (map: any, basemap: BasemapId | undefin
     );
     map.setPaintProperty(
       BUILDING_FOOTPRINT_LAYER_ID,
-      'fill-outline-color',
-      dark ? BUILDING_FILL_OUTLINE_COLOR_DARK : BUILDING_FILL_OUTLINE_COLOR
-    );
-    map.setPaintProperty(
-      BUILDING_FOOTPRINT_LAYER_ID,
       'fill-opacity',
-      dark ? BUILDING_FILL_OPACITY_DARK : BUILDING_FILL_OPACITY
+      BUILDING_FILL_OPACITY
     );
   }
   if (map.getLayer(BUILDING_EXTRUSION_LAYER_ID)) {
