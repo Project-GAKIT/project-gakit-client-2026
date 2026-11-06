@@ -3,11 +3,13 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { MutableRefObject } from 'react';
 import { applyRainfallPaint } from '@/lib/map/overlayLayers';
-import { fetchRainfallImage, fetchRainfallAt, RAINFALL_COORDINATES, RAINFALL_PLACEHOLDER_DATA_URL, type RainfallAccumulationHours } from '@/lib/map/rainfall';
-import { fetchForecastWeather, forecastCoordinates, forecastRasterUrl, type RainfallMode } from '@/lib/map/forecastWeather';
+import { fetchRainfallAt, RAINFALL_COORDINATES, RAINFALL_PLACEHOLDER_DATA_URL, type RainfallAccumulationHours } from '@/lib/map/rainfall';
+import { fetchForecastRainfall, fetchForecastWeather, forecastCoordinates, forecastRasterUrl, type RainfallMode } from '@/lib/map/forecastWeather';
 import { createWindTrails } from '@/lib/map/windTrails';
 import type { ForecastWeather } from '@/types/forecastWeather';
 import type { BasemapId } from '@/constants/publicMap';
+import { loadRainfallDisplay, sampleRainfallNumeric, type RainfallNumeric } from '@/lib/map/rainfallNumeric';
+import { attachWeatherHover } from '@/lib/map/weatherHover';
 import { invalidateApiCache } from '@/lib/backend/apiCache';
 
 /** JAXA evidence and ECMWF visualization stay separate, sharing one map image. */
@@ -26,8 +28,9 @@ export function useRainfallLayer(mapRef: MutableRefObject<any>, showRainfall: bo
   const [retry, setRetry] = useState(0);
   const [clock, setClock] = useState(0);
   const hoursRef = useRef(rainfallHours);
-  const recentImage = useRef<{ url: string; hours: number; observed: number; expires: number } | null>(null);
+  const recentImage = useRef<{ url: string; hours: number; observed: number; expires: number; numeric: RainfallNumeric | null } | null>(null);
   const appliedImage = useRef<{ source: unknown; url: string; coordinates: string } | null>(null);
+  const forecastNumeric = useRef<{ frame: unknown; grid: RainfallNumeric } | null>(null);
   const recentRevision = useRef(0);
   const display = useRef({ show: showRainfall, mode, hours: rainfallHours, url: null as string | null, coordinates: RAINFALL_COORDINATES });
 
@@ -71,15 +74,15 @@ export function useRainfallLayer(mapRef: MutableRefObject<any>, showRainfall: bo
     const revision = ++recentRevision.current;
     setRecentLoading(true);
     try {
-      const rainfall = await fetchRainfallImage(window);
-      if (revision !== recentRevision.current || window !== hoursRef.current) return;
-      const url = rainfall.url;
-      const observed = Date.parse(rainfall.observedAt);
-      recentImage.current = url ? { url, hours: window, observed, expires: observed + 6 * 3_600_000 } : null;
-      setRainfallObservedAt(rainfall.observedAt);
-      setRainfallSource(rainfall.source);
-      setRecentError(null);
-      if (display.current.mode === 'recent') applyPreloaded(mapRef.current);
+      await loadRainfallDisplay(window, rainfall => {
+        if (revision !== recentRevision.current || window !== hoursRef.current) return;
+        const observed = Date.parse(rainfall.observedAt);
+        recentImage.current = { url: rainfall.url, hours: window, observed, expires: observed + 6 * 3_600_000, numeric: rainfall.numeric };
+        setRainfallObservedAt(rainfall.observedAt);
+        setRainfallSource(rainfall.source);
+        setRecentError(null);
+        if (display.current.mode === 'recent') applyPreloaded(mapRef.current);
+      });
     } catch {
       if (revision !== recentRevision.current) return;
       setRecentError('Recent rainfall is temporarily unavailable.');
@@ -152,6 +155,35 @@ export function useRainfallLayer(mapRef: MutableRefObject<any>, showRainfall: bo
     if (!selected) return;
     return createWindTrails(map, forecast, selected, basemap);
   }, [mapRef, showRainfall, wind, forecast, mode, validAt, basemap]);
+
+  useEffect(() => {
+    forecastNumeric.current = null;
+    if (!showRainfall || mode !== 'forecast' || !forecast || !frame) return;
+    let active = true;
+    const timer = setTimeout(() => {
+      const request = fetchForecastRainfall(forecast, frame);
+      void request?.then(grid => { if (active) forecastNumeric.current = { frame, grid }; }).catch(() => {});
+    }, 120);
+    return () => { active = false; clearTimeout(timer); };
+  }, [showRainfall, mode, forecast, frame]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!showRainfall || !map) return;
+    return attachWeatherHover(map, {
+      layer: 'rainfall-grid',
+      available: () => mode === 'recent'
+        ? !!recentImage.current && recentImage.current.hours === rainfallHours && recentImage.current.expires > Date.now()
+        : !!forecastImage && !!forecast && Date.parse(forecast.expiresAt) > Date.now(),
+      sample: (lng, lat) => {
+        const numeric = mode === 'recent' ? recentImage.current?.numeric
+          : forecastNumeric.current?.frame === frame ? forecastNumeric.current.grid : null;
+        if (!numeric) return null;
+        const value = sampleRainfallNumeric(numeric, lng, lat);
+        return value === null ? null : `${value.toFixed(1)} ${mode === 'forecast' ? 'mm/h' : 'mm'}`;
+      },
+    });
+  }, [showRainfall, mode, rainfallHours, rainfallObservedAt, forecastImage, forecast, frame, mapRef]);
 
   const lookupPrecip = useCallback(async (lat: number, lng: number): Promise<number | null> => {
     // Hazard checks always use satellite evidence, never forecast display pixels.

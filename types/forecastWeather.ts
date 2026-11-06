@@ -9,6 +9,7 @@ export interface ForecastWeatherFrame {
 export interface ForecastWeather {
   /** Trusted public bucket chosen by the reader, never taken from remote JSON. */
   publicationBase?: string;
+  rainNumeric?: boolean;
   source: string;
   model: 'ecmwf_ifs';
   fetchedAt: string;

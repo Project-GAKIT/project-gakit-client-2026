@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { fetchForecastWeather, forecastRasterUrl, sampleForecast, validateForecastWeather } from '@/lib/map/forecastWeather';
+import { fetchForecastRainfall, fetchForecastWeather, forecastRasterUrl, sampleForecast, validateForecastWeather } from '@/lib/map/forecastWeather';
 import { invalidateApiCache } from '@/lib/backend/apiCache';
 import type { ForecastWeather } from '@/types/forecastWeather';
 
@@ -58,4 +58,53 @@ describe('combined forecast rain and wind', () => {
       expect(fetcher).toHaveBeenCalledTimes(1);
     } finally { vi.unstubAllGlobals(); invalidateApiCache('/api/v1/weather/forecast-grid'); }
   });
+});
+
+it('preloads and deduplicates the exact forecast numeric frame for local hover', async () => {
+  const grid = fixture(); grid.rainNumeric = true;
+  const bytes = new Uint8Array(16); const view = new DataView(bytes.buffer);
+  [0, 12.4, NaN, 0.04].forEach((v, i) => view.setFloat32(i * 4, v, true));
+  const fetcher = vi.fn().mockImplementation(async () => new Response(JSON.stringify({
+    encoding: 'float32-le', source: 'ECMWF', accumulationHours: 1,
+    latitude: [8.25, 8.15], longitude: [124.25, 124.35],
+    values: btoa(String.fromCharCode(...bytes)),
+  })));
+  vi.stubGlobal('fetch', fetcher);
+  try {
+    const [first, second] = await Promise.all([fetchForecastRainfall(grid, grid.frames[0]), fetchForecastRainfall(grid, grid.frames[1])]);
+    expect(fetcher).toHaveBeenCalledOnce();
+    expect(fetcher.mock.calls[0][0]).toContain('/3.json.gz');
+    expect(first).toBe(second);
+    expect(first?.values[1]).toBeCloseTo(12.4);
+    expect(first?.observedAt).toBe(grid.frames[0].rainWindowEndAt);
+    expect(first?.values[0]).toBe(0);
+    expect(Number.isNaN(first?.values[2])).toBe(true);
+  } finally { vi.unstubAllGlobals(); }
+});
+
+it('bounds in-flight forecast downloads and keeps a replacement cache entry after an older request aborts', async () => {
+  const grid = fixture(); grid.rainNumeric = true;
+  const signals: AbortSignal[] = [];
+  const fetcher = vi.fn((_url: string, options: RequestInit) => new Promise<Response>((_resolve, reject) => {
+    const signal = options.signal!;
+    signals.push(signal);
+    signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true });
+  }));
+  vi.stubGlobal('fetch', fetcher);
+  const requests: Promise<unknown>[] = [];
+  const frame = (index: number) => ({ ...grid.frames[0], rasterUrl: '/api/v1/weather/forecast-grid/assets/' + 'b'.repeat(24) + '/' + index + '.webp' });
+  try {
+    for (let i = 0; i < 10; i++) requests.push(fetchForecastRainfall(grid, frame(i))!.catch(() => null));
+    expect(signals.filter(signal => !signal.aborted).length).toBeLessThanOrEqual(8);
+    requests.push(fetchForecastRainfall(grid, frame(0))!.catch(() => null));
+    await Promise.resolve(); await Promise.resolve();
+    const count = fetcher.mock.calls.length;
+    requests.push(fetchForecastRainfall(grid, frame(0))!.catch(() => null));
+    expect(fetcher).toHaveBeenCalledTimes(count);
+  } finally {
+    // Finish pending mocks so no aborted download can leak into the next test.
+    for (const signal of signals) if (!signal.aborted) signal.dispatchEvent(new Event('abort'));
+    await Promise.all(requests);
+    vi.unstubAllGlobals();
+  }
 });

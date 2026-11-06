@@ -4,7 +4,7 @@ import { useEffect, type MutableRefObject } from 'react';
 import type { LiveRasterController } from '@/lib/map/liveRasterController';
 import { attachFloodDepthHover } from '@/lib/map/floodDepthHover';
 
-export function useFloodDepthHover(mapRef: MutableRefObject<any>, raster: MutableRefObject<LiveRasterController>, layerId: string, enabled: boolean) {
+export function useFloodDepthHover(mapRef: MutableRefObject<any>, raster: MutableRefObject<LiveRasterController>, layerId: string, enabled: boolean, compact = false) {
   useEffect(() => {
     if (!enabled) return;
     let timer: ReturnType<typeof setTimeout>;
@@ -12,9 +12,9 @@ export function useFloodDepthHover(mapRef: MutableRefObject<any>, raster: Mutabl
     const attach = () => {
       const map = mapRef.current;
       if (!map) { timer = setTimeout(attach, 250); return; }
-      detach = attachFloodDepthHover(map, layerId, (lng, lat) => raster.current.sampleDepth(lng, lat));
+      detach = attachFloodDepthHover(map, layerId, (lng, lat) => raster.current.sampleDepth(lng, lat), compact);
     };
     attach();
     return () => { clearTimeout(timer); detach?.(); };
-  }, [mapRef, raster, layerId, enabled]);
+  }, [mapRef, raster, layerId, enabled, compact]);
 }

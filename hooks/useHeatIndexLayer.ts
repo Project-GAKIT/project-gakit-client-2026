@@ -2,11 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState, type MutableRefObject } from 'react';
 import {
-  fetchHeatIndex, renderHeatIndexImage,
+  fetchHeatIndex, renderHeatIndexImage, sampleHeatIndex,
   type HeatIndexGrid, type HeatIndexHour, type HeatIndexImage,
 } from '@/lib/map/heatIndex';
+import { attachWeatherHover } from '@/lib/map/weatherHover';
 import { zoomToWeatherCoverage } from '@/lib/map/mapGeometry';
-import { HEAT_WATER_LAYER, HEAT_WATER_SOURCE, heatWaterPolygons, heatWaterSource, loadHeatLandMask, type MaskPolygon } from '@/lib/map/heatLandMask';
+import { containsMaskPoint, HEAT_WATER_LAYER, HEAT_WATER_SOURCE, heatWaterPolygons, heatWaterSource, loadHeatLandMask, type MaskPolygon } from '@/lib/map/heatLandMask';
 
 export function useHeatIndexLayer(mapRef: MutableRefObject<any>) {
   const [visible, setVisibleState] = useState(false);
@@ -17,6 +18,7 @@ export function useHeatIndexLayer(mapRef: MutableRefObject<any>) {
   const [retry, setRetry] = useState(0);
   const visibleRef = useRef(visible);
   const imageRef = useRef<{ grid: HeatIndexGrid; image: HeatIndexImage | null; key: string | null } | null>(null);
+  const waterRef = useRef<MaskPolygon[]>([]);
   const landRef = useRef<MaskPolygon[] | null>(null);
 
   const applyPreloaded = useCallback((map: any, force = false) => {
@@ -46,7 +48,8 @@ export function useHeatIndexLayer(mapRef: MutableRefObject<any>) {
     };
     const key = JSON.stringify(view);
     if (force || key !== image.key || !image.image) {
-      image.image = renderHeatIndexImage(image.grid, landRef.current, heatWaterPolygons(map, waterSource), view);
+      waterRef.current = heatWaterPolygons(map, waterSource);
+      image.image = renderHeatIndexImage(image.grid, landRef.current, waterRef.current, view);
       image.key = key;
     }
     if (!image.image) {
@@ -159,6 +162,20 @@ export function useHeatIndexLayer(mapRef: MutableRefObject<any>) {
       map.off('sourcedata', waterReady);
     };
   }, [visible, grid, mapRef, applyPreloaded]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!visible || !grid || !map) return;
+    return attachWeatherHover(map, {
+      layer: 'heat-index-layer',
+      available: () => imageRef.current?.grid === grid && Date.parse(grid.expiresAt) > Date.now(),
+      sample: (lng, lat) => {
+        if (!landRef.current || !containsMaskPoint(landRef.current, lng, lat) || containsMaskPoint(waterRef.current, lng, lat)) return null;
+        const value = sampleHeatIndex(grid, lat, lng);
+        return value === null ? null : `${value.toFixed(1)} °C`;
+      },
+    });
+  }, [visible, grid, mapRef]);
 
   return { visible, setVisible, hour, setHour, grid, loading, error, applyPreloaded, retry: () => setRetry((value) => value + 1) };
 }

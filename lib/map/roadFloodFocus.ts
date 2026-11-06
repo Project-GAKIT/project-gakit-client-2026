@@ -150,7 +150,7 @@ export function attachRoadFloodFocus(map: any, raster: LiveRasterController, ras
     const depth = sample(...road.position);
     return { value: depth?.value ?? 'Depth unavailable', detail: 'Estimated road depth', location: road.name, depthM: depth?.depthM,
       time: depth?.time ?? (available() ? 'Outside numeric estimate coverage' : 'Enable a flood estimate to read depth') };
-  });
+  }, 'road');
   void loadRoads().then(roads => { if (!stopped) { index = roads; refresh(); } });
   return () => {
     stopped = true;

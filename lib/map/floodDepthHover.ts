@@ -157,11 +157,13 @@ const PROBE_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28
 const DEPTH_PROBE_CURSOR = `url("data:image/svg+xml,${encodeURIComponent(PROBE_SVG)}") 14 14, crosshair`;
 
 /** A single DOM tooltip, throttled to animation frames; no React render on mousemove. */
-export function attachFloodDepthHover(map: any, layerId: string, sample: FloodDepthSampler): () => void {
+export function attachFloodDepthHover(map: any, layerId: string, sample: FloodDepthSampler, compact: boolean | 'road' = false): () => void {
   const container: HTMLElement = map.getContainer();
   const canvas: HTMLElement = map.getCanvas();
   const tooltip = document.createElement('div');
-  tooltip.className = 'pointer-events-none absolute z-30 rounded-xl bg-panel px-3 py-2.5 text-primary shadow-panel';
+  tooltip.className = compact
+    ? 'pointer-events-none absolute z-30 rounded-md bg-panel px-1.5 py-1 text-primary shadow-panel'
+    : 'pointer-events-none absolute z-30 rounded-md bg-panel px-2 py-1.5 text-primary shadow-panel';
   tooltip.style.display = 'none';
   tooltip.setAttribute('role', 'tooltip');
   const caption = document.createElement('div');
@@ -173,7 +175,16 @@ export function attachFloodDepthHover(map: any, layerId: string, sample: FloodDe
   context.className = 'mt-1 text-xs font-semibold leading-4 text-primary [overflow-wrap:anywhere]';
   const time = document.createElement('div');
   time.className = 'mt-1 text-xs leading-4 text-secondary';
-  tooltip.append(caption, value, context, time);
+  if (compact) {
+    if (compact === 'road') {
+      context.className = 'min-w-0 truncate text-[11px] font-medium leading-4 text-primary';
+      tooltip.className += ' items-center gap-1.5';
+      tooltip.append(context);
+    }
+    tooltip.append(value);
+  } else {
+    tooltip.append(caption, value, context, time);
+  }
   container.append(tooltip);
   let pending = 0;
   let previousCursor = canvas.style.cursor || '';
@@ -198,15 +209,17 @@ export function attachFloodDepthHover(map: any, layerId: string, sample: FloodDe
       const reading = sample(last.lngLat.lng, last.lngLat.lat);
       if (!reading) { hide(); return; }
       value.textContent = reading.value;
-      value.className = reading.depthM !== undefined ? 'mt-0.5 text-lg font-semibold leading-6 tabular-nums text-accent-text' : 'mt-0.5 text-sm font-semibold leading-5 text-secondary';
-      context.textContent = reading.location ?? (/^(simulated|estimated) (water )?depth$/i.test(reading.detail) ? '' : reading.detail);
+      value.className = compact
+        ? 'shrink-0 whitespace-nowrap text-xs font-semibold leading-4 tabular-nums text-accent-text'
+        : reading.depthM !== undefined ? 'mt-0.5 text-lg font-semibold leading-6 tabular-nums text-accent-text' : 'mt-0.5 text-sm font-semibold leading-5 text-secondary';
+      context.textContent = compact === 'road' ? reading.location ?? '' : reading.location ?? (/^(simulated|estimated) (water )?depth$/i.test(reading.detail) ? '' : reading.detail);
       context.style.display = context.textContent ? 'block' : 'none';
       time.textContent = reading.time ?? '';
       time.style.display = reading.time ? 'block' : 'none';
       if (canvas.style.cursor !== DEPTH_PROBE_CURSOR) previousCursor = canvas.style.cursor || '';
       canvas.style.cursor = DEPTH_PROBE_CURSOR;
-      tooltip.style.maxWidth = `${Math.min(256, Math.max(0, container.clientWidth - 16))}px`;
-      tooltip.style.display = 'block';
+      tooltip.style.maxWidth = `${Math.min(compact ? 220 : 256, Math.max(0, container.clientWidth - 16))}px`;
+      tooltip.style.display = compact === 'road' ? 'flex' : 'block';
       const left = last.point.x + 18 + tooltip.offsetWidth <= container.clientWidth - 8 ? last.point.x + 18 : last.point.x - tooltip.offsetWidth - 18;
       const top = last.point.y + 18 + tooltip.offsetHeight <= container.clientHeight - 8 ? last.point.y + 18 : last.point.y - tooltip.offsetHeight - 18;
       tooltip.style.left = `${Math.max(8, Math.min(left, container.clientWidth - tooltip.offsetWidth - 8))}px`;

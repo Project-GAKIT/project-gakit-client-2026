@@ -70,3 +70,19 @@ export function heatWaterPolygons(map: any, source: string): MaskPolygon[] {
     .filter((feature: Feature) => feature.geometry?.type === 'Polygon' || feature.geometry?.type === 'MultiPolygon')
     .flatMap((feature: Feature<Polygon | MultiPolygon>) => prepareMaskPolygons(feature.geometry));
 }
+
+/** Bounding boxes reject most polygons before testing their rings. */
+export function containsMaskPoint(polygons: MaskPolygon[], lng: number, lat: number): boolean {
+  const y = mercatorY(lat);
+  return polygons.some(({ bounds, rings }) => {
+    if (lng < bounds[0] || lng > bounds[2] || y < bounds[1] || y > bounds[3]) return false;
+    let inside = false;
+    for (const ring of rings) {
+      for (let i = 0, j = ring.length - 2; i < ring.length; j = i, i += 2) {
+        if ((ring[i + 1] > y) !== (ring[j + 1] > y)
+          && lng < (ring[j] - ring[i]) * (y - ring[i + 1]) / (ring[j + 1] - ring[i + 1]) + ring[i]) inside = !inside;
+      }
+    }
+    return inside;
+  });
+}

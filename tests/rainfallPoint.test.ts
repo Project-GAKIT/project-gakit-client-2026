@@ -32,3 +32,14 @@ describe('assessment rainfall samples', () => {
     expect(await fetchRainfallAt(8.23, 124.23)).toBe(0);
   });
 });
+
+
+it('rejects a value from a different displayed frame and keeps frame caches separate', async () => {
+  const observedAt = '2026-11-06T03:00:00Z';
+  const fetcher = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ precipMm: 12, observedAt, accumulationHours: 4 }) });
+  vi.stubGlobal('fetch', fetcher);
+  expect(await fetchRainfallAt(8.23, 124.23, 4, observedAt)).toBe(12);
+  expect(await fetchRainfallAt(8.23, 124.23, 4, '2026-11-06T02:00:00Z')).toBeNull();
+  expect(await fetchRainfallAt(8.23, 124.23, 1, observedAt)).toBeNull();
+  expect(fetcher).toHaveBeenCalledTimes(3);
+});

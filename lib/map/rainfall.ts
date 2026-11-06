@@ -15,12 +15,13 @@ export type RainfallAccumulationHours = (typeof RAINFALL_ACCUMULATION_HOURS)[num
 
 type PublishedRainfall = {
   schema: 'jaxa-maps-v1';
+  rendererVersion?: number;
   bounds: { west: number; east: number; south: number; north: number };
   resolutionDegrees: number;
   windows: Record<string, { observedAt: string; expiresAt: string; source: string; accumulationHours: number; rasterPath: string }>;
 };
 
-export async function fetchRainfallImage(hours: RainfallAccumulationHours): Promise<{ url: string; observedAt: string; source: string }> {
+export async function fetchRainfallImage(hours: RainfallAccumulationHours): Promise<{ url: string; observedAt: string; source: string; rendererVersion?: number }> {
   try {
     const data = await publishedWeatherJSON<PublishedRainfall>('rainfall/latest.json');
     const frame = data.windows?.[String(hours)];
@@ -30,12 +31,12 @@ export async function fetchRainfallImage(hours: RainfallAccumulationHours): Prom
       || !frame || !Number.isFinite(observed) || observed > Date.now() + 300_000
       || !Number.isFinite(expiry) || expiry <= Date.now() || expiry - observed > 6 * 3_600_000
       || !/^rainfall\/rasters\/[a-f0-9]{64}\.webp$/.test(frame.rasterPath)) throw new Error('Published rainfall is incomplete or expired');
-    return { url: `${publicWeatherBase()}/${frame.rasterPath}`, observedAt: frame.observedAt, source: frame.source };
+    return { url: `${publicWeatherBase()}/${frame.rasterPath}`, observedAt: frame.observedAt, source: frame.source, rendererVersion: data.rendererVersion };
   } catch {
     const rainfall = await fetchRainfall(hours);
     const observedAt = weatherTimestamp(rainfall.properties.observedAt);
     if (!observedAt) throw new Error('Recent rainfall has no valid observation time.');
-    return { url: generateRainfallDataUrl(rainfall, hours) ?? RAINFALL_PLACEHOLDER_DATA_URL, observedAt, source: rainfall.properties.source ?? 'JAXA GSMaP' };
+    return { url: generateRainfallDataUrl(rainfall, hours) ?? RAINFALL_PLACEHOLDER_DATA_URL, observedAt, source: rainfall.properties.source ?? 'JAXA GSMaP', rendererVersion: 4 };
   }
 }
 
@@ -111,15 +112,16 @@ export function fetchRainfall(
 }
 
 /** Read the validity-aware point sample; map features omit dry cells. */
-export function fetchRainfallAt(lat: number, lng: number, hours: RainfallAccumulationHours = 1): Promise<number | null> {
+export function fetchRainfallAt(lat: number, lng: number, hours: RainfallAccumulationHours = 1, observedAt?: string): Promise<number | null> {
   const latitude = rainfallCellCenterFor(lat).toFixed(2);
   const longitude = rainfallCellCenterFor(lng).toFixed(2);
   const url = `/api/v1/rainfall/gsmap/point?latitude=${latitude}&longitude=${longitude}&hours=${hours}`;
-  return cachedGet<number | null>(url, RAINFALL_TTL_MS, async () => {
+  return cachedGet<number | null>(observedAt ? `${url}:frame=${observedAt}` : url, RAINFALL_TTL_MS, async () => {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), RAINFALL_REQUEST_TIMEOUT_MS);
     try {
-      const sample = await request<{ precipMm: number | null }>(url, controller.signal);
+      const sample = await request<{ precipMm: number | null; observedAt?: string; accumulationHours?: number }>(url, controller.signal);
+      if (observedAt && (Date.parse(sample.observedAt ?? '') !== Date.parse(observedAt) || sample.accumulationHours !== hours)) return null;
       return sample.precipMm != null && Number.isFinite(sample.precipMm) && sample.precipMm >= 0 ? sample.precipMm : null;
     } finally {
       clearTimeout(timer);
@@ -226,6 +228,12 @@ export function generateRainfallDataUrl(
     }
   }
 
+  return renderRainfallMatrix(matrix, hours);
+}
+
+export function renderRainfallMatrix(matrix: Float32Array, hours: number): string | null {
+  const cols = Math.round((RAINFALL_BOUNDS.east - RAINFALL_BOUNDS.west) / CELL_DEG);
+  const rows = Math.round((RAINFALL_BOUNDS.north - RAINFALL_BOUNDS.south) / CELL_DEG);
   const edges = RAINFALL_BAND_EDGES[hours] ?? RAINFALL_BAND_EDGES[1];
 
   // Render base raster
@@ -239,8 +247,13 @@ export function generateRainfallDataUrl(
   const data = imgData.data;
 
   for (let r = 0; r < rows; r++) {
+    // MapLibre image sources interpolate in Mercator, rather than latitude.
+    const top = Math.asinh(Math.tan(RAINFALL_BOUNDS.north * Math.PI / 180));
+    const bottom = Math.asinh(Math.tan(RAINFALL_BOUNDS.south * Math.PI / 180));
+    const latitude = Math.atan(Math.sinh(top + (bottom - top) * (r + 0.5) / rows)) * 180 / Math.PI;
+    const nativeRow = Math.max(0, Math.min(rows - 1, Math.floor((RAINFALL_BOUNDS.north - latitude) / CELL_DEG)));
     for (let c = 0; c < cols; c++) {
-      const precip = matrix[r * cols + c];
+      const precip = matrix[nativeRow * cols + c];
       const idx = (r * cols + c) * 4;
       if (precip >= edges[0]) {
         const [red, green, blue, alpha] = getRainfallRgba(precip, edges);
