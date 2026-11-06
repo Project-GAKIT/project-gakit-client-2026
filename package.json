@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "check:styling": "node scripts/check-styling.mjs",
     "test": "vitest run",
-    "postinstall": "node scripts/sync-maplibre-worker.mjs && node scripts/prepare-scenario-assets.mjs"
+    "postinstall": "node scripts/sync-maplibre-worker.mjs"
   },
   "dependencies": {
     "@mapbox/point-geometry": "^1.1.0",

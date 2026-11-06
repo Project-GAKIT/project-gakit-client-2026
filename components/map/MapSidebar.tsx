@@ -22,6 +22,7 @@ import { useActiveAlerts } from '@/lib/weather/weatherStore';
 import { getWeatherCondition, isDaytimeInManila } from '@/lib/weather/weatherCodes';
 import { CurrentWeatherIcon } from '@/components/weather/CurrentWeatherIcon';
 import type { RainfallAccumulationHours } from '@/lib/map/rainfall';
+import type { RainfallWeatherControlState } from '@/hooks/useRainfallLayer';
 import type { MapReportFeature, ReportStatus } from '@/types/report';
 import type { ActiveStormSummary, HistoricalStormSummary } from '@/types/typhoon';
 import type { SimulatedFloodHorizon } from '@/lib/map/surrogate';
@@ -65,6 +66,7 @@ export interface MapSidebarProps {
   rainfallObservedAt: string | null;
   rainfallSource: string | null;
   rainfallHours: RainfallAccumulationHours;
+  rainfallWeather?: RainfallWeatherControlState;
   onRainfallHoursChange: (hours: RainfallAccumulationHours) => void;
   showHimawariIR: boolean;
   onShowHimawariIRChange: (checked: boolean) => void;
@@ -142,6 +144,7 @@ export function MapSidebar({
   rainfallObservedAt,
   rainfallSource,
   rainfallHours,
+  rainfallWeather,
   onRainfallHoursChange,
   showHimawariIR,
   onShowHimawariIRChange,
@@ -416,6 +419,7 @@ export function MapSidebar({
       rainfallObservedAt={rainfallObservedAt}
       rainfallSource={rainfallSource}
       rainfallHours={rainfallHours}
+      rainfallWeather={rainfallWeather}
       onRainfallHoursChange={onRainfallHoursChange}
       showHimawariIR={showHimawariIR}
       onShowHimawariIRChange={onShowHimawariIRChange}

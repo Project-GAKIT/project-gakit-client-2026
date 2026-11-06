@@ -1477,6 +1477,7 @@ export function PublicMap({
         rainfallObservedAt={rainfall.rainfallObservedAt}
         rainfallSource={rainfall.rainfallSource}
         rainfallHours={rainfall.rainfallHours}
+        rainfallWeather={rainfall.weather}
         onRainfallHoursChange={hours => updateLayer('Loading rainfall accumulation…', () => handleRainfallHoursChange(hours))}
         showHimawariIR={himawari.showHimawariIR}
         onShowHimawariIRChange={checked => updateLayer('Updating satellite imagery…', () => handleShowHimawariIRChange(checked))}

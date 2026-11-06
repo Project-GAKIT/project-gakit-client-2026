@@ -1,173 +1,159 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { MutableRefObject } from 'react';
 import { applyRainfallPaint } from '@/lib/map/overlayLayers';
-import {
-  buildRainfallGrid,
-  fetchRainfall,
-  fetchRainfallAt,
-  generateRainfallDataUrl,
-  RAINFALL_COORDINATES,
-  type RainfallAccumulationHours,
-} from '@/lib/map/rainfall';
-import type { RainfallGrid, RainfallResponse } from '@/types/rainfall';
+import { fetchRainfall, fetchRainfallAt, generateRainfallDataUrl, RAINFALL_COORDINATES, RAINFALL_PLACEHOLDER_DATA_URL, type RainfallAccumulationHours } from '@/lib/map/rainfall';
+import { fetchForecastWeather, forecastCoordinates, forecastRainfallImage, type RainfallMode } from '@/lib/map/forecastWeather';
+import { createWindTrails } from '@/lib/map/windTrails';
+import type { ForecastWeather } from '@/types/forecastWeather';
+import { invalidateApiCache } from '@/lib/backend/apiCache';
 
-// Mirrors the server-side GSMaP cache TTL.
-const RAINFALL_TTL_MS = 10 * 60 * 1000;
-const RAINFALL_REFRESH_MS = RAINFALL_TTL_MS;
-
-/**
- * Owns the near real-time GSMaP rainfall layer: fetching (with cache +
- * staleness guards), the 10-minute refresh loop while the layer is visible,
- * and exposes validity-aware point samples for hazard checks, even when the
- * rainfall layer has never been enabled.
- */
-export function useRainfallLayer(
-  mapRef: MutableRefObject<any>,
-  showRainfall: boolean
-) {
+/** JAXA evidence and ECMWF visualization stay separate, sharing one map image. */
+export function useRainfallLayer(mapRef: MutableRefObject<any>, showRainfall: boolean) {
   const [rainfallHours, setRainfallHours] = useState<RainfallAccumulationHours>(1);
   const [rainfallObservedAt, setRainfallObservedAt] = useState<string | null>(null);
   const [rainfallSource, setRainfallSource] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [recentLoading, setRecentLoading] = useState(false);
+  const [recentError, setRecentError] = useState<string | null>(null);
+  const [mode, setMode] = useState<RainfallMode>('recent');
+  const [wind, setWind] = useState(true);
+  const [forecast, setForecast] = useState<ForecastWeather | null>(null);
+  const [forecastLoading, setForecastLoading] = useState(false);
+  const [forecastError, setForecastError] = useState<string | null>(null);
+  const [selectedAt, setSelectedAt] = useState<string | null>(null);
+  const [retry, setRetry] = useState(0);
+  const [clock, setClock] = useState(0);
+  const hoursRef = useRef(rainfallHours);
+  const recentImage = useRef<{ url: string; hours: number } | null>(null);
+  const recentRevision = useRef(0);
+  const display = useRef({ show: showRainfall, mode, hours: rainfallHours, url: null as string | null, coordinates: RAINFALL_COORDINATES });
 
-  const rainfallHoursRef = useRef<RainfallAccumulationHours>(1);
-  const rainfallSourceRef = useRef<RainfallResponse | RainfallGrid | null>(null);
-  const rainfallDataUrlRef = useRef<string | null>(null);
-  const rainfallTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const showRainfallRef = useRef(showRainfall);
+  const times = useMemo(() => {
+    const anchor = Math.floor(clock / 3_600_000) * 3_600_000;
+    return forecast?.times.filter(time => Date.parse(time) >= anchor && Date.parse(time) <= anchor + 72 * 3_600_000) ?? [];
+  }, [forecast, clock]);
+  const index = Math.max(0, times.indexOf(selectedAt ?? ''));
+  const validAt = times[index] ?? null;
+  const frame = forecast && validAt ? forecast.frames[forecast.times.indexOf(validAt)] : null;
+  const forecastImage = useMemo(() => {
+    if (mode !== 'forecast' || !forecast || !frame) return null;
+    if (frame.rasterUrl) return `${process.env.NEXT_PUBLIC_API_URL ?? ''}${frame.rasterUrl}`;
+    return forecastRainfallImage(forecast, frame);
+  }, [mode, forecast, frame]);
 
-  useEffect(() => {
-    showRainfallRef.current = showRainfall;
-  }, [showRainfall]);
+  const applyPreloaded = useCallback((map: any) => {
+    const current = display.current;
+    const image = current.mode === 'recent'
+      ? (recentImage.current?.hours === current.hours ? recentImage.current.url : null)
+      : current.url;
+    const source = map?.getSource?.('rainfall');
+    if (source?.updateImage) source.updateImage({ url: image ?? RAINFALL_PLACEHOLDER_DATA_URL, coordinates: current.mode === 'recent' ? RAINFALL_COORDINATES : current.coordinates });
+    applyRainfallPaint(map, current.mode === 'recent' ? current.hours : 1);
+    if (map?.getLayer?.('rainfall-grid')) map.setLayoutProperty('rainfall-grid', 'visibility', current.show ? 'visible' : 'none');
+  }, []);
 
-  useEffect(() => {
-    rainfallHoursRef.current = rainfallHours;
-  }, [rainfallHours]);
+  useLayoutEffect(() => {
+    hoursRef.current = rainfallHours;
+    display.current = { show: showRainfall, mode, hours: rainfallHours, url: forecastImage, coordinates: forecast ? forecastCoordinates(forecast) : RAINFALL_COORDINATES };
+    applyPreloaded(mapRef.current);
+  }, [showRainfall, mode, rainfallHours, forecastImage, forecast, mapRef, applyPreloaded]);
 
   const loadRainfall = useCallback(async (hours?: RainfallAccumulationHours) => {
-    const window = hours ?? rainfallHoursRef.current;
-    setIsLoading(true);
+    const window = hours ?? hoursRef.current;
+    const revision = ++recentRevision.current;
+    setRecentLoading(true);
     try {
       const rainfall = await fetchRainfall(window);
-      // Drop stale responses if the user switched windows mid-request.
-      if (window !== rainfallHoursRef.current) return;
-
-      rainfallSourceRef.current = rainfall;
-
-      const dataUrl = generateRainfallDataUrl(rainfall, window);
-      rainfallDataUrlRef.current = dataUrl;
-
-      const map = mapRef.current;
-      const source = map?.getSource?.('rainfall') as any;
-      if (source?.updateImage && dataUrl) {
-        source.updateImage({ url: dataUrl, coordinates: RAINFALL_COORDINATES });
-      } else if (source?.setData) {
-        source.setData(rainfall);
-      }
-      applyRainfallPaint(map, window);
-
-      // Ensure layer visibility strictly matches current toggle state even if response arrived late
-      if (map?.getLayer('rainfall-grid')) {
-        map.setLayoutProperty(
-          'rainfall-grid',
-          'visibility',
-          showRainfallRef.current ? 'visible' : 'none'
-        );
-      }
-
+      if (revision !== recentRevision.current || window !== hoursRef.current) return;
+      const url = generateRainfallDataUrl(rainfall, window);
+      recentImage.current = url ? { url, hours: window } : null;
       setRainfallObservedAt(rainfall.properties.observedAt);
       setRainfallSource(rainfall.properties.source ?? null);
-    } catch (error) {
-      console.error('Failed to load near real-time rainfall', error);
+      setRecentError(null);
+      if (display.current.mode === 'recent') applyPreloaded(mapRef.current);
+    } catch {
+      if (revision !== recentRevision.current) return;
+      setRecentError('Recent rainfall is temporarily unavailable.');
+      recentImage.current = null;
+      if (display.current.mode === 'recent') applyPreloaded(mapRef.current);
     } finally {
-      setIsLoading(false);
+      if (revision === recentRevision.current) setRecentLoading(false);
     }
-  }, [mapRef]);
+  }, [mapRef, applyPreloaded]);
 
-  // Fetch when the layer is enabled, then refresh on the same cadence as the
-  // server-side cache. Re-runs when the accumulation window changes so the
-  // grid reflects the selected window.
   useEffect(() => {
-    if (!showRainfall) {
-      if (rainfallTimerRef.current) {
-        clearInterval(rainfallTimerRef.current);
-        rainfallTimerRef.current = null;
-      }
-      const map = mapRef.current;
-      if (map?.getLayer('rainfall-grid')) {
-        map.setLayoutProperty('rainfall-grid', 'visibility', 'none');
-      }
-      return;
-    }
+    if (!showRainfall || mode !== 'recent') return;
+    void Promise.resolve().then(() => loadRainfall(rainfallHours));
+    const refresh = () => { if (!document.hidden) void loadRainfall(rainfallHours); };
+    const timer = setInterval(refresh, 10 * 60_000);
+    document.addEventListener('visibilitychange', refresh);
+    return () => { clearInterval(timer); document.removeEventListener('visibilitychange', refresh); };
+  }, [showRainfall, mode, rainfallHours, retry, loadRainfall]);
 
-    void loadRainfall(rainfallHours);
-    rainfallTimerRef.current = setInterval(() => {
-      if (document.visibilityState !== 'visible') return;
-      void loadRainfall(rainfallHours);
-    }, RAINFALL_REFRESH_MS);
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') void loadRainfall(rainfallHours);
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      if (rainfallTimerRef.current) {
-        clearInterval(rainfallTimerRef.current);
-        rainfallTimerRef.current = null;
-      }
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [showRainfall, rainfallHours, loadRainfall, mapRef]);
-
-  // The map's sparse feature feed excludes dry cells. Read the underlying
-  // validity-aware sample so a confirmed zero remains distinct from no data.
-  const lookupPrecip = useCallback(
-    async (lat: number, lng: number): Promise<number | null> => {
+  useEffect(() => {
+    if (!showRainfall || (mode !== 'forecast' && !wind)) return;
+    let active = true;
+    let timer: ReturnType<typeof setTimeout>;
+    let inFlight = false;
+    const load = async () => {
+      if (inFlight) return;
+      inFlight = true;
+      clearTimeout(timer);
+      let delay = 5 * 60_000;
+      setForecastLoading(true);
       try {
-        return await fetchRainfallAt(lat, lng, rainfallHoursRef.current);
-      } catch {
-        return null;
+        const next = await fetchForecastWeather();
+        if (Date.parse(next.expiresAt) <= Date.now()) throw new Error('Forecast rainfall and wind have expired.');
+        if (active) { setClock(Date.now()); setForecast(next); setForecastError(null); }
+      } catch (error) {
+        delay = 60_000;
+        if (active) { setForecast(null); setForecastError(error instanceof Error ? error.message : 'Forecast is unavailable.'); }
+      } finally {
+        inFlight = false;
+        if (active) { setForecastLoading(false); timer = setTimeout(refresh, delay); }
       }
-    },
-    []
-  );
+    };
+    void load();
+    const refresh = () => { if (!document.hidden) void load(); };
+    document.addEventListener('visibilitychange', refresh);
+    return () => { active = false; clearTimeout(timer); document.removeEventListener('visibilitychange', refresh); };
+  }, [showRainfall, mode, wind, retry]);
 
-  // Re-applies data fetched before the style finished loading; called from the
-  // style-load handler on initial load and after every basemap switch.
-  const applyPreloaded = useCallback((map: any) => {
-    if (rainfallDataUrlRef.current) {
-      const source = map?.getSource?.('rainfall') as any;
-      if (source?.updateImage) {
-        source.updateImage({
-          url: rainfallDataUrlRef.current,
-          coordinates: RAINFALL_COORDINATES,
-        });
-      } else if (source?.setData && rainfallSourceRef.current) {
-        source.setData(rainfallSourceRef.current);
-      }
-      applyRainfallPaint(map, rainfallHoursRef.current);
-      if (map?.getLayer('rainfall-grid')) {
-        map.setLayoutProperty(
-          'rainfall-grid',
-          'visibility',
-          showRainfallRef.current ? 'visible' : 'none'
-        );
-      }
-    }
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !showRainfall || !wind || !forecast || Date.parse(forecast.expiresAt) <= Date.now()) return;
+    const windIndex = mode === 'forecast' && validAt ? forecast.times.indexOf(validAt)
+      : Math.max(0, forecast.times.findIndex(t => Date.parse(t) >= Math.floor(Date.now() / 3_600_000) * 3_600_000));
+    const selected = forecast.frames[windIndex];
+    if (!selected) return;
+    return createWindTrails(map, forecast, selected);
+  }, [mapRef, showRainfall, wind, forecast, mode, validAt]);
+
+  const lookupPrecip = useCallback(async (lat: number, lng: number): Promise<number | null> => {
+    // Hazard checks always use satellite evidence, never forecast display pixels.
+    try { return await fetchRainfallAt(lat, lng, hoursRef.current); } catch { return null; }
   }, []);
 
   return {
-    rainfallHours,
-    setRainfallHours,
-    rainfallObservedAt,
-    rainfallSource,
-    hoursRef: rainfallHoursRef,
-    isLoading,
-    loadRainfall,
-    lookupPrecip,
-    applyPreloaded,
+    rainfallHours, setRainfallHours, rainfallObservedAt, rainfallSource, hoursRef,
+    isLoading: mode === 'recent' ? recentLoading : forecastLoading,
+    loadRainfall, lookupPrecip, applyPreloaded,
+    weather: {
+      mode, setMode, wind, setWind, times, index,
+      select: (next: number) => setSelectedAt(times[next] ?? null),
+      validAt, fetchedAt: forecast?.fetchedAt ?? null,
+      issuedAt: forecast?.issuedAt ?? null,
+      resolution: forecast?.rainResolutionDegrees ?? forecast?.sampleSpacingDegrees ?? null,
+      intervalHours: forecast?.nativeIntervalHours ?? 1,
+      rainWindowEndAt: frame?.rainWindowEndAt ?? null,
+      stale: forecast?.stale ?? false,
+      loading: forecastLoading,
+      error: mode === 'forecast' ? forecastError : recentError,
+      windError: wind ? forecastError : null,
+      retry: () => { invalidateApiCache('/api/v1/weather/forecast-grid'); setRetry(value => value + 1); },
+    },
   };
 }
+
+export type RainfallWeatherControlState = ReturnType<typeof useRainfallLayer>['weather'];

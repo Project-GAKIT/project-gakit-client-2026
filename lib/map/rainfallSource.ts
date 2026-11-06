@@ -13,6 +13,7 @@ export function rainfallProvider(source: string): string {
   if (source.startsWith('gsmap_now_corrected:')) return 'JAXA NOW · corrected';
   if (/gsmap[ _-]?rnc/i.test(source)) return 'JAXA RNC';
   if (source === 'open_meteo') return 'Open-Meteo';
+  if (source === 'ecmwf_ifs') return 'ECMWF IFS';
   if (/gsmap[ _-]?nrt/i.test(source)) return 'JAXA NRT';
   if (/gsmap[ _-]?now/i.test(source)) return 'JAXA NOW';
   return 'Source not reported';

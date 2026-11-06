@@ -1,6 +1,8 @@
 'use client';
 
 import Image from 'next/image';
+import { RainfallWeatherControls } from '@/components/map/RainfallWeatherControls';
+import type { RainfallWeatherControlState } from '@/hooks/useRainfallLayer';
 import { typhoonIconURL } from '@/lib/map/typhoonIcons';
 
 import { DEPTH_RANK } from '@/lib/map/barangayStats';
@@ -547,6 +549,7 @@ interface DataLayerControlsProps {
   rainfallObservedAt: string | null;
   rainfallSource: string | null;
   rainfallHours: RainfallAccumulationHours;
+  rainfallWeather?: RainfallWeatherControlState;
   onRainfallHoursChange: (hours: RainfallAccumulationHours) => void;
   showHimawariIR: boolean;
   onShowHimawariIRChange: (checked: boolean) => void;
@@ -935,6 +938,7 @@ export function DataLayerControls({
   rainfallObservedAt,
   rainfallSource,
   rainfallHours,
+  rainfallWeather,
   onRainfallHoursChange,
   showHimawariIR,
   onShowHimawariIRChange,
@@ -1138,7 +1142,7 @@ export function DataLayerControls({
 
         <div className="flex items-center gap-1 pt-2 text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
           Weather
-          <CoverageChip label="Philippines" detail="Covers the Philippines" />
+          <CoverageChip label="Regional" detail="Rainfall, wind and satellite include the surrounding seas" />
         </div>
 
         <PillToggle
@@ -1147,12 +1151,14 @@ export function DataLayerControls({
           onChange={onShowRainfallChange}
           loading={showRainfall && isLoadingRainfall}
           credit={{
-            href: JAXA_GSMAP_URL,
-            label: 'JAXA GSMaP',
+            href: rainfallWeather?.mode === 'forecast' ? (rainfallWeather.issuedAt ? 'https://www.ecmwf.int/en/forecasts/datasets/open-data' : 'https://open-meteo.com/en/docs/ecmwf-api') : JAXA_GSMAP_URL,
+            label: rainfallWeather?.mode === 'forecast' ? (rainfallWeather.issuedAt ? 'ECMWF' : 'ECMWF / Open-Meteo') : 'JAXA GSMaP',
           }}
         />
         {showRainfall && (
           <div className="pl-10 pt-0.5 pb-1 space-y-1.5">
+            {rainfallWeather && <RainfallWeatherControls weather={rainfallWeather} position="mode" />}
+            {rainfallWeather?.mode !== 'forecast' && <>
             <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold mb-1 flex items-center justify-between gap-2">
               <span>Accumulation window</span>
               {rainfallObservedAt && (
@@ -1174,8 +1180,8 @@ export function DataLayerControls({
                   aria-pressed={rainfallHours === hours}
                   className={`rounded-lg py-1 text-xs font-bold transition-colors duration-150 ${
                     rainfallHours === hours
-                      ? 'bg-accent text-on-accent shadow-panel ring-1 ring-focus'
-                      : 'bg-panel text-secondary shadow-panel ring-1 ring-default/90 hover:bg-page hover:text-primary'
+                      ? 'bg-muted text-primary ring-1 ring-default'
+                      : 'text-muted-foreground hover:bg-page hover:text-primary'
                   }`}
                 >
                   {hours}h
@@ -1192,23 +1198,25 @@ export function DataLayerControls({
                 </span>
               </div>
             )}
+            </>}
+            {rainfallWeather && <RainfallWeatherControls weather={rainfallWeather} position="details" />}
             <div className="pt-1 w-full">
               <div className="flex items-center gap-1.5 w-full">
                 <div
                   className="h-2.5 flex-1 rounded-full"
-                  style={{ background: RAINFALL_GRADIENT_CSS[rainfallHours] }}
+                  style={{ background: RAINFALL_GRADIENT_CSS[rainfallWeather?.mode === 'forecast' ? 1 : rainfallHours] }}
                 />
-                <span className="text-[10px] font-semibold text-muted-foreground shrink-0">mm</span>
+                <span className="text-[10px] font-semibold text-muted-foreground shrink-0">{rainfallWeather?.mode === 'forecast' ? 'mm/h' : 'mm'}</span>
               </div>
               <div className="flex w-full justify-between text-[9px] text-muted-foreground mt-1">
-                {RAINFALL_LEGEND_STOPS[rainfallHours].map((stop, index) => (
+                {RAINFALL_LEGEND_STOPS[rainfallWeather?.mode === 'forecast' ? 1 : rainfallHours].map((stop, index) => (
                   <span
                     key={stop.label || index}
                     className="flex flex-col items-center gap-0.5"
                   >
                     {stop.label && <span>{stop.label}</span>}
                     <span className="font-semibold text-secondary">
-                      {formatRainfallBand(rainfallBandValues(rainfallHours)[index])}
+                      {formatRainfallBand(rainfallBandValues(rainfallWeather?.mode === 'forecast' ? 1 : rainfallHours)[index])}
                     </span>
                   </span>
                 ))}
