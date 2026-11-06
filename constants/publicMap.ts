@@ -77,7 +77,7 @@ export const BUILDING_EXTRUSION_COLOR_DARK = 'rgb(17.5, 17.5, 17.5)';
 export const BUILDING_EXTRUSION_OPACITY = 1;
 export const BUILDING_EXTRUSION_HEIGHT = 6;
 export const BUILDING_EXTRUSION_BASE = 0;
-export const BUILDINGS_MIN_ZOOM = 13;
+export const BUILDINGS_MIN_ZOOM = 12;
 export const BUILDINGS_PMTILES_URL = 'pmtiles:///data/iligan-buildings.pmtiles';
 
 // Iligan road network (Overture transportation segments) as PMTiles. Serve the
