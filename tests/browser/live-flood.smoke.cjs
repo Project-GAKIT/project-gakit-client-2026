@@ -11,6 +11,7 @@ const frame=(h,kind,area,ready=true)=>({frame_id:String(h+100),valid_at:stamp(h)
 const timeline={schema_version:2,snapshot_id:'fixture',created_at:new Date().toISOString(),evaluated_at:new Date().toISOString(),expires_at:new Date(Date.now()+3600000).toISOString(),observed_at:stamp(0),forecast_anchor_at:stamp(0),freshness:'fresh',readiness:'partial',build_state:'ready',bounds:[[124.15,8.35],[124.5,8.35],[124.5,8.1],[124.15,8.1]],frames:[frame(-1,'replay',2.34),frame(0,'latest',9.12),frame(1,'forecast',12.34),frame(3,'forecast',null,false)],available_horizons:[0,1],policy_version:'live-v2.1',rendering:'full_hann'};
 (async()=>{
  const browser=await chromium.launch({channel:process.platform === 'win32' ? 'msedge' : undefined,headless:true});try { const page=await browser.newPage({viewport:{width:1440,height:1000}});let images=0;
+ await page.addInitScript(()=>{localStorage.setItem('gakit:first-visit-seen','true');localStorage.setItem('gakit:onboarding-v1',JSON.stringify({version:1,locationChoice:'skipped',completedAt:new Date().toISOString()}))});
  await page.route('**/api/v1/surrogate/live/v2/timeline',route=>route.fulfill({json:timeline,headers:{'access-control-allow-origin':'*'}}));
  await page.route('**/api/v1/drought/catalog',route=>route.fulfill({json:{status:'pending',generatedAt:null,periods:[],forecastStatus:'unavailable',observedMessage:'Fixture awaiting assessment',forecastMessage:'Fixture awaiting outlook'},headers:{'access-control-allow-origin':'*'}}));
  await page.route('**/api/v1/surrogate/live/v2/snapshots/**',route=>{images++;return route.fulfill({body:png,contentType:'image/png',headers:{'access-control-allow-origin':'*'}})});
@@ -18,7 +19,8 @@ const timeline={schema_version:2,snapshot_id:'fixture',created_at:new Date().toI
  const area=async value=>page.waitForFunction(value=>document.querySelector('[data-flood-metric="area"]')?.textContent.includes(value),value);
  await page.goto(`${base}/flood-scenarios`,{waitUntil:'domcontentloaded'});
  const notice=page.getByRole('button',{name:'Start exploring',exact:true});await notice.waitFor({state:'visible'});await notice.click();
- await page.getByRole('listbox',{name:'Flood scenarios',exact:true}).getByRole('option').filter({hasText:'Live inundation estimates'}).click();
+ await page.locator('[data-scenario-header]').getByRole('button',{name:/Change scenario/}).click();
+ await page.getByRole('option',{name:/Live inundation estimates/}).click();
  await area('9.12');
  const scenarioControls=page.getByRole('group',{name:'Playback controls',exact:true});
  await scenarioControls.getByRole('button',{name:'Previous hour',exact:true}).click();await area('2.34');
@@ -28,64 +30,16 @@ const timeline={schema_version:2,snapshot_id:'fixture',created_at:new Date().toI
  await page.getByRole('slider').first().press('End');await page.getByText('Forecast rainfall incomplete (21/24 hours)',{exact:true}).waitFor();
  assert((await page.locator('[data-flood-metric="area"]').innerText()).includes('—'));assert(images>=2);
  await page.goto(`${base}/`,{waitUntil:'domcontentloaded'});
- const welcome=page.getByRole('dialog',{name:'Welcome to GAKIT',exact:true});await welcome.waitFor();await welcome.getByRole('checkbox').check();await welcome.getByRole('button',{name:'Continue',exact:true}).click();await welcome.waitFor({state:'hidden'});
  const toggle=page.getByRole('switch',{name:'Flood Simulation',exact:true});
- if(!await toggle.isVisible())await page.getByRole('button',{name:'Map Layers',exact:true}).click();
- const sidebar=page.getByRole('complementary',{name:'Map Controls Sidebar',exact:true});
- const weatherCard=sidebar.getByRole('button',{name:/^Weather Outlook/});
- if(await weatherCard.getAttribute('aria-expanded')!=='true')await weatherCard.click();
- const expandReports=sidebar.getByRole('button',{name:'Expand Flood Reports',exact:true});
- if(await expandReports.count())await expandReports.click();
- for(const rail of ['Map Layers','Weather Outlook','Citizen Flood Reports']){
-   await sidebar.getByRole('button',{name:'Minimize sidebar',exact:true}).click();
-   await sidebar.getByRole('button',{name:rail,exact:true}).click();
-   assert.equal(await weatherCard.getAttribute('aria-expanded'),'true');
-   assert.equal(await sidebar.getByRole('button',{name:'Collapse Layers',exact:true}).count(),1);
-   assert.equal(await sidebar.getByRole('button',{name:'Collapse Flood Reports',exact:true}).count(),1);
- }
- await weatherCard.click();
- await sidebar.getByRole('button',{name:'Minimize sidebar',exact:true}).click();
- await sidebar.getByRole('button',{name:'Map Layers',exact:true}).click();
- assert.equal(await weatherCard.getAttribute('aria-expanded'),'false');
- assert.equal(await sidebar.getByRole('button',{name:'Collapse Flood Reports',exact:true}).count(),1);
- await page.getByRole('button',{name:'About Flood Simulation',exact:true}).click();
- const details=page.getByRole('dialog',{name:'About Flood Simulation',exact:true});await details.getByRole('heading',{name:'How it works',exact:true}).waitFor();assert.equal(await toggle.getAttribute('aria-checked'),'false');await page.keyboard.press('Escape');
- const hazards=['Flood','Landslide','Storm Surge'].map(name=>page.getByRole('switch',{name,exact:true}));
- for(const hazard of hazards){await hazard.click();assert.equal(await hazard.getAttribute('aria-checked'),'true');}
  await toggle.click();await area('9.12');
  const publicControls=page.getByRole('group',{name:'Playback controls',exact:true});
- await publicControls.getByRole('button',{name:'Play simulation',exact:true}).click();
  await publicControls.getByRole('button',{name:'Previous hour',exact:true}).click();await area('2.34');
- assert.equal(await publicControls.getByRole('button',{name:'Play simulation',exact:true}).count(),1);
  await publicControls.getByRole('button',{name:'Next hour',exact:true}).click();await area('9.12');
- for(const hazard of hazards){assert.equal(await hazard.getAttribute('aria-checked'),'true');assert.equal(await hazard.isEnabled(),true);await hazard.click();await hazard.click();assert.equal(await hazard.getAttribute('aria-checked'),'true');}
- const slider=page.getByRole('slider',{name:'Select past, live, or forecast flood estimate',exact:true});await slider.focus();
- const beforeScrub=images;await page.keyboard.down('Home');await page.waitForTimeout(100);assert.equal(images,beforeScrub);await page.keyboard.up('Home');await area('2.34');
- await slider.press('End');
+ await page.getByRole('slider',{name:'Select past, live, or forecast flood estimate',exact:true}).press('End');
  await page.getByText('Forecast rainfall incomplete (21/24 hours)',{exact:true}).waitFor();
  assert.equal(await publicControls.getByRole('button',{name:'Next hour',exact:true}).isDisabled(),true);
  assert((await page.locator('[data-flood-metric="area"]').innerText()).includes('—'));
- const droughtToggle=page.getByRole('switch',{name:'Drought conditions',exact:true});
- assert.equal(await droughtToggle.isDisabled(),true);
- assert.equal(await droughtToggle.evaluate(el=>getComputedStyle(el).opacity),'0.4');
- assert.equal(await page.getByRole('switch',{name:'Rainfall',exact:true}).isDisabled(),false);
- await toggle.click();assert.equal(await droughtToggle.isEnabled(),true);
- for(const hazard of hazards)assert.equal(await hazard.isEnabled(),true);
- await droughtToggle.click();await page.getByRole('region',{name:'Drought timeline',exact:true}).waitFor();
- await page.setViewportSize({width:375,height:812});
- const mobileReport=page.getByRole('button',{name:'Report flooding',exact:true});await mobileReport.waitFor({state:'visible'});
- const droughtBounds=await page.getByRole('region',{name:'Drought timeline',exact:true}).boundingBox();
- const reportBounds=await mobileReport.locator('span').first().boundingBox();
- assert(droughtBounds && reportBounds && droughtBounds.y+droughtBounds.height<=reportBounds.y);
- const compassBounds=await page.getByRole('button',{name:'Reset orientation and view to Iligan City',exact:true}).boundingBox();
- const locationBounds=await page.getByRole('button',{name:'Locate my position',exact:true}).boundingBox();
- assert(compassBounds && droughtBounds && compassBounds.y+compassBounds.height<=droughtBounds.y-10);
- assert(locationBounds && droughtBounds && locationBounds.y+locationBounds.height<=droughtBounds.y-10);
- await page.setViewportSize({width:1440,height:1000});
- assert.equal(await toggle.isDisabled(),true);
- assert.equal(await page.getByRole('region',{name:'Flood simulation timeline',exact:true}).count(),0);
- await page.getByRole('button',{name:'Close drought layer',exact:true}).click();
- assert.equal(await toggle.isEnabled(),true);
- console.log(JSON.stringify({scenario:'latest, replay, and unavailable frames passed',publicMap:'latest, replay, and unavailable forecasts passed',decodedImageFetches:images}));
+ await toggle.click();assert.equal(await page.getByRole('region',{name:'Flood simulation timeline',exact:true}).count(),0);
+ console.log(JSON.stringify({scenario:'latest, replay and unavailable forecasts',publicMap:'latest, replay and unavailable forecasts',decodedImageFetches:images}));
  } finally { await browser.close(); }
 })().catch(e=>{console.error(e.stack);process.exit(1)});

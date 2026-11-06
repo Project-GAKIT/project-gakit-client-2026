@@ -1,9 +1,5 @@
 const { chromium } = require(process.env.GAKIT_PLAYWRIGHT_MODULE || 'playwright');
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
-const output = path.resolve('../downloads/assessment-land-mask');
-fs.mkdirSync(output, { recursive: true });
 (async () => {
   const browser = await chromium.launch({ channel: process.platform === 'win32' ? 'msedge' : undefined, headless: true });
   try {
@@ -14,6 +10,7 @@ fs.mkdirSync(output, { recursive: true });
       await page.addInitScript(() => {
         sessionStorage.setItem('gakit:onboarding-auto-located', 'true');
         localStorage.setItem('gakit:first-visit-seen', 'true');
+        localStorage.setItem('gakit:onboarding-v1', JSON.stringify({ version: 1, locationChoice: 'skipped', completedAt: new Date().toISOString() }));
       });
       await page.goto(process.env.GAKIT_BASE_URL || 'http://localhost:3000', { waitUntil: 'domcontentloaded' });
       await page.locator('.maplibregl-canvas').waitFor({ timeout: 45000 });
@@ -46,7 +43,6 @@ fs.mkdirSync(output, { recursive: true });
         const marker = page.getByLabel('Selected location', { exact: true });
         if (allowed) {
           await marker.waitFor({ timeout: 15000 });
-          await page.screenshot({ path: path.join(output, `${viewport.width}-land.png`) });
           await page.getByRole('button', { name: 'Dismiss location actions', exact: true }).click();
           await marker.waitFor({ state: 'hidden' });
         } else {

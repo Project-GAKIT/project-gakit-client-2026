@@ -1,30 +1,41 @@
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readdirSync, readFileSync, unlinkSync, rmdirSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { expect, it } from 'vitest';
 
-it('extracts every raster without changing metadata or numeric-depth PNG bytes', () => {
-  const output = mkdtempSync(path.join(tmpdir(), 'gakit-scenario-assets-'));
+it('preserves raster bytes and metadata, deduplicates images and keeps external URLs', () => {
+  const directory = mkdtempSync(path.join(tmpdir(), 'gakit-scenario-assets-'));
+  const source = path.join(directory, 'source');
+  const output = path.join(directory, 'output');
+  mkdirSync(source);
+  const images = [
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGNgAAIAAAUAAXpeqz8AAAAASUVORK5CYII=',
+    'iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFUlEQVR4nGNk23blLAMDAwMTiABhACOeAmF25L8LAAAAAElFTkSuQmCC',
+  ];
+  const uri = (index: number) => `data:image/png;base64,${images[index]}`;
+  const original = { id: 'fixture', bounds: [[124.2, 8.2], [124.3, 8.3]], frames: [
+    { hour_index: 0, raster_uri: uri(0), depth_raster_uri: uri(1), max_depth_m: 2 },
+    { hour_index: 1, raster_uri: uri(0), depth_raster_uri: '/existing-depth.png', max_depth_m: 3 },
+  ] };
   try {
-    execFileSync(process.execPath, ['scripts/prepare-scenario-assets.mjs', '--output', output]);
-    const source = path.resolve('public/data/scenarios');
-    for (const name of readdirSync(source).filter(name => name.endsWith('.json'))) {
-      const original = JSON.parse(readFileSync(path.join(source, name), 'utf8'));
-      const compact = JSON.parse(readFileSync(path.join(output, name), 'utf8'));
-      expect(readFileSync(path.join(output, name)).length).toBeLessThan(readFileSync(path.join(source, name)).length / 10);
-      compact.frames.forEach((frame: Record<string, string>, index: number) => {
-        for (const key of ['raster_uri', 'depth_raster_uri']) {
-          if (!original.frames[index][key]?.startsWith('data:image/png;base64,')) continue;
-          const bytes = readFileSync(path.join(output, path.basename(frame[key])));
-          expect(bytes.equals(Buffer.from(original.frames[index][key].split(',')[1], 'base64'))).toBe(true);
-          frame[key] = original.frames[index][key];
-        }
-      });
-      expect(compact).toEqual(original);
-    }
+    writeFileSync(path.join(source, 'fixture.json'), JSON.stringify(original));
+    execFileSync(process.execPath, ['scripts/prepare-scenario-assets.mjs', '--source', source, '--output', output]);
+    const compact = JSON.parse(readFileSync(path.join(output, 'fixture.json'), 'utf8'));
+    expect(compact.frames[0].raster_uri).toBe(compact.frames[1].raster_uri);
+    expect(readdirSync(output).filter(name => name.endsWith('.png'))).toHaveLength(2);
+    compact.frames.forEach((frame: Record<string, string>, index: number) => {
+      for (const key of ['raster_uri', 'depth_raster_uri'] as const) {
+        const value = original.frames[index][key];
+        if (!value.startsWith('data:')) continue;
+        expect(readFileSync(path.join(output, path.basename(frame[key]))))
+          .toEqual(Buffer.from(value.split(',')[1], 'base64'));
+        frame[key] = value;
+      }
+    });
+    expect(compact).toEqual(original);
   } finally {
-    for (const name of readdirSync(output)) unlinkSync(path.join(output, name));
-    rmdirSync(output);
+    if (!directory.startsWith(path.join(tmpdir(), 'gakit-scenario-assets-'))) throw new Error('Invalid fixture path');
+    rmSync(directory, { recursive: true, force: true });
   }
 });
