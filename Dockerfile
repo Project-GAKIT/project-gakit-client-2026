@@ -3,7 +3,8 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-# The postinstall hook syncs the MapLibre worker files and needs this script.
+# Install-time hooks only sync MapLibre workers. Scenario assets are prepared
+# by npm run build after the full source tree is copied in the builder stage.
 COPY scripts/ ./scripts/
 RUN npm ci
 
