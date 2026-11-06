@@ -26,7 +26,7 @@ import {
 } from '@/constants/publicMap';
 import { createReportMarkerImage } from '@/lib/map/reportMarkers';
 import { ILIGAN_CENTER } from '@/lib/map/geoUtils';
-import { getFirstBasemapSymbolLayerId } from '@/lib/map/basemapLayers';
+import { getFirstBasemapSymbolLayerId, registerBasemapImageFallbacks } from '@/lib/map/basemapLayers';
 import {
   BUILDING_EXTRUSION_LAYER_ID,
   BUILDING_FOOTPRINT_LAYER_ID,
@@ -231,6 +231,7 @@ export function ScenarioMap({ scenarioId, currentFrame, bounds, onRasterStateCha
       renderWorldCopies: false,
       attributionControl: false,
     });
+    registerBasemapImageFallbacks(map);
 
     mapRef.current = map;
     const releaseGlass = attachAdaptiveGlass(map, mapGlassScope(mapContainer.current));
