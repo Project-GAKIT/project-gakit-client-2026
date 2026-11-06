@@ -10,12 +10,12 @@ const browser = spawn(process.env.GAKIT_EDGE_PATH || 'C:/Program Files (x86)/Mic
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 const start = new Date(); start.setUTCMinutes(0, 0, 0);
 const stamp = h => new Date(+start + h * 3600000).toISOString();
-let grid = { model: 'ecmwf_ifs', source: 'ECMWF IFS via Open-Meteo', fetchedAt: new Date().toISOString(),
+let grid = { model: 'ecmwf_ifs', source: 'ECMWF IFS Open Data', issuedAt: stamp(0), rainResolutionDegrees: .1, nativeIntervalHours: 3, fetchedAt: new Date().toISOString(),
   expiresAt: stamp(12), stale: false, rainUnit: 'mm', windUnit: 'm/s', sampleSpacingDegrees: 1,
   bounds: { west: 105, east: 150, south: -.2, north: 29.2 }, rows: 2, cols: 2,
   latitude: [21.85, 7.15], longitude: [116.25, 138.75], times: Array.from({ length: 80 }, (_, h) => stamp(h)),
-  frames: Array.from({ length: 80 }, (_, h) => ({ rain: [h % 10, 4, 8, h % 15], u: Array(4).fill(h < 24 ? 7 : -7), v: Array(4).fill(3) })) };
-let socket, sequence = 0, forecastRequests = 0;
+  frames: Array.from({ length: 80 }, (_, h) => ({ rasterUrl: '/api/v1/weather/forecast-grid/assets/' + 'a'.repeat(24) + '/3.png', rainWindowEndAt: stamp(3 * Math.max(1, Math.ceil(h / 3))), u: Array(4).fill(h < 24 ? 7 : -7), v: Array(4).fill(3) })) };
+let socket, sequence = 0, forecastRequests = 0, rainfallGeojsonRequests = 0;
 const pending = new Map(), errors = [];
 function command(method, params = {}) { return new Promise((resolve, reject) => {
   const id = ++sequence; pending.set(id, { resolve, reject }); socket.send(JSON.stringify({ id, method, params }));
@@ -48,9 +48,22 @@ async function main() {
     if (m.method === 'Fetch.requestPaused') {
       const { requestId, request } = m.params;
       let body;
-      if (request.url.includes('/forecast-grid/assets/')) { await command('Fetch.continueRequest', { requestId }); return; }
+      if (request.url.includes('/weather-maps/forecast/browser.json') || request.url.includes('/weather-maps/rainfall/latest.json')) {
+        if (process.env.GAKIT_REAL_FORECAST === '1') {
+          if (request.url.includes('forecast/browser.json')) forecastRequests++;
+          await command('Fetch.continueRequest', { requestId });
+        } else {
+          await command('Fetch.fulfillRequest', { requestId, responseCode: 503, responseHeaders: [{ name: 'access-control-allow-origin', value: '*' }], body: Buffer.from('{}').toString('base64') });
+        }
+        return;
+      }
+      if (request.url.includes('/forecast-grid/assets/')) {
+        if (process.env.GAKIT_REAL_FORECAST === '1') await command('Fetch.continueRequest', { requestId });
+        else await command('Fetch.fulfillRequest', { requestId, responseCode: 200, responseHeaders: [{ name: 'content-type', value: 'image/png' }, { name: 'access-control-allow-origin', value: '*' }], body: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGNgAAIAAAUAAXpeqz8AAAAASUVORK5CYII=' });
+        return;
+      }
       if (request.url.includes('/weather/forecast-grid')) { if (request.method !== 'OPTIONS') forecastRequests++; body = grid; }
-      else if (request.url.includes('/rainfall/gsmap')) body = { type: 'FeatureCollection', properties: { source: 'JAXA GSMaP_NOW', observedAt: stamp(0).replace('Z', ''), accumulationHours: 1 }, features: [] };
+      else if (request.url.includes('/rainfall/gsmap')) { rainfallGeojsonRequests++; body = { type: 'FeatureCollection', properties: { source: 'JAXA GSMaP_NOW', observedAt: stamp(0).replace('Z', ''), accumulationHours: 1 }, features: [] }; }
       else if (request.url.includes('tiles.openfreemap.org/styles/') && process.env.GAKIT_REAL_FORECAST !== '1') body = { version: 8, sources: {}, layers: [{ id: 'background', type: 'background', paint: { 'background-color': '#e8edf0' } }] };
       if (body) await command('Fetch.fulfillRequest', { requestId, responseCode: 200,
         responseHeaders: [{ name: 'content-type', value: 'application/json' }, { name: 'access-control-allow-origin', value: '*' }, { name: 'access-control-allow-headers', value: '*' }],
@@ -59,7 +72,7 @@ async function main() {
     }
   });
   await command('Page.enable'); await command('Runtime.enable');
-  await command('Fetch.enable', { patterns: [{ urlPattern: '*weather/forecast-grid*' }, { urlPattern: '*rainfall/gsmap*' }, { urlPattern: '*tiles.openfreemap.org/styles/*' }] });
+  await command('Fetch.enable', { patterns: [{ urlPattern: '*weather/forecast-grid*' }, { urlPattern: '*rainfall/gsmap*' }, { urlPattern: '*/weather-maps/forecast/browser.json' }, { urlPattern: '*/weather-maps/rainfall/latest.json' }, { urlPattern: '*tiles.openfreemap.org/styles/*' }] });
   await command('Page.addScriptToEvaluateOnNewDocument', { source: `
     localStorage.setItem('gakit:first-visit-seen','true');
     localStorage.setItem('gakit:onboarding-v1',JSON.stringify({version:1,locationChoice:'skipped',completedAt:new Date().toISOString()}));
@@ -112,7 +125,8 @@ async function main() {
   await waitFor("!document.querySelector('canvas[data-wind-trails]')");
   assert.equal(forecastRequests, 1);
   assert.equal(errors.length, 0, 'No runtime exceptions');
-  const proof = { passed: true, forecastRequests, animationStrokesInTwoSeconds: after.strokes - before.strokes,
+  if (process.env.GAKIT_REAL_FORECAST === '1') assert.equal(rainfallGeojsonRequests, 0, 'Published JAXA images avoid GeoJSON');
+  const proof = { passed: true, forecastRequests, rainfallGeojsonRequests, animationStrokesInTwoSeconds: after.strokes - before.strokes,
     mapDrawCallsInTwoSeconds: after.webgl - before.webgl, reducedMotionStatic: true, cleanupVerified: true, mobileFits: true };
   fs.writeFileSync(path.join(output, 'checks.json'), JSON.stringify(proof, null, 2)); console.log(JSON.stringify(proof));
 }

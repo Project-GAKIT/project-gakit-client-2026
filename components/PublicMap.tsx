@@ -313,7 +313,6 @@ export function PublicMap({
   // making hideAttribution a dependency (which would re-create the whole map).
   const hideAttributionRef = useRef(hideAttribution);
   const loadMapReportsRef = useRef<(() => void | Promise<void>) | null>(null);
-  const loadRainfallRef = useRef<((hours?: any) => Promise<void> | void) | null>(null);
   const loadTyphoonRef = useRef<((stormName?: string | null) => Promise<any> | void) | null>(null);
   const onMapLoadRef = useRef<(() => void) | null>(null);
   const moveendTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -425,7 +424,7 @@ export function PublicMap({
   const droughtVisibleRef = useRef(false);
   useLayoutEffect(() => { droughtVisibleRef.current = drought.visible; }, [drought.visible]);
   const applyDroughtPreloaded = drought.applyPreloaded;
-  const { loadRainfall, lookupPrecip, applyPreloaded, hoursRef } = rainfall;
+  const { lookupPrecip, applyPreloaded, hoursRef } = rainfall;
 
   const handleRainfallHoursChange = useCallback(
     (hours: RainfallAccumulationHours) => {
@@ -817,9 +816,8 @@ export function PublicMap({
     onReportClickRef.current = onReportClick;
     onReadyRef.current = onReady;
     loadMapReportsRef.current = loadMapReports;
-    loadRainfallRef.current = loadRainfall;
     hideReportPopupRef.current = hideReportPopup;
-  }, [handleLocationSelect, onReportClick, onReady, loadMapReports, loadRainfall, hideReportPopup]);
+  }, [handleLocationSelect, onReportClick, onReady, loadMapReports, hideReportPopup]);
 
   // When the parent explicitly dismisses an active selected location (e.g. the report modal is
   // closed by the user), cancel any pending reverse-geocode so a stale address callback
@@ -1178,17 +1176,12 @@ export function PublicMap({
       onMapLoadRef.current?.();
     });
 
-    // Pre-fetch near real-time rainfall so the report-modal hazard check always
-    // has precipitation data, even if the rainfall layer stays off. The GSMaP
-    // payload covers all of the Philippines and can be large, so defer it until
-    // the map's initial load is done and the browser is idle rather than
-    // competing with basemap/tile fetching at startup.
+    // Load storm metadata after the initial map work settles.
     map.once('load', () => {
       if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
         window.requestIdleCallback(
           () => {
             if (mapRef.current === map) {
-              void loadRainfallRef.current?.();
               void loadTyphoonRef.current?.();
             }
           },
@@ -1197,7 +1190,6 @@ export function PublicMap({
       } else {
         setTimeout(() => {
           if (mapRef.current === map) {
-            void loadRainfallRef.current?.();
             void loadTyphoonRef.current?.();
           }
         }, 1000);

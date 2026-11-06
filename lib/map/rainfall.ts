@@ -1,4 +1,5 @@
 import { cachedGet } from '@/lib/backend/apiCache';
+import { publishedWeatherJSON, publicWeatherBase } from '@/lib/map/weatherPublication';
 import { RAINFALL_BAND_EDGES } from '@/lib/map/colorScales';
 import type { RainfallGrid, RainfallResponse } from '@/types/rainfall';
 
@@ -10,6 +11,32 @@ const RAINFALL_TTL_MS = 10 * 60 * 1000;
 // Accumulation windows supported by the server (/api/v1/rainfall/gsmap?hours=).
 export const RAINFALL_ACCUMULATION_HOURS = [1, 4, 8, 12, 24] as const;
 export type RainfallAccumulationHours = (typeof RAINFALL_ACCUMULATION_HOURS)[number];
+
+type PublishedRainfall = {
+  schema: 'jaxa-maps-v1';
+  bounds: { west: number; east: number; south: number; north: number };
+  resolutionDegrees: number;
+  windows: Record<string, { observedAt: string; expiresAt: string; source: string; accumulationHours: number; rasterPath: string }>;
+};
+
+export async function fetchRainfallImage(hours: RainfallAccumulationHours): Promise<{ url: string; observedAt: string; source: string }> {
+  try {
+    const data = await publishedWeatherJSON<PublishedRainfall>('rainfall/latest.json');
+    const frame = data.windows?.[String(hours)];
+    const observed = Date.parse(frame?.observedAt), expiry = Date.parse(frame?.expiresAt);
+    if (data.schema !== 'jaxa-maps-v1' || data.resolutionDegrees !== .1
+      || data.bounds?.west !== 105 || data.bounds?.east !== 150 || data.bounds?.south !== -.2 || data.bounds?.north !== 29.2
+      || !frame || !Number.isFinite(observed) || observed > Date.now() + 300_000
+      || !Number.isFinite(expiry) || expiry <= Date.now() || expiry - observed > 6 * 3_600_000
+      || !/^rainfall\/rasters\/[a-f0-9]{64}\.webp$/.test(frame.rasterPath)) throw new Error('Published rainfall is incomplete or expired');
+    return { url: `${publicWeatherBase()}/${frame.rasterPath}`, observedAt: frame.observedAt, source: frame.source };
+  } catch {
+    const rainfall = await fetchRainfall(hours);
+    const stamp = rainfall.properties.observedAt;
+    const observedAt = /(?:Z|[+-]\d\d:\d\d)$/.test(stamp) ? stamp : `${stamp}Z`;
+    return { url: generateRainfallDataUrl(rainfall, hours) ?? RAINFALL_PLACEHOLDER_DATA_URL, observedAt, source: rainfall.properties.source ?? 'JAXA GSMaP' };
+  }
+}
 
 // A cold server cache triggers a fresh JAXA FTP download that can take a while;
 // give the request a generous timeout, then retry so a dropped connection (which
