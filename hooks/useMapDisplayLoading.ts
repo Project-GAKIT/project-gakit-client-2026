@@ -20,7 +20,7 @@ export function useMapDisplayLoading(mapRef: MutableRefObject<any>, layersReady:
     return () => { active.forEach(cancel => cancel()); active.clear(); };
   }, []);
 
-  const run = useCallback((key: DisplaySettingKey, apply: () => void | Promise<void>, isPending: () => boolean = () => false, label = LABELS[key]) => {
+  const run = useCallback((key: DisplaySettingKey, apply: () => void | Promise<void>, isPending: () => boolean = () => false, label = LABELS[key], isMapReady?: () => boolean) => {
     const map = mapRef.current;
     if (!map) return;
     jobs.current.get(key)?.();
@@ -58,7 +58,7 @@ export function useMapDisplayLoading(mapRef: MutableRefObject<any>, layersReady:
         frame = requestAnimationFrame(() => {
           if (cancelled) return;
           const check = () => {
-            if (!isPending() && layersReady.current && map.isStyleLoaded() && map.areTilesLoaded() && !map.isMoving()) finish();
+            if (!isPending() && layersReady.current && (isMapReady ? isMapReady() : map.isStyleLoaded() && map.areTilesLoaded()) && !map.isMoving()) finish();
           };
           // Animated weather layers can keep the map from reaching idle.
           map.on('render', check);

@@ -5,6 +5,7 @@ import React, {
   useContext,
   useEffect,
   useRef,
+  useMemo,
   useState,
   Suspense,
 } from 'react';
@@ -50,6 +51,8 @@ export function RouteLoaderProvider({ children }: { children: React.ReactNode })
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [recovery, setRecovery] = useState(false);
+  const [loadingCycle, setLoadingCycle] = useState(0);
+  const loadingActiveRef = useRef(false);
   const [hasNavigated, setHasNavigated] = useState(false);
   const [loadingLabel, setLoadingLabel] = useState('Loading page…');
   const destinationLabelRef = useRef<string | null>(null);
@@ -62,6 +65,8 @@ export function RouteLoaderProvider({ children }: { children: React.ReactNode })
   const lastPathRef = useRef<string | null>(null);
 
   const showLoader = useCallback((label = 'Loading page…') => {
+    loadingActiveRef.current = true;
+    setLoadingCycle(cycle => cycle + 1);
     destinationLabelRef.current = label;
     setRecovery(false);
     setHasNavigated(true);
@@ -86,6 +91,7 @@ export function RouteLoaderProvider({ children }: { children: React.ReactNode })
     const remaining = Math.max(0, MIN_DISPLAY_TIME_MS - elapsed);
     const finish = () => {
       if (fallbackCountRef.current > 0) return;
+      loadingActiveRef.current = false;
       setIsLoading(false);
       setRecovery(false);
       destinationLabelRef.current = null;
@@ -97,6 +103,12 @@ export function RouteLoaderProvider({ children }: { children: React.ReactNode })
   }, []);
 
   const registerFallback = useCallback((label = 'Loading page…') => {
+    if (!loadingActiveRef.current) {
+      loadingActiveRef.current = true;
+      startTimeRef.current = Date.now();
+      setRecovery(false);
+      setLoadingCycle(cycle => cycle + 1);
+    }
     const id = Symbol();
     // A generic route fallback must not replace the destination's map label
     // while the page hands loading ownership to its map startup gate.
@@ -109,7 +121,7 @@ export function RouteLoaderProvider({ children }: { children: React.ReactNode })
     if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
     setIsLoading(true);
     return () => {
-      fallbackLabels.current.delete(id);
+      if (!fallbackLabels.current.delete(id)) return;
       const remaining = [...fallbackLabels.current.values()];
       if (remaining.length) setLoadingLabel(remaining[remaining.length - 1]);
       fallbackCountRef.current--;
@@ -141,12 +153,14 @@ export function RouteLoaderProvider({ children }: { children: React.ReactNode })
     if (!isLoading) return;
     const timer = setTimeout(() => {
       if (fallbackCountRef.current > 0) { setRecovery(true); return; }
+      loadingActiveRef.current = false;
+      setRecovery(false);
       setIsLoading(false);
       destinationLabelRef.current = null;
       snapshotRef.current?.replaceChildren();
     }, SAFETY_TIMEOUT_MS);
     return () => clearTimeout(timer);
-  }, [isLoading]);
+  }, [isLoading, loadingCycle]);
 
   const navigate = useCallback(
     (href: string, options?: { replace?: boolean }) => {
@@ -229,14 +243,14 @@ export function RouteLoaderProvider({ children }: { children: React.ReactNode })
     return () => document.removeEventListener('click', handleDocumentClick, true);
   }, [showLoader]);
 
-  const contextValue: RouteLoaderContextValue = {
+  const contextValue = useMemo<RouteLoaderContextValue>(() => ({
     isLoading,
     navigate,
     showLoader,
     hideLoader,
     loadingOverlay: null, // Root overlay is permanently mounted below
     registerFallback,
-  };
+  }), [isLoading, navigate, showLoader, hideLoader, registerFallback]);
 
   return (
     <RouteLoaderContext.Provider value={contextValue}>

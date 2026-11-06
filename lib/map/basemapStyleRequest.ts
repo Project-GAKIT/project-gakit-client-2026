@@ -14,6 +14,8 @@ export class BasemapStyleRequest {
     const generation = this.generation;
     const controller = new AbortController();
     this.controller = controller;
+    let timedOut = false;
+    const timeout = setTimeout(() => { timedOut = true; controller.abort(); }, 15_000);
     try {
       const source = BASEMAP_STYLES[basemap];
       let style: StyleSpecification;
@@ -25,7 +27,9 @@ export class BasemapStyleRequest {
       } else { style = source; }
       if (generation === this.generation) apply(style);
     } catch (error) {
-      if (generation === this.generation && !controller.signal.aborted) throw error;
+      if (generation === this.generation && (timedOut || !controller.signal.aborted)) throw error;
+    } finally {
+      clearTimeout(timeout);
     }
   }
 }

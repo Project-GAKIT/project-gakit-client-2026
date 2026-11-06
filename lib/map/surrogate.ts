@@ -61,10 +61,12 @@ export class LiveFloodPending extends Error {
 
 export async function fetchLiveFloodSnapshot(signal?: AbortSignal): Promise<LiveTimeline> {
   const response = await fetch(`${API_URL}/api/v1/surrogate/live/v2/timeline`, {
-    headers: { 'Content-Type': 'application/json' }, signal, cache: 'no-store',
+    headers: { 'Content-Type': 'application/json' },
+    signal: AbortSignal.any([...(signal ? [signal] : []), AbortSignal.timeout(20_000)]), cache: 'no-store',
   });
   if (response.status === 202) {
-    throw new LiveFloodPending(Math.min(10000, Math.max(1000, Number(response.headers.get('Retry-After') ?? 2) * 1000)));
+    const seconds = Number(response.headers.get('Retry-After') ?? 2);
+    throw new LiveFloodPending(Number.isFinite(seconds) ? Math.min(10000, Math.max(1000, seconds * 1000)) : 2000);
   }
   if (!response.ok) throw new Error(`Live estimates unavailable (${response.status})`);
   const data = liveTimelineSchema.parse(await response.json());
