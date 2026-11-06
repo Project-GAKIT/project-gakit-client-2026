@@ -1,11 +1,20 @@
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import type { ForecastWeather, ForecastWeatherFrame } from '@/types/forecastWeather';
 import { sampleForecast } from './forecastWeather';
+import { isDarkBasemap, type BasemapId } from '@/constants/publicMap';
+
+export function windTrailPaint(basemap: BasemapId) {
+  return isDarkBasemap(basemap)
+    ? { stroke: 'rgba(255,255,255,.8)', halo: 'rgba(15,23,42,.22)', tone: 'light' }
+    : { stroke: 'rgba(15,23,42,.8)', halo: 'rgba(255,255,255,.35)', tone: 'dark' };
+}
 
 /** Independent canvas: animating wind never repaints map tiles or 3D buildings. */
-export function createWindTrails(map: MapLibreMap, grid: ForecastWeather, frame: ForecastWeatherFrame): () => void {
+export function createWindTrails(map: MapLibreMap, grid: ForecastWeather, frame: ForecastWeatherFrame, basemap: BasemapId): () => void {
+  const paint = windTrailPaint(basemap);
   const canvas = document.createElement('canvas');
   canvas.dataset.windTrails = 'true';
+  canvas.dataset.windTone = paint.tone;
   canvas.dataset.windValidAt = grid.times[grid.frames.indexOf(frame)];
   canvas.setAttribute('aria-hidden', 'true');
   Object.assign(canvas.style, { position: 'absolute', inset: '0', pointerEvents: 'none', width: '100%', height: '100%' });
@@ -62,7 +71,7 @@ export function createWindTrails(map: MapLibreMap, grid: ForecastWeather, frame:
     resume();
   };
   const arrows = () => {
-    clear(); ctx.strokeStyle = 'rgba(100,116,139,.85)'; ctx.lineWidth = 1.3; ctx.beginPath();
+    clear(); ctx.strokeStyle = paint.stroke; ctx.lineWidth = 1.3; ctx.beginPath();
     for (let y = 36; y < height; y += 90) for (let x = 36; x < width; x += 90) {
       const vector = vectorAt(x, y);
       if (!vector) continue;
@@ -79,7 +88,7 @@ export function createWindTrails(map: MapLibreMap, grid: ForecastWeather, frame:
     last = time;
     ctx.globalCompositeOperation = 'destination-out'; ctx.fillStyle = 'rgba(0,0,0,.13)'; ctx.fillRect(0, 0, width, height);
     ctx.globalCompositeOperation = 'source-over';
-    // Two strokes keep trails readable on both light and satellite basemaps.
+    // A contrasting halo keeps the basemap-specific stroke visible over rain.
     ctx.beginPath();
     for (let n = 0; n < activeCount; n++) {
       const i = n * 3, x = particles[i], y = particles[i + 1];
@@ -90,8 +99,8 @@ export function createWindTrails(map: MapLibreMap, grid: ForecastWeather, frame:
       ctx.moveTo(x, y); ctx.lineTo(nx, ny);
       particles[i] = nx; particles[i + 1] = ny;
     }
-    ctx.strokeStyle = 'rgba(15,23,42,.22)'; ctx.lineWidth = 2.4; ctx.stroke();
-    ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.strokeStyle = paint.halo; ctx.lineWidth = 2.4; ctx.stroke();
+    ctx.strokeStyle = paint.stroke; ctx.lineWidth = 1; ctx.stroke();
     if (performance.now() - began > 10 && ++slowFrames >= 5) { activeCount = Math.max(100, Math.floor(activeCount * .75)); slowFrames = 0; }
     timer = setTimeout(() => { animation = requestAnimationFrame(draw); }, 1000 / 30);
   };

@@ -1151,8 +1151,8 @@ export function DataLayerControls({
           onChange={onShowRainfallChange}
           loading={showRainfall && isLoadingRainfall}
           credit={{
-            href: rainfallWeather?.mode === 'forecast' ? (rainfallWeather.issuedAt ? 'https://www.ecmwf.int/en/forecasts/datasets/open-data' : 'https://open-meteo.com/en/docs/ecmwf-api') : JAXA_GSMAP_URL,
-            label: rainfallWeather?.mode === 'forecast' ? (rainfallWeather.issuedAt ? 'ECMWF' : 'ECMWF / Open-Meteo') : 'JAXA GSMaP',
+            href: rainfallWeather?.mode === 'forecast' ? 'https://www.ecmwf.int/en/forecasts/datasets/open-data' : JAXA_GSMAP_URL,
+            label: rainfallWeather?.mode === 'forecast' ? 'ECMWF' : 'JAXA GSMaP',
           }}
         />
         {showRainfall && (

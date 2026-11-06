@@ -39,7 +39,7 @@ export function RainfallWeatherControls({ weather, position }: { weather: Rainfa
       </>}
       {weather.loading && !weather.validAt && <p role="status" className="text-[10px] text-muted-foreground">Loading rain and wind…</p>}
       {weather.validAt && <p title={details} aria-label={details} className="text-[10px] leading-snug text-muted-foreground">
-        {weather.resolution === .1 ? `0.1° · ${weather.intervalHours}h mean` : 'Sampled preview'}{weather.stale ? ' · Update pending' : ''}
+        0.1° · {weather.intervalHours}h mean{weather.stale ? ' · Update pending' : ''}
       </p>}
     </>}
     <button type="button" role="switch" aria-label="Wind trails" aria-checked={weather.wind} onClick={() => weather.setWind(!weather.wind)} title={`ECMWF IFS · 10 m wind · ${weather.mode === 'recent' ? 'Current model estimate' : 'Selected forecast hour'}`}

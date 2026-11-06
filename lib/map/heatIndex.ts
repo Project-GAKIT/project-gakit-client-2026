@@ -1,5 +1,6 @@
 import { cachedGet, invalidateApiCache } from '@/lib/backend/apiCache';
 import { mercatorY, type MaskPolygon } from '@/lib/map/heatLandMask';
+import { publishedWeatherJSON, publicWeatherBase } from '@/lib/map/weatherPublication';
 
 export const HEAT_INDEX_HOURS = [0, 3, 6, 12, 24] as const;
 export type HeatIndexHour = (typeof HEAT_INDEX_HOURS)[number];
@@ -179,6 +180,26 @@ export function renderHeatIndexImage(
 export async function fetchHeatIndex(hour: HeatIndexHour): Promise<HeatIndexGrid> {
   const path = `/api/v1/heat-index/grid?forecast_hour=${hour}`;
   const result = await cachedGet(path, 30_000, async () => {
+    if (publicWeatherBase()) {
+      try {
+        const snapshot = await publishedWeatherJSON<{
+          version: number; fetched_at: string; times: string[]; frames: (number | null)[][];
+          bounds: HeatIndexGrid['bounds']; latitude: number[]; longitude: number[]; rows: number; cols: number;
+        }>('heat-index/latest.json');
+        const fetched = Date.parse(snapshot.fetched_at);
+        const valid = Math.floor(Date.now() / 3_600_000) * 3_600_000 + hour * 3_600_000;
+        const index = snapshot.times.findIndex(t => Date.parse(t) === valid);
+        const values = snapshot.frames[index];
+        if (snapshot.version !== 1 || snapshot.rows !== 25 || snapshot.cols !== 10
+          || snapshot.latitude.length !== 25 || snapshot.longitude.length !== 10
+          || !Number.isFinite(fetched) || fetched > Date.now() + 300_000 || Date.now() - fetched >= 6 * 3_600_000
+          || !values || values.length !== 250 || !values.some(v => v !== null) || !values.every(v => v === null || typeof v === 'number' && Number.isFinite(v))) throw new Error('Invalid heat-index publication');
+        return { source: 'Open-Meteo · ECMWF IFS', unit: '°C' as const, validAt: snapshot.times[index], fetchedAt: snapshot.fetched_at,
+          expiresAt: new Date(fetched + 6 * 3_600_000).toISOString(), stale: Date.now() - fetched >= 3 * 3_600_000,
+          bounds: snapshot.bounds, rows: snapshot.rows, cols: snapshot.cols, latitude: snapshot.latitude, longitude: snapshot.longitude,
+          values, sampleCount: 250, refreshHours: 3 };
+      } catch { /* Preserve the cached API fallback during publication outages. */ }
+    }
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 15_000);
     try {

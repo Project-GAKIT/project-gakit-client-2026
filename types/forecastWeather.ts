@@ -1,14 +1,14 @@
 export interface ForecastWeatherFrame {
-  /** Precipitation over the hour ending at the corresponding timestamp, mm. */
-  rain: (number | null)[];
   /** Eastward / northward wind at that timestamp, m/s. */
   u: (number | null)[];
   v: (number | null)[];
-  rasterUrl?: string;
-  rainWindowEndAt?: string;
+  rasterUrl: string;
+  rainWindowEndAt: string;
 }
 
 export interface ForecastWeather {
+  /** Trusted public bucket chosen by the reader, never taken from remote JSON. */
+  publicationBase?: string;
   source: string;
   model: 'ecmwf_ifs';
   fetchedAt: string;
@@ -24,7 +24,7 @@ export interface ForecastWeather {
   frames: ForecastWeatherFrame[];
   rainUnit: 'mm';
   windUnit: 'm/s';
-  rainResolutionDegrees?: number;
-  nativeIntervalHours?: number;
-  issuedAt?: string;
+  rainResolutionDegrees: number;
+  nativeIntervalHours: number;
+  issuedAt: string;
 }
