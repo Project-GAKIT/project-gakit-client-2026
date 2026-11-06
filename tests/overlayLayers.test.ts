@@ -24,7 +24,7 @@ vi.mock('@/lib/map/heatLandMask', async importOriginal => ({
   loadHeatLandMask: vi.fn().mockResolvedValue([]),
 }));
 
-import { setupOverlayLayers } from '@/lib/map/overlayLayers';
+import { ensureHazardLayers, setupOverlayLayers } from '@/lib/map/overlayLayers';
 import { HIMAWARI_PLACEHOLDER_DATA_URL } from '@/lib/map/himawari';
 
 function createMockMap() {
@@ -89,7 +89,7 @@ describe('setupOverlayLayers himawari source', () => {
     const layers: any[] = [];
     map.addLayer = (layer: any) => layers.push(layer);
     map.addImage = vi.fn();
-    await setupOverlayLayers(map, { addProtocol: () => {} }, { ...baseState });
+    await setupOverlayLayers(map, { addProtocol: () => {} }, { ...baseState, showTyphoonTrack: true });
     expect(map.loadImage.mock.calls.map(([url]: [string]) => url).sort()).toEqual(
       ['LPA', 'STS', 'STY', 'TD', 'TS', 'TY'].map(code => `/icons/pagasa/${code}.png`),
     );
@@ -99,6 +99,21 @@ describe('setupOverlayLayers himawari source', () => {
     expect(points.layout['icon-allow-overlap']).toBe(true);
     expect(points.layout['icon-image']).toContain('pagasa-cyclone-STY');
     expect(layers.some(layer => layer.id === 'typhoon-track-point-dot')).toBe(false);
+  });
+
+  it('defers disabled hazard archives and icons, then creates only selected archives once', async () => {
+    const { map, addedSources } = createMockMap();
+    await setupOverlayLayers(map, { addProtocol: () => {} }, { ...baseState });
+    expect(addedSources.some(({ id }) => /^(flood-hazard|landslide|storm-surge)/.test(id))).toBe(false);
+    expect(map.loadImage).not.toHaveBeenCalled();
+    map.getSource = (id: string) => addedSources.find(source => source.id === id)?.spec;
+    const selected = { ...baseState, showFloodHazard: true, showLandslide: true, showStormSurge: true, stormSurgeAdvisory: 2 as const };
+    ensureHazardLayers(map, selected);
+    ensureHazardLayers(map, selected);
+    expect(addedSources.filter(({ id }) => /^(flood-hazard|landslide|storm-surge)/.test(id)).map(s => s.id))
+      .toEqual(['flood-hazard', 'landslide', 'storm-surge-ssa2']);
+    ensureHazardLayers(map, { ...selected, stormSurgeAdvisory: 4 });
+    expect(addedSources.filter(({ id }) => id.startsWith('storm-surge')).map(s => s.id)).toEqual(['storm-surge-ssa2', 'storm-surge-ssa4']);
   });
 
   it('adds iligan-buildings pmtiles vector source for city footprints', async () => {

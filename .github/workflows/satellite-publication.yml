@@ -31,6 +31,7 @@ jobs:
         with:
           node-version: '24'
           cache: npm
-      - run: npm ci --no-audit --no-fund
+          cache-dependency-path: infra/satellite-publisher/package-lock.json
+      - run: npm ci --prefix infra/satellite-publisher --no-audit --no-fund
       - name: Publish completed scans and expire old images
         run: node scripts/publish-satellite.cjs

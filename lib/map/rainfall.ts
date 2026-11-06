@@ -1,6 +1,7 @@
 import { cachedGet } from '@/lib/backend/apiCache';
 import { publishedWeatherJSON, publicWeatherBase } from '@/lib/map/weatherPublication';
 import { RAINFALL_BAND_EDGES } from '@/lib/map/colorScales';
+import { weatherTimestamp } from '@/lib/map/weatherTime';
 import type { RainfallGrid, RainfallResponse } from '@/types/rainfall';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
@@ -32,8 +33,8 @@ export async function fetchRainfallImage(hours: RainfallAccumulationHours): Prom
     return { url: `${publicWeatherBase()}/${frame.rasterPath}`, observedAt: frame.observedAt, source: frame.source };
   } catch {
     const rainfall = await fetchRainfall(hours);
-    const stamp = rainfall.properties.observedAt;
-    const observedAt = /(?:Z|[+-]\d\d:\d\d)$/.test(stamp) ? stamp : `${stamp}Z`;
+    const observedAt = weatherTimestamp(rainfall.properties.observedAt);
+    if (!observedAt) throw new Error('Recent rainfall has no valid observation time.');
     return { url: generateRainfallDataUrl(rainfall, hours) ?? RAINFALL_PLACEHOLDER_DATA_URL, observedAt, source: rainfall.properties.source ?? 'JAXA GSMaP' };
   }
 }

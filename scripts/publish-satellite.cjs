@@ -3,7 +3,7 @@
  */
 const fs = require('node:fs');
 const path = require('node:path');
-const ts = require('typescript');
+const { createRequire } = require('node:module');
 
 async function main() {
   const envIndex = process.argv.indexOf('--env-file');
@@ -15,7 +15,11 @@ async function main() {
     throw new Error('Worker and browser Supabase projects differ');
   }
   const root = path.resolve(__dirname, '..');
-  const directory = path.join(root, 'node_modules/.cache/satellite-publisher');
+  const worker = path.join(root, 'infra/satellite-publisher');
+  const runtime = fs.existsSync(path.join(worker, 'node_modules/typescript')) ? worker : root;
+  const runtimeRequire = createRequire(path.join(runtime, 'package.json'));
+  const ts = runtimeRequire('typescript');
+  const directory = path.join(runtime, 'node_modules/.cache/satellite-publisher');
   fs.mkdirSync(directory, { recursive: true });
   const modules = {
     himawariSlider: 'lib/server/himawariSlider.ts',
@@ -54,6 +58,8 @@ async function main() {
     });
   const legacyDeleted = await store.cleanupLegacy();
   console.log(JSON.stringify({ ...result, legacyDeleted }));
+  if (result.delayCause === 'source') console.log('::warning::The latest available CIRA scan is delayed; publication has caught up to the source.');
+  if (result.delayCause === 'publication') console.log('::warning::Published imagery is behind the latest available CIRA scan.');
   if (result.upstreamUnavailable || result.failed.length || Date.now() - scanEpoch(result.latest) > SATELLITE_RETENTION_MS) process.exitCode = 1;
 }
 main().catch(error => { console.error(error.message); process.exitCode = 1; });

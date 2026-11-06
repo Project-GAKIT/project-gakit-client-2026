@@ -210,8 +210,9 @@ export function PublicViewPage({
   }, [scrollToMap, smoothScrollTo]);
 
   useEffect(() => {
+    if (!isMapReady) return;
     preloadGeoData();
-  }, []);
+  }, [isMapReady]);
 
 
   useEffect(() => {

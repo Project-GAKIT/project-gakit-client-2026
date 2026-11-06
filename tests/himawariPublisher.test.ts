@@ -21,6 +21,15 @@ function fake(previous: SatelliteManifest | null = manifest(), files = [older, e
   }; return { store, events };
 }
 describe('satellite publication and retention', () => {
+  it('distinguishes an old upstream scan from failing to publish an available newer scan', async () => {
+    const source = fake(manifest([older]), [older]);
+    const behindSource = await publishSatelliteFrames(source.store, async () => [older], async () => png(), now + 20 * 60_000);
+    expect(behindSource).toMatchObject({ sourceLatest: older, sourceAgeMinutes: 40, publicationLagMinutes: 0, delayCause: 'source' });
+    const pipeline = fake(manifest([older]), [older]);
+    const behindPublication = await publishSatelliteFrames(pipeline.store, async () => [fresh, older], async () => { throw Error('render failed'); }, now);
+    expect(behindPublication).toMatchObject({ sourceLatest: fresh, delayCause: 'publication', failed: [fresh] });
+    expect(behindPublication.publicationLagMinutes).toBeGreaterThan(0);
+  });
   it('uploads before publishing and deletes only after successful publication', async () => {
     const {store,events}=fake(); const render=vi.fn(async()=>png());
     const result=await publishSatelliteFrames(store,async()=>[fresh,older],render,now);

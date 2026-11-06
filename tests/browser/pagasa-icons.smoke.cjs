@@ -22,13 +22,18 @@ const fixture = {
       page.on('pageerror', error => errors.push(error.message));
       await page.addInitScript(() => {
         sessionStorage.setItem('gakit:onboarding-auto-located', 'true');
+        localStorage.setItem('gakit:first-visit-seen', 'true');
+        localStorage.setItem('gakit:onboarding-v1', JSON.stringify({ version: 1, locationChoice: 'skipped', completedAt: new Date().toISOString() }));
       });
       await page.route('**/api/typhoon-track**', route => route.fulfill({ json:
         new URL(route.request().url()).searchParams.has('history') ? { storms: [] } : fixture,
       }));
       await page.goto(process.env.GAKIT_BASE_URL || 'http://localhost:3000', { waitUntil: 'domcontentloaded' });
-      await page.getByRole('button', { name: viewport.width < 768 ? 'Map Layers' : 'Expand Layers', exact: true }).click({ timeout: 45000 });
+      await page.locator('canvas.maplibregl-canvas').waitFor();
+      await page.locator('[role=status][aria-label="Loading page"][aria-hidden=false]').waitFor({ state: 'hidden' });
+      if (viewport.width < 768) await page.getByRole('button', { name: 'Not now', exact: true }).click();
       const toggle = page.getByRole('switch', { name: 'Typhoon tracks', exact: true });
+      if (!await toggle.isVisible()) await page.getByRole('button', { name: /^(Layers|Map Layers|Expand Layers)$/ }).first().click();
       await toggle.click();
       await page.getByRole('button', { name: 'Legend', exact: true }).click();
       const dialog = page.getByRole('dialog');
