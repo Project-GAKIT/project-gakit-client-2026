@@ -415,7 +415,7 @@ export function PublicMap({
     };
   }, []);
 
-  const rainfall = useRainfallLayer(mapRef, showRainfall);
+  const rainfall = useRainfallLayer(mapRef, showRainfall, basemap);
   const heatIndex = useHeatIndexLayer(mapRef);
   const drought = useDroughtLayer(mapRef);
   const setDroughtVisible = drought.setVisible;

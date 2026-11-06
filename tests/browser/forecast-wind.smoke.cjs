@@ -78,7 +78,7 @@ async function main() {
     localStorage.setItem('gakit:onboarding-v1',JSON.stringify({version:1,locationChoice:'skipped',completedAt:new Date().toISOString()}));
     window.windProfile={strokes:0,webgl:0};
     const stroke=CanvasRenderingContext2D.prototype.stroke;
-    CanvasRenderingContext2D.prototype.stroke=function(...args){if(this.canvas.dataset.windTrails)window.windProfile.strokes++;return stroke.apply(this,args)};
+    CanvasRenderingContext2D.prototype.stroke=function(...args){if(this.canvas.dataset.windTrails){window.windProfile.strokes++;window.windProfile.lastWindColor=this.strokeStyle}return stroke.apply(this,args)};
     for(const C of [WebGLRenderingContext,WebGL2RenderingContext])for(const name of ['drawElements','drawArrays']){const draw=C.prototype[name];C.prototype[name]=function(...args){window.windProfile.webgl++;return draw.apply(this,args)}};
   ` });
   await command('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
@@ -103,6 +103,17 @@ async function main() {
   assert(after.strokes > before.strokes, 'Trails animate');
   assert(after.webgl - before.webgl < 20, 'Wind must not continuously repaint the map');
   await screenshot('forecast-desktop.png');
+  for (const [basemap, tone, color] of [['Light', 'dark', '15'], ['Bright', 'dark', '15'], ['Dark', 'light', '255']]) {
+    await click('button[aria-label="Display settings"]');
+    await waitFor(`Array.from(document.querySelectorAll('button')).some(b => b.textContent.trim() === ${JSON.stringify(basemap)})`);
+    await button(basemap);
+    await waitFor(`document.querySelector('canvas[data-wind-trails]')?.dataset.windTone === ${JSON.stringify(tone)}`);
+    await waitFor(`window.windProfile.lastWindColor?.startsWith('rgba(${color},')`);
+    await click('button[aria-label="Display settings"]');
+    await pause(800);
+    assert.equal(await evaluate("document.querySelectorAll('canvas[data-wind-trails]').length"), 1, 'Basemap swaps leave one wind canvas');
+    await screenshot('forecast-' + basemap.toLowerCase() + '.png');
+  }
   await click('button[aria-label="Wind trails"]');
   await waitFor("!document.querySelector('canvas[data-wind-trails]')");
   const stopped = await evaluate('window.windProfile.strokes'); await pause(400);
@@ -127,7 +138,7 @@ async function main() {
   assert.equal(errors.length, 0, 'No runtime exceptions');
   if (process.env.GAKIT_REAL_FORECAST === '1') assert.equal(rainfallGeojsonRequests, 0, 'Published JAXA images avoid GeoJSON');
   const proof = { passed: true, forecastRequests, rainfallGeojsonRequests, animationStrokesInTwoSeconds: after.strokes - before.strokes,
-    mapDrawCallsInTwoSeconds: after.webgl - before.webgl, reducedMotionStatic: true, cleanupVerified: true, mobileFits: true };
+    mapDrawCallsInTwoSeconds: after.webgl - before.webgl, basemapContrastVerified: true, reducedMotionStatic: true, cleanupVerified: true, mobileFits: true };
   fs.writeFileSync(path.join(output, 'checks.json'), JSON.stringify(proof, null, 2)); console.log(JSON.stringify(proof));
 }
 main().catch(async error => { console.error(error); process.exitCode = 1;

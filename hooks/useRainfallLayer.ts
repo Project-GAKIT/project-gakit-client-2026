@@ -7,10 +7,11 @@ import { fetchRainfallImage, fetchRainfallAt, RAINFALL_COORDINATES, RAINFALL_PLA
 import { fetchForecastWeather, forecastCoordinates, forecastRasterUrl, type RainfallMode } from '@/lib/map/forecastWeather';
 import { createWindTrails } from '@/lib/map/windTrails';
 import type { ForecastWeather } from '@/types/forecastWeather';
+import type { BasemapId } from '@/constants/publicMap';
 import { invalidateApiCache } from '@/lib/backend/apiCache';
 
 /** JAXA evidence and ECMWF visualization stay separate, sharing one map image. */
-export function useRainfallLayer(mapRef: MutableRefObject<any>, showRainfall: boolean) {
+export function useRainfallLayer(mapRef: MutableRefObject<any>, showRainfall: boolean, basemap: BasemapId) {
   const [rainfallHours, setRainfallHours] = useState<RainfallAccumulationHours>(1);
   const [rainfallObservedAt, setRainfallObservedAt] = useState<string | null>(null);
   const [rainfallSource, setRainfallSource] = useState<string | null>(null);
@@ -149,8 +150,8 @@ export function useRainfallLayer(mapRef: MutableRefObject<any>, showRainfall: bo
       : Math.max(0, forecast.times.findIndex(t => Date.parse(t) >= Math.floor(Date.now() / 3_600_000) * 3_600_000));
     const selected = forecast.frames[windIndex];
     if (!selected) return;
-    return createWindTrails(map, forecast, selected);
-  }, [mapRef, showRainfall, wind, forecast, mode, validAt]);
+    return createWindTrails(map, forecast, selected, basemap);
+  }, [mapRef, showRainfall, wind, forecast, mode, validAt, basemap]);
 
   const lookupPrecip = useCallback(async (lat: number, lng: number): Promise<number | null> => {
     // Hazard checks always use satellite evidence, never forecast display pixels.

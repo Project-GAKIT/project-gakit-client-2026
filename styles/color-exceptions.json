@@ -600,7 +600,8 @@
   "lib/map/windTrails.ts": {
     "reason": "Map data paint: contrasting trail strokes remain readable over light, dark and satellite basemaps; black alpha erases trails without painting the UI.",
     "tokens": [
-      "rgba(100,116,139,.85)",
+      "rgba(15,23,42,.8)",
+      "rgba(255,255,255,.35)",
       "rgba(0,0,0,.13)",
       "rgba(15,23,42,.22)",
       "rgba(255,255,255,.8)"
