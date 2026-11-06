@@ -17,7 +17,7 @@ const base = process.env.GAKIT_BASE_URL || 'http://localhost:3000';
     import { PageLoader } from '@/components/ui/LoadingState';
     import { MapDisplayPopover } from '@/components/header/MapDisplayPopover';
     const listeners = new Map();
-    let ready = true, moving = false, layerPending = false;
+    let ready = true, moving = false, layerPending = false, scopedReady = false;
     const map = {
       on(type, fn) { if (!listeners.has(type)) listeners.set(type, new Set()); listeners.get(type).add(fn); },
       off(type, fn) { listeners.get(type)?.delete(fn); },
@@ -47,6 +47,8 @@ const base = process.env.GAKIT_BASE_URL || 'http://localhost:3000';
       window.runCamera = () => run('mode', () => { moving = true; });
       window.runLayer = () => run('layers', () => { layerPending = true; }, () => layerPending, 'Loading satellite imagery…');
       window.finishLayerData = () => { layerPending = false; map.triggerRepaint(); };
+      window.runScoped = () => run('layers', () => { ready = false; scopedReady = false; }, () => false, 'Loading rainfall…', () => scopedReady);
+      window.finishScoped = () => { scopedReady = true; window.emit('render'); };
       window.runFailure = () => run('buildings', () => { throw new Error('Expected fixture failure'); });
       return <><PageLoader isLoading={overlayLabel !== null} label={overlayLabel || 'Loading map…'} /><MapDisplayPopover {...settings}
         onBasemapChange={change('basemap', 'basemap')} onModeChange={change('mode', 'mode')}
@@ -134,6 +136,12 @@ const base = process.env.GAKIT_BASE_URL || 'http://localhost:3000';
       await page.getByRole('status', { name: 'Loading page', exact: true }).getByText('Loading satellite imagery…', { exact: true }).waitFor();
       await page.evaluate(() => window.finishLayerData());
       await page.waitForFunction(() => !window.pending.layers);
+      await page.evaluate(() => window.runScoped());
+      await page.waitForFunction(() => window.pending.layers && window.listenerCount() > 0);
+      await page.evaluate(() => window.finishScoped());
+      await page.waitForFunction(() => !window.pending.layers);
+      assert(await page.evaluate(() => window.overlayLabel === null), 'Scoped readiness hides the overlay while unrelated tiles remain pending');
+      await page.evaluate(() => window.finishTiles());
       await page.getByRole('switch', { name: 'Buildings', exact: true }).click();
       await page.waitForFunction(() => window.listenerCount() > 0);
       await page.evaluate(() => window.unmountFixture());

@@ -14,7 +14,7 @@ import { useBasemapStyle } from '@/hooks/useBasemapStyle';
 import { useMapGlassActivity } from '@/hooks/useMapGlassActivity';
 import { attachAdaptiveGlass, mapGlassScope } from '@/lib/map/adaptiveGlass';
 import { syncParBoundary } from '@/lib/map/parBoundary';
-import { basemapSourceIds, onBasemapFrame } from '@/lib/map/mapStartup';
+import { basemapSourceIds, layerSourcesReady, onBasemapFrame } from '@/lib/map/mapStartup';
 import { Focus, Locate, X } from 'lucide-react';
 import { IIT_BOUNDS, isInsideIit, syncCampusFocus } from '@/lib/map/campusFocus';
 import { ensureCampusSatelliteProtocol } from '@/lib/map/campusSatellite';
@@ -141,6 +141,13 @@ export interface PublicMapHandle {
   shareMyLocation: () => Promise<boolean>;
   resize?: () => void;
 }
+
+const LOADING_LAYER_SOURCES = {
+  rainfall: ['rainfall'], heat: ['heat-index'], satellite: ['himawari-ir'], typhoon: ['typhoon-track'],
+  simulation: ['simulation-flood'], flood: ['flood-hazard'], landslide: ['landslide'],
+  stormSurge: ['storm-surge-ssa1', 'storm-surge-ssa2', 'storm-surge-ssa3', 'storm-surge-ssa4'],
+  barangays: ['barangay-boundaries'],
+} as const;
 
 interface PublicMapProps {
   controlsHost?: HTMLElement | null;
@@ -444,19 +451,22 @@ export function PublicMap({
   const typhoon = useTyphoonLayer(mapRef, layersReadyRef, handleTyphoonPointClick);
   const typhoonPopupRef = useRef<any>(null);
   const simulatedFlood = useSimulatedFloodLayer(mapRef, showSimulatedFlood, smoothPolygons, focusRoads);
-  const layerDataPending = (showRainfall && rainfall.isLoading)
-    || (heatIndex.visible && heatIndex.loading)
-    || (himawari.showHimawariIR && himawari.isLoading && !himawari.hasFrames)
-    || (typhoon.showTyphoonTrack && typhoon.isLoading)
-    || (showSimulatedFlood && simulatedFlood.isPreparing);
-  const layerDataPendingRef = useRef(false);
+  const layerPendingRef = useRef<Record<string, boolean>>({});
   useLayoutEffect(() => {
-    layerDataPendingRef.current = layerDataPending;
-    // Wake the readiness check when a fetch settles, even if the map was idle.
+    layerPendingRef.current = {
+      rainfall: showRainfall && rainfall.isLoading,
+      heat: heatIndex.visible && heatIndex.loading,
+      satellite: himawari.showHimawariIR && himawari.isLoading && !himawari.hasFrames,
+      typhoon: typhoon.showTyphoonTrack && (typhoon.isLoading || typhoon.isLoadingHistory),
+      simulation: showSimulatedFlood && simulatedFlood.isPreparing,
+    };
     mapRef.current?.triggerRepaint();
-  }, [layerDataPending]);
-  const updateLayer = useCallback((label: string, apply: () => void | Promise<void>) => {
-    updateDisplay('layers', apply, () => layerDataPendingRef.current, label);
+  }, [showRainfall, rainfall.isLoading, heatIndex.visible, heatIndex.loading, himawari.showHimawariIR,
+    himawari.isLoading, himawari.hasFrames, typhoon.showTyphoonTrack, typhoon.isLoading, typhoon.isLoadingHistory,
+    showSimulatedFlood, simulatedFlood.isPreparing]);
+  const updateLayer = useCallback((label: string, apply: () => void | Promise<void>, target: keyof typeof LOADING_LAYER_SOURCES) => {
+    updateDisplay('layers', apply, () => !!layerPendingRef.current[target], label,
+      () => !!mapRef.current && layerSourcesReady(mapRef.current, LOADING_LAYER_SOURCES[target]));
   }, [updateDisplay]);
 
   useEffect(() => {
@@ -889,6 +899,14 @@ export function PublicMap({
       const isCurrent = () => revision === styleRevision.current && map === mapRef.current;
       const basemapSources = basemapSourceIds(map);
       startupReadyCleanupRef.current?.();
+      // Basemap readiness is independent of optional protocol/icon/layer setup.
+      if (!onReadyFiredRef.current) {
+        startupReadyCleanupRef.current = onBasemapFrame(map, basemapSources, () => {
+          if (!isCurrent() || onReadyFiredRef.current) return;
+          onReadyFiredRef.current = true;
+          onReadyRef.current?.();
+        });
+      }
       void (async () => {
         await setupOverlayLayers(map, maplibregl, {
           showFloodHazard: showFloodHazardRef.current,
@@ -923,19 +941,6 @@ export function PublicMap({
         applySelectedMarker(map);
         if (severityDataRef.current) {
           applyBarangaySeverityData(map, severityDataRef.current);
-        }
-
-        // Signal the parent that the basemap + project layers are ready so the
-        // location prompt never covers a still-loading map. Fires once on the
-        // initial style load (not on 2D <-> 3D switches).
-        if (!onReadyFiredRef.current) {
-          const notifyReady = () => {
-            if (!isCurrent() || onReadyFiredRef.current) return;
-            onReadyFiredRef.current = true;
-            onReadyRef.current?.();
-          };
-          // Optional overlays must not hold the entire page behind their I/O.
-          startupReadyCleanupRef.current = onBasemapFrame(map, basemapSources, notifyReady);
         }
 
         // Apply rainfall data that was fetched before the map finished loading.
@@ -1439,9 +1444,9 @@ export function PublicMap({
           if (visible && window.innerWidth < 768) setLayersOpen(false);
         } }}
         heatIndex={{ ...heatIndex,
-          setVisible: checked => updateLayer('Updating heat index…', () => heatIndex.setVisible(checked)),
-          setHour: hour => updateLayer('Loading heat-index forecast…', () => heatIndex.setHour(hour)),
-          retry: () => updateLayer('Loading heat-index forecast…', heatIndex.retry),
+          setVisible: checked => updateLayer('Updating heat index…', () => heatIndex.setVisible(checked), 'heat'),
+          setHour: hour => updateLayer('Loading heat-index forecast…', () => heatIndex.setHour(hour), 'heat'),
+          retry: () => updateLayer('Loading heat-index forecast…', heatIndex.retry, 'heat'),
         }}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={setIsSidebarCollapsed}
@@ -1455,9 +1460,9 @@ export function PublicMap({
         layersOpen={layersOpen}
         onToggleLayers={setLayersOpen}
         showFloodHazard={showFloodHazard}
-        onShowFloodHazardChange={checked => updateLayer('Updating flood hazard…', () => handleShowFloodHazardChange(checked))}
+        onShowFloodHazardChange={checked => updateLayer('Updating flood hazard…', () => handleShowFloodHazardChange(checked), 'flood')}
         showSimulatedFlood={showSimulatedFlood}
-        onShowSimulatedFloodChange={checked => updateLayer('Loading flood simulation…', () => handleShowSimulatedFloodChange(checked))}
+        onShowSimulatedFloodChange={checked => updateLayer('Loading flood simulation…', () => handleShowSimulatedFloodChange(checked), 'simulation')}
         isLoadingSimulatedFlood={simulatedFlood.isPreparing}
         simulatedFloodHorizon={simulatedFlood.displayHorizon}
         onSimulatedFloodHorizonChange={simulatedFlood.selectHorizon}
@@ -1468,21 +1473,21 @@ export function PublicMap({
         simulatedFloodReplayIndex={simulatedFlood.replayIndex}
         onSimulatedFloodReplayChange={simulatedFlood.selectReplayFrame}
         showRainfall={showRainfall}
-        onShowRainfallChange={checked => updateLayer('Updating rainfall…', () => handleShowRainfallChange(checked))}
+        onShowRainfallChange={checked => updateLayer('Updating rainfall…', () => handleShowRainfallChange(checked), 'rainfall')}
         isLoadingRainfall={rainfall.isLoading}
         rainfallObservedAt={rainfall.rainfallObservedAt}
         rainfallSource={rainfall.rainfallSource}
         rainfallHours={rainfall.rainfallHours}
         rainfallWeather={rainfall.weather}
-        onRainfallHoursChange={hours => updateLayer('Loading rainfall accumulation…', () => handleRainfallHoursChange(hours))}
+        onRainfallHoursChange={hours => updateLayer('Loading rainfall accumulation…', () => handleRainfallHoursChange(hours), 'rainfall')}
         showHimawariIR={himawari.showHimawariIR}
-        onShowHimawariIRChange={checked => updateLayer('Updating satellite imagery…', () => handleShowHimawariIRChange(checked))}
+        onShowHimawariIRChange={checked => updateLayer('Updating satellite imagery…', () => handleShowHimawariIRChange(checked), 'satellite')}
         isLoadingHimawari={himawari.isLoading}
         himawariObservedAt={himawari.observedAt}
         himawariOpacity={himawari.opacity}
         onHimawariOpacityChange={himawari.setOpacity}
         showTyphoonTrack={typhoon.showTyphoonTrack}
-        onShowTyphoonTrackChange={checked => updateLayer('Updating typhoon tracks…', () => handleShowTyphoonTrackChange(checked))}
+        onShowTyphoonTrackChange={checked => updateLayer('Updating typhoon tracks…', () => handleShowTyphoonTrackChange(checked), 'typhoon')}
         isLoadingTyphoon={typhoon.isLoading}
         activeTyphoonName={typhoon.liveTyphoonData?.stormName}
         typhoonObservedAt={typhoon.liveTyphoonData?.latestPosition?.datetime || typhoon.liveTyphoonData?.fetchedAt}
@@ -1491,16 +1496,16 @@ export function PublicMap({
         onFocusStorm={typhoon.focusStorm}
         historicalStorms={typhoon.historicalStorms}
         selectedHistoricalStorm={typhoon.selectedHistoricalStorm}
-        onSelectHistoricalStorm={storm => updateLayer('Loading historical typhoon track…', () => typhoon.selectHistoricalStorm(storm))}
+        onSelectHistoricalStorm={storm => updateLayer('Loading historical typhoon track…', () => typhoon.selectHistoricalStorm(storm), 'typhoon')}
         isLoadingHistory={typhoon.isLoadingHistory}
         showBarangayBoundaries={showBarangayBoundaries}
-        onShowBarangayBoundariesChange={checked => updateLayer('Updating barangay boundaries…', () => handleShowBarangayBoundariesChange(checked))}
+        onShowBarangayBoundariesChange={checked => updateLayer('Updating barangay boundaries…', () => handleShowBarangayBoundariesChange(checked), 'barangays')}
         showBarangayBoundariesToggle={!hideBarangayBoundariesToggle}
         showLandslide={showLandslide}
-        onShowLandslideChange={checked => updateLayer('Updating landslide hazard…', () => handleShowLandslideChange(checked))}
+        onShowLandslideChange={checked => updateLayer('Updating landslide hazard…', () => handleShowLandslideChange(checked), 'landslide')}
         showStormSurge={showStormSurge}
         stormSurgeAdvisory={stormSurgeAdvisory}
-        onStormSurgeAdvisoryChange={advisory => updateLayer('Updating storm surge…', () => handleStormSurgeAdvisoryChange(advisory))}
+        onStormSurgeAdvisoryChange={advisory => updateLayer('Updating storm surge…', () => handleStormSurgeAdvisoryChange(advisory), 'stormSurge')}
         reportsOpen={reportsOpen}
         onToggleReports={setReportsOpen}
         visibleReportStatuses={visibleReportStatuses}
@@ -1663,7 +1668,7 @@ export function PublicMap({
         title="Satellite imagery temporarily down"
         message="Himawari satellite imagery is temporarily unavailable. Please try again later."
         onClose={himawari.dismissFailure}
-        onRetry={() => updateLayer('Loading satellite imagery…', himawari.retry)}
+        onRetry={() => updateLayer('Loading satellite imagery…', himawari.retry, 'satellite')}
       />
 
     </div>

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { BasemapStyleRequest } from '@/lib/map/basemapStyleRequest';
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 const style = { version: 8, sources: {}, layers: [] };
 
 describe('basemap style requests', () => {
@@ -37,4 +37,16 @@ describe('basemap style requests', () => {
     complete({ ok: true, json: async () => style }); await pending;
     expect(apply).toHaveBeenCalledOnce();
   });
+  it('reports a stalled request instead of leaving the style switch pending forever', async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal('fetch', vi.fn((_url, options) => new Promise((_resolve, reject) => {
+      options.signal.addEventListener('abort', () => reject(new DOMException('Timed out', 'AbortError')));
+    })));
+    const request = new BasemapStyleRequest(); const apply = vi.fn();
+    const result = expect(request.load('dark', apply)).rejects.toThrow();
+    await vi.advanceTimersByTimeAsync(15_000);
+    await result;
+    expect(apply).not.toHaveBeenCalled();
+  });
+
 });

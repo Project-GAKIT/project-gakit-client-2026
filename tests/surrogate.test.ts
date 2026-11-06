@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import {
   fetchLiveFloodExtent,
+  fetchLiveFloodSnapshot,
   fetchLiveFloodTimeline,
   horizonFromReplayFrame,
   LIVE_TIMELINE_POLL_MS,
@@ -317,4 +318,27 @@ describe('horizon buttons ↔ replay slider sync', () => {
       }
     }
   });
+});
+
+
+it('bounds timeline requests and preserves cancellation from scenario switching', async () => {
+  const controller = new AbortController();
+  const original = global.fetch;
+  const fetcher = vi.fn((_url, options) => new Promise((_resolve, reject) => {
+    options.signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')));
+  }));
+  global.fetch = fetcher as typeof fetch;
+  try {
+    const request = fetchLiveFloodSnapshot(controller.signal);
+    const result = expect(request).rejects.toThrow();
+    expect(fetcher.mock.calls[0][1].signal).not.toBe(controller.signal);
+    controller.abort();
+    await result;
+  } finally { global.fetch = original; }
+});
+it('uses a bounded retry delay when a preparing response has a malformed Retry-After header', async () => {
+  const original = global.fetch;
+  global.fetch = vi.fn(async () => new Response(null, { status: 202, headers: { 'Retry-After': 'not-a-number' } }));
+  try { await expect(fetchLiveFloodSnapshot()).rejects.toMatchObject({ retryAfterMs: 2000 }); }
+  finally { global.fetch = original; }
 });
