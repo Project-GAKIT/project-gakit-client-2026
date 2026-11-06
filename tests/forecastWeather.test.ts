@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { fetchForecastWeather, sampleForecast, validateForecastWeather } from '@/lib/map/forecastWeather';
+import { fetchForecastWeather, forecastRasterUrl, sampleForecast, validateForecastWeather } from '@/lib/map/forecastWeather';
 import { invalidateApiCache } from '@/lib/backend/apiCache';
 import type { ForecastWeather } from '@/types/forecastWeather';
 
@@ -14,6 +14,14 @@ const fixture = (): ForecastWeather => ({
 });
 
 describe('combined forecast rain and wind', () => {
+  it.each(['png', 'webp'])('uses the single published %s frame for CDN and API reads', format => {
+    const grid = fixture();
+    grid.frames[0].rasterUrl = '/api/v1/weather/forecast-grid/assets/' + 'a'.repeat(24) + '/3.' + format;
+    expect(validateForecastWeather(grid)).toBe(grid);
+    grid.publicationBase = 'https://storage.test/weather-maps/forecast';
+    expect(forecastRasterUrl(grid, grid.frames[0])).toBe(grid.publicationBase + '/rasters/' + 'a'.repeat(24) + '/3.' + format);
+  });
+
   it('interpolates components and retains dry, missing and out-of-coverage distinctions', () => {
     const data = fixture();
     expect(sampleForecast(data, data.frames[0].u, 121, 7)).toBe(15);
