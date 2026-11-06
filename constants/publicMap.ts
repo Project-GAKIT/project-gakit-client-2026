@@ -67,11 +67,13 @@ export const TERRAIN_ATTRIBUTION = '<a href="https://mapterhorn.com/attribution/
 // cool slate that reads as a foreign overlay.
 export const BUILDING_FILL_COLOR = '#dfdeda';
 export const BUILDING_FILL_OPACITY = 1;
-export const BUILDING_EXTRUSION_COLOR = BUILDING_FILL_COLOR;
+// Compensate for MapLibre's ambient and directional roof lighting so rendered
+// roofs match the footprint palette while walls retain directional shading.
+export const BUILDING_EXTRUSION_COLOR = '#d8d7d3';
 // Neutral charcoal keeps buildings just above Dark Matter's ground without
 // the blue cast or bright outlines of the previous Fiord building palette.
 export const BUILDING_FILL_COLOR_DARK = '#242424';
-export const BUILDING_EXTRUSION_COLOR_DARK = BUILDING_FILL_COLOR_DARK;
+export const BUILDING_EXTRUSION_COLOR_DARK = 'rgb(17.5, 17.5, 17.5)';
 export const BUILDING_EXTRUSION_OPACITY = 1;
 export const BUILDING_EXTRUSION_HEIGHT = 6;
 export const BUILDING_EXTRUSION_BASE = 0;
