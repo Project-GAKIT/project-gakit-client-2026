@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { prepareMaskPolygons } from '@/lib/map/heatLandMask';
-import { ASSESSMENT_WATER_LAYER, canAssessMapLocation, ensureAssessmentLandMask, pointOnPhilippineLand } from '@/lib/map/assessmentLandMask';
+import { ASSESSMENT_WATER_LAYER, MapLocationPending, canAssessMapLocation, ensureAssessmentLandMask, pointOnPhilippineLand } from '@/lib/map/assessmentLandMask';
 const boundary = vi.hoisted(() => ({ load: vi.fn() }));
 vi.mock('@/lib/map/heatLandMask', async importOriginal => ({
   ...await importOriginal<typeof import('@/lib/map/heatLandMask')>(), loadHeatLandMask: boundary.load,
@@ -31,14 +31,14 @@ describe('assessment land eligibility', () => {
 
   it('rejects lakes and rivers even inside the coastline, independent of overlays', async () => {
     boundary.load.mockResolvedValue(islands);
-    const map = { getLayer: () => ({ source: 'openmaptiles' }), isSourceLoaded: () => true,
+    const map = { getStyle: () => ({ layers: [{ id: 'land', type: 'fill', source: 'openmaptiles' }] }), getLayer: () => ({ source: 'openmaptiles' }), isSourceLoaded: () => true,
       project: vi.fn(() => ({ x: 10, y: 20 })), queryRenderedFeatures: vi.fn(() => [{}]) };
     expect(await canAssessMapLocation(map, 3, 3)).toBe(false);
     expect(map.queryRenderedFeatures).toHaveBeenCalledWith({ x: 10, y: 20 }, { layers: [ASSESSMENT_WATER_LAYER] });
     map.queryRenderedFeatures.mockReturnValue([]);
     expect(await canAssessMapLocation(map, 3, 3)).toBe(true);
     map.isSourceLoaded = () => false;
-    expect(await canAssessMapLocation(map, 3, 3)).toBe(false);
+    await expect(canAssessMapLocation(map, 3, 3)).rejects.toBeInstanceOf(MapLocationPending);
   });
 
   it('keeps a separate hit-test layer on satellite without duplicating the shared water source', () => {
@@ -52,4 +52,16 @@ describe('assessment land eligibility', () => {
     expect(map.addLayer).toHaveBeenCalledTimes(1);
     expect(layers.get(ASSESSMENT_WATER_LAYER).paint['fill-opacity']).toBe(0);
   });
+  it('accepts a rendered land tile while unrelated tiles in the same source are pending', async () => {
+    boundary.load.mockResolvedValue(islands);
+    const map = { getLayer: () => ({ source: 'openmaptiles' }), isSourceLoaded: () => false,
+      getStyle: () => ({ layers: [{ id: 'land', type: 'fill', source: 'openmaptiles' }] }),
+      project: () => ({ x: 10, y: 20 }),
+      queryRenderedFeatures: vi.fn((_point, options) => options.layers.includes('land') ? [{}] : []),
+    };
+    expect(await canAssessMapLocation(map, 3, 3)).toBe(true);
+    map.queryRenderedFeatures.mockReturnValue([{}]);
+    expect(await canAssessMapLocation(map, 3, 3)).toBe(false);
+  });
+
 });

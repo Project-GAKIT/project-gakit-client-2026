@@ -13,6 +13,7 @@ fs.mkdirSync(output, { recursive: true });
       page.on('pageerror', error => errors.push(error.message));
       await page.addInitScript(() => {
         sessionStorage.setItem('gakit:onboarding-auto-located', 'true');
+        localStorage.setItem('gakit:first-visit-seen', 'true');
       });
       await page.goto(process.env.GAKIT_BASE_URL || 'http://localhost:3000', { waitUntil: 'domcontentloaded' });
       await page.locator('.maplibregl-canvas').waitFor({ timeout: 45000 });
@@ -28,6 +29,8 @@ fs.mkdirSync(output, { recursive: true });
         }
         return false;
       });
+      await page.locator('[aria-label="Loading page"][aria-hidden=false]').waitFor({ state: 'hidden', timeout: 30000 });
+      if (viewport.width < 768) { await page.getByRole('dialog', { name: 'See reports near you' }).waitFor(); await page.keyboard.press('Escape'); }
       const select = async (coordinates, allowed) => {
         await page.evaluate(center => window.__testLandMap.jumpTo({ center, zoom: 12, pitch: 0 }), coordinates);
         await page.waitForTimeout(250);
@@ -40,15 +43,15 @@ fs.mkdirSync(output, { recursive: true });
           const p = window.__testLandMap.project(coords); return { x: p.x, y: p.y };
         }, coordinates);
         await page.locator('.maplibregl-canvas').click({ position: point });
-        const dialog = page.getByRole('dialog', { name: 'Hazard assessment', exact: true });
+        const marker = page.getByLabel('Selected location', { exact: true });
         if (allowed) {
-          await dialog.waitFor({ timeout: 15000 });
+          await marker.waitFor({ timeout: 15000 });
           await page.screenshot({ path: path.join(output, `${viewport.width}-land.png`) });
-          await page.keyboard.press('Escape');
-          await dialog.waitFor({ state: 'hidden' });
+          await page.getByRole('button', { name: 'Dismiss location actions', exact: true }).click();
+          await marker.waitFor({ state: 'hidden' });
         } else {
           await page.waitForTimeout(400);
-          assert.equal(await dialog.count(), 0, `Water at ${coordinates} must not open assessment`);
+          assert.equal(await marker.count(), 0, `Water at ${coordinates} must not receive a pin`);
         }
       };
       for (const basemap of ['Light', 'Bright', 'Dark', 'Satellite']) {
@@ -60,7 +63,7 @@ fs.mkdirSync(output, { recursive: true });
         await select([124.18, 8.25], false); // Iligan Bay
         await select([124.27, 7.96], false); // Lake Lanao
         await select([124.265, 8.24], true); // Iligan land
-        console.log(`${viewport.width} ${basemap}: sea/lake blocked, land assessment opened`);
+        console.log(`${viewport.width} ${basemap}: sea/lake blocked, land pin placed`);
       }
       assert.deepEqual(errors, []);
       await page.close();

@@ -36,7 +36,7 @@ export function prepareMaskPolygons(geometry: Polygon | MultiPolygon): MaskPolyg
 let pending: Promise<MaskPolygon[]> | null = null;
 
 export function loadHeatLandMask(): Promise<MaskPolygon[]> {
-  if (!pending) pending = fetch('/data/phl-heat-land.geojson').then(async (response) => {
+  if (!pending) pending = fetch('/data/phl-heat-land.geojson', { signal: AbortSignal.timeout(10_000) }).then(async (response) => {
     if (!response.ok) throw new Error('The land boundary is temporarily unavailable.');
     const feature: Feature<MultiPolygon | Polygon> = await response.json();
     if (!feature.geometry || !['Polygon', 'MultiPolygon'].includes(feature.geometry.type)) {

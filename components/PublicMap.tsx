@@ -19,7 +19,6 @@ import { Focus, Locate, X } from 'lucide-react';
 import { IIT_BOUNDS, isInsideIit, syncCampusFocus } from '@/lib/map/campusFocus';
 import { ensureCampusSatelliteProtocol } from '@/lib/map/campusSatellite';
 import { Spinner } from '@/components/ui/Spinner';
-import { PageLoader } from '@/components/ui/LoadingState';
 import { FloodSimulationTimeline } from '@/components/map/FloodSimulationTimeline';
 import { PinnedLocationActions, type PinActions } from '@/components/map/PinnedLocationActions';
 import { toast } from 'react-toastify';
@@ -42,7 +41,8 @@ import {
   type GeoJsonCollection,
 } from '@/lib/map/geoUtils';
 import { containMapScroll } from '@/lib/map/containMapScroll';
-import { canAssessMapLocation } from '@/lib/map/assessmentLandMask';
+import { loadHeatLandMask } from '@/lib/map/heatLandMask';
+import { canAssessMapLocation, MapLocationPending } from '@/lib/map/assessmentLandMask';
 import { HIMAWARI_IMAGE_BOUNDS } from '@/lib/map/himawari';
 import { bboxChanged, polygonRepPoint, setSwathZoomFloor, zoomToWeatherCoverage } from '@/lib/map/mapGeometry';
 import { queryFloodHazard, type FloodRiskLevel } from '@/lib/map/floodHazard';
@@ -398,6 +398,7 @@ export function PublicMap({
   const layersReadyRef = useRef(false);
   const { overlayLabel: displayLoadingLabel, run: updateDisplay } = useMapDisplayLoading(mapRef, layersReadyRef);
   const onReadyFiredRef = useRef(false);
+  const [isCheckingLocation, setIsCheckingLocation] = useState(false);
   const startupReadyCleanupRef = useRef<(() => void) | null>(null);
 
   const reportsLayer = useReportsLayer(reportFilters);
@@ -905,6 +906,10 @@ export function PublicMap({
           if (!isCurrent() || onReadyFiredRef.current) return;
           onReadyFiredRef.current = true;
           onReadyRef.current?.();
+          // Warm click validation after the basemap has painted, off the startup gate.
+          const warm = () => { void loadHeatLandMask().catch(() => {}); };
+          if ('requestIdleCallback' in window) window.requestIdleCallback(warm, { timeout: 1000 });
+          else setTimeout(warm, 0);
         });
       }
       void (async () => {
@@ -1066,7 +1071,7 @@ export function PublicMap({
     buildingsBasePreferenceRef.current = nextBuildings.basePreference;
     showBuildingsRef.current = visible;
     setShowBuildings(visible);
-    updateDisplay('buildings', () => applyBuildingsVisibility(mapRef.current, mapModeRef.current, !campusFocusRef.current && visible && !(hideBuildingsOnSatellite && basemapRef.current === 'satellite')));
+    updateDisplay('buildings', () => applyBuildingsVisibility(mapRef.current, mapModeRef.current, !campusFocusRef.current && visible && !(hideBuildingsOnSatellite && basemapRef.current === 'satellite')), () => false, 'Updating buildings…', () => !!mapRef.current && layerSourcesReady(mapRef.current, ['iligan-buildings']));
   }, [hideBuildingsOnSatellite, updateDisplay]);
 
   const handleParBoundaryChange = useCallback((visible: boolean) => {
@@ -1219,6 +1224,7 @@ export function PublicMap({
     let locationPick = 0;
     map.on('click', async (e: any) => {
       const pick = ++locationPick;
+      setIsCheckingLocation(false);
       if (campusFocusRef.current && !isInsideIit(e.lngLat.lng, e.lngLat.lat)) return;
       // Location selection only fires on land; interactive features own their clicks.
       const interactiveLayers = [
@@ -1235,16 +1241,20 @@ export function PublicMap({
       });
       if (hit.length) return;
       if (droughtVisibleRef.current) return;
+      setIsCheckingLocation(true);
       try {
         const isLand = await canAssessMapLocation(map, e.lngLat.lat, e.lngLat.lng);
         if (!isLand || pick !== locationPick || mapRef.current !== map) return;
         hideReportPopupRef.current?.();
         handleLocationSelectRef.current(e.lngLat.lat, e.lngLat.lng);
-      } catch {
+      } catch (error) {
         if (pick !== locationPick || mapRef.current !== map) return;
+        if (error instanceof MapLocationPending) { toast.info(error.message, { toastId: 'assessment-land-boundary' }); return; }
         toast.error('Land boundaries could not load. Please try selecting the location again.', {
           toastId: 'assessment-land-boundary',
         });
+      } finally {
+        if (pick === locationPick && mapRef.current === map) setIsCheckingLocation(false);
       }
     });
 
@@ -1403,7 +1413,11 @@ export function PublicMap({
         />
       )}
       {errorNotice}
-      <PageLoader isLoading={Boolean(displayLoadingLabel)} label={displayLoadingLabel ?? 'Loading map…'} />
+      {(isCheckingLocation || displayLoadingLabel) && (
+        <div role="status" aria-live="polite" data-map-loading className="pointer-events-none absolute bottom-20 left-3 z-[1010] flex items-center gap-2 rounded-lg border border-default bg-panel px-3 py-2 text-xs text-secondary shadow-sm md:bottom-5">
+          <Spinner size="xs" />{isCheckingLocation ? 'Checking location…' : displayLoadingLabel}
+        </div>
+      )}
 
       {showBarangayBoundaries &&
         hoveredBarangay &&

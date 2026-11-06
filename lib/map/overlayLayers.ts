@@ -123,7 +123,7 @@ export const applyBuildingsVisibility = (
   showBuildings = true
 ) => {
   try {
-    if (map?.isStyleLoaded && !map.isStyleLoaded()) return;
+    // Existing layers can be updated while their source tiles are still loading.
     const shouldShow3D = showBuildings && mode === '3d';
     const shouldShow2D = showBuildings && mode === '2d';
     const firstSymbolLayer = getFirstBasemapSymbolLayerId(map);

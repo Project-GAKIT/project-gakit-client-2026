@@ -12,7 +12,7 @@ const base = process.env.GAKIT_BASE_URL || 'http://localhost:3000';
       const buildings = [];
       const lazyAssets = [];
       page.on('request', request => {
-        if (/lanao-del-norte-(?:flood-zones|landslide|storm-surge).*\.pmtiles|\/icons\/pagasa\/|phl-heat-land\.geojson/.test(request.url())) lazyAssets.push(request.url());
+        if (/lanao-del-norte-(?:flood-zones|landslide|storm-surge).*\.pmtiles|\/icons\/pagasa\//.test(request.url())) lazyAssets.push(request.url());
       });
       await page.route('**/data/iligan-buildings.pmtiles', route => { buildings.push(route); });
       page.on('pageerror', error => errors.push(error.message));

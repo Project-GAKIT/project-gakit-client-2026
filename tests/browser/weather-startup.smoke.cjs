@@ -23,7 +23,7 @@ const output = path.resolve(process.env.GAKIT_SCREENSHOT_DIR || '../downloads/we
     await page.locator('[role=status][aria-label="Loading page"][aria-hidden=false]').waitFor({ state: 'hidden', timeout: 14000 });
     const readyMs = Date.now() - started;
     assert(!requests.some(url => /\/(?:login|flood-scenarios)(?:\?|$)/.test(url)), 'Unopened portal routes never compete with map startup');
-    assert(!requests.some(url => /lanao-del-norte-(?:flood-zones|landslide|storm-surge).*\.pmtiles|\/icons\/pagasa\/|phl-heat-land\.geojson/.test(url)), 'Disabled overlays never fetch during startup');
+    assert(!requests.some(url => /lanao-del-norte-(?:flood-zones|landslide|storm-surge).*\.pmtiles|\/icons\/pagasa\//.test(url)), 'Disabled overlays never fetch during startup');
     const layerButton = label => page.getByRole('switch', { name: label, exact: true });
     await layerButton('Flood').waitFor();
     for (const [label, filename] of [['Flood', 'flood-zones'], ['Landslide', 'landslide'], ['Storm Surge', 'storm-surge-ssa4']]) {
@@ -54,17 +54,18 @@ const output = path.resolve(process.env.GAKIT_SCREENSHOT_DIR || '../downloads/we
       await route.fulfill({ body: image, contentType: 'image/webp', headers: { 'access-control-allow-origin': '*' } });
     });
     await layerButton('Satellite imagery').click();
-    const loader = page.locator('[role=status][aria-label="Loading page"][aria-hidden=false]');
+    const loader = page.locator('[data-map-loading]');
     await loader.waitFor();
-    assert.equal(await loader.count(), 1, 'Slow map changes share one loading screen');
-    assert.equal((await loader.locator('.flood-loader').boundingBox()).width, 80, 'Original water animation is preserved');
+    assert.equal(await loader.count(), 1, 'Slow layer updates have one local indicator');
+    assert.equal(await page.locator('[aria-label="Loading page"][aria-hidden=false]').count(), 0, 'Layer downloads never block the page');
+    assert.equal(await loader.getAttribute('class').then(value => value.includes('pointer-events-none')), true, 'Layer indicator cannot capture map taps');
     await page.screenshot({ path: path.join(output, 'water-loader.png') });
     releaseImage();
     await page.locator('[data-satellite-delayed]').waitFor();
     await loader.waitFor({ state: 'hidden' });
     await page.screenshot({ path: path.join(output, 'satellite-delay.png') });
     assert.deepEqual(errors, []);
-    const proof = { passed: true, readyMs, noPortalPrefetch: true, lazyHazards: true, rainfallWindowsWithPhtTime: 5, sourceDelayVisible: true, originalWaterLoader: true, runtimeErrors: errors };
+    const proof = { passed: true, readyMs, noPortalPrefetch: true, lazyHazards: true, rainfallWindowsWithPhtTime: 5, sourceDelayVisible: true, nonBlockingLayerIndicator: true, runtimeErrors: errors };
     fs.writeFileSync(path.join(output, 'checks.json'), JSON.stringify(proof, null, 2));
     console.log(JSON.stringify(proof));
   } finally { await browser.close(); }

@@ -46,3 +46,20 @@ Not a whole-system availability guarantee: external tile/auth services and cold
 backend startup remain network dependencies. Protected-route auth checks were
 reviewed and remain enforced. No authentication bypass was introduced to speed up
 loading.
+
+
+## Streamlined map interaction follow-up
+
+- Full-page loading is reserved for page/startup transitions. Layer and display
+  changes show a pointer-transparent local indicator and keep the map usable.
+- Building visibility updates apply as soon as the layer exists; unrelated
+  source downloads no longer cause the requested toggle to be discarded.
+- Land validation uses the tapped tile's rendered geometry when that source has
+  other pending tiles. Water hits still reject the selection; missing local
+  evidence produces an explicit retry message instead of silently dropping taps.
+- Coastline validation warms after the basemap paints, is shared with the heat
+  overlay, and has a ten-second request deadline. A local indicator shows an
+  outstanding location check.
+- Real map browser regressions exercise pin placement and building off/on while
+  source/style readiness is forced pending, at 390px and 1440px. Sea, lake and
+  land pin checks also run across Light, Bright, Dark and Satellite basemaps.
