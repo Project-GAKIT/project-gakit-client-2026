@@ -23,7 +23,7 @@ export function validateForecastWeather(value: unknown): ForecastWeather {
     || data.rainResolutionDegrees !== .1 || data.nativeIntervalHours !== 3 || !Number.isFinite(Date.parse(data.issuedAt))
     || !data.frames.every(f => [f.u, f.v].every(a => Array.isArray(a) && a.length === data.rows * data.cols && a.every(valid))
       && Number.isFinite(Date.parse(f.rainWindowEndAt))
-      && /^\/api\/v1\/weather\/forecast-grid\/assets\/[a-f0-9]{24}\/\d{1,3}\.png$/.test(f.rasterUrl))) throw new Error('Forecast data is incomplete.');
+      && /^\/api\/v1\/weather\/forecast-grid\/assets\/[a-f0-9]{24}\/\d{1,3}\.(?:png|webp)$/.test(f.rasterUrl))) throw new Error('Forecast data is incomplete.');
   data.frames = data.frames.map(({ u, v, rasterUrl, rainWindowEndAt }) => ({ u, v, rasterUrl, rainWindowEndAt }));
   return data;
 }
@@ -47,8 +47,8 @@ export function fetchForecastWeather(): Promise<ForecastWeather> {
 
 export function forecastRasterUrl(grid: ForecastWeather, frame: ForecastWeatherFrame): string | null {
   if (!frame.rasterUrl) return null;
-  const match = frame.rasterUrl.match(/\/assets\/([a-f0-9]{24})\/(\d{1,3})\.png$/);
-  if (grid.publicationBase && match) return `${grid.publicationBase}/rasters/${match[1]}/${match[2]}.png`;
+  const match = frame.rasterUrl.match(/\/assets\/([a-f0-9]{24})\/(\d{1,3}\.(?:png|webp))$/);
+  if (grid.publicationBase && match) return `${grid.publicationBase}/rasters/${match[1]}/${match[2]}`;
   return `${process.env.NEXT_PUBLIC_API_URL ?? ''}${frame.rasterUrl}`;
 }
 
