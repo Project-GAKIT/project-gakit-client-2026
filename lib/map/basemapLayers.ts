@@ -1,3 +1,5 @@
+import type { Map as MapLibreMap } from 'maplibre-gl';
+
 // Finds the first symbol/label layer belonging to the underlying basemap style
 // (e.g. street names, road labels, place names), ignoring custom overlay layers.
 // MapLibre's translucent pass draws layers in strict style order, so any project
@@ -70,4 +72,28 @@ export const getBasemapRoadOverlayAnchor = (map: any): string | undefined => {
     if (layer.type !== 'symbol' && layer['source-layer'] !== 'boundary' && nativeSources.has(layer.source) && !custom.has(layer.id)) lastGeometry = index;
   });
   return layers.find((layer: any, index: number) => index > lastGeometry && nativeSymbols.includes(layer))?.id;
+};
+
+/** OpenFreeMap's dark style references two images absent from its sprite.
+ * Supply local pixels only when missing, including after a style switch. */
+export const registerBasemapImageFallbacks = (map: MapLibreMap): void => {
+  map.setMissingStyleImageResolver(id => {
+    if (id !== 'wood-pattern' && id !== 'circle-11') return;
+    if (map.hasImage(id)) return;
+    if (id === 'wood-pattern') {
+      // Keep forest fills visible using the layer's existing dark fill color.
+      map.addImage(id, { width: 1, height: 1, data: new Uint8Array([32, 32, 32, 255]) });
+      return;
+    }
+    const size = 11;
+    const data = new Uint8Array(size * size * 4);
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        const offset = (y * size + x) * 4;
+        data[offset] = data[offset + 1] = data[offset + 2] = 101;
+        data[offset + 3] = Math.round(255 * Math.max(0, Math.min(1, 5.5 - Math.hypot(x - 5, y - 5))));
+      }
+    }
+    map.addImage(id, { width: size, height: size, data });
+  });
 };

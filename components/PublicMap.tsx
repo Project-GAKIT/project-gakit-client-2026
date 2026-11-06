@@ -27,6 +27,7 @@ import dynamic from 'next/dynamic';
 const DroughtControls = dynamic(() => import('@/components/map/DroughtControls'), { ssr: false });
 
 import * as maplibregl from 'maplibre-gl';
+import { registerBasemapImageFallbacks } from '@/lib/map/basemapLayers';
 
 import { getBackendStatus } from '@/lib/backend/backendStatus';
 import {
@@ -1164,6 +1165,7 @@ export function PublicMap({
       fadeDuration: 0,
       attributionControl: false,
     });
+    registerBasemapImageFallbacks(map);
     if (rightInsetRef.current !== undefined) map.setPadding({ top: 0, bottom: 0, left: 0, right: rightInsetRef.current });
     setSwathZoomFloor(map);
 

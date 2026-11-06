@@ -9,6 +9,7 @@ import { Dialog } from '@/components/ui/Dialog';
 import { Spinner } from '@/components/ui/Spinner';
 import { BASEMAP_STYLES } from '@/constants/publicMap';
 import { reverseGeocode } from '@/lib/map/geoUtils';
+import { registerBasemapImageFallbacks } from '@/lib/map/basemapLayers';
 import { LocationSearch } from '@/app/public-view/components/LocationSearch';
 import type { SelectedLocation } from '@/types/report';
 import { adjustedReportLocation, locationFromGps } from '@/lib/reports/observationMetadata';
@@ -40,6 +41,7 @@ export function ReportLocationPicker({ initialLocation, onClose, onConfirm }: {
     maplibregl.setWorkerUrl('/vendor/maplibre-gl/maplibre-gl-worker.mjs');
     const map = new maplibregl.Map({ container, style: BASEMAP_STYLES[themeStore.getSnapshot().resolved],
       center: [initial.current.lng, initial.current.lat], zoom: 16, attributionControl: { compact: true } });
+    registerBasemapImageFallbacks(map);
     mapRef.current = map;
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
     const observer = new ResizeObserver(() => map.resize());
