@@ -46,3 +46,8 @@ graphify-out/
 
 # Derived from committed source bundles by dev/build/postinstall.
 /public/data/scenario-assets/
+
+# Local agent instructions and generated implementation notes
+AGENTS.md
+CLAUDE.md
+/docs/**/*.md
