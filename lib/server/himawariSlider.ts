@@ -33,6 +33,8 @@
  */
 import { cachedGet } from '@/lib/backend/apiCache';
 import { readStoredFrame, storeFrame } from './himawariFrameStore';
+import { fetchHimawariMetadata, selectAvailableStamps } from './himawariDiscovery';
+export { MAX_FRAME_AGE_MS, selectAvailableStamps } from './himawariDiscovery';
 
 // --- CIRA SAT config (verbatim from define-products---rammb-slider.js) ---
 
@@ -335,44 +337,14 @@ function debugLog(message: string): void {
   if (DEBUG) console.error('[himawari-slider] ' + message);
 }
 
-export const MAX_FRAME_AGE_MS = 2 * 60 * 60_000;
-
-/** Reject corrupt dates, future scans and imagery older than two hours. */
-export function selectAvailableStamps(stamps: unknown[], now = Date.now()): number[] {
-  return [...new Set(stamps.filter((stamp): stamp is number => {
-    if (typeof stamp !== 'number' || !/^\d{14}$/.test(String(stamp))) return false;
-    const epoch = stampEpochMs(stamp);
-    if (!Number.isFinite(epoch) || epoch > now || now - epoch > MAX_FRAME_AGE_MS) return false;
-    return new Date(epoch).toISOString().replace(/\D/g, '').slice(0, 14) === String(stamp);
-  }))].sort((a, b) => b - a);
-}
-
 let lastPublishedStamps: number[] = [];
 
 async function loadLatestTimes(): Promise<number[]> {
   try {
     return await cachedGet('himawari-slider:latest-times', LATEST_TIMES_TTL_MS, async () => {
-      let lastError: unknown;
-      for (let attempt = 0; attempt < 2; attempt++) {
-        try {
-          const res = await fetch(latestTimesURL(), {
-            cache: 'no-store',
-            signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-          });
-          if (!res.ok) throw new Error(`SLIDER metadata returned ${res.status}`);
-          const body = await res.json() as { timestamps_int?: unknown };
-          if (!Array.isArray(body.timestamps_int)) throw new Error('Invalid SLIDER metadata');
-          const stamps = selectAvailableStamps(body.timestamps_int);
-          if (!stamps.length) throw new Error('No recent published SLIDER scans');
-          lastPublishedStamps = stamps;
-          return stamps;
-        } catch (error) {
-          lastError = error;
-          if (attempt === 0) await new Promise(resolve => setTimeout(resolve, 300));
-        }
-      }
-      // Do not cache an outage as an empty list for the whole success TTL.
-      throw lastError;
+      const stamps = await fetchHimawariMetadata(latestTimesURL());
+      lastPublishedStamps = stamps;
+      return stamps;
     });
   } catch (error) {
     const usable = selectAvailableStamps(lastPublishedStamps);

@@ -16,7 +16,7 @@ describe('Himawari metadata recovery', () => {
       .mockResolvedValueOnce(Response.json({ timestamps_int: [20261023023000, 20261023021000] }));
     vi.stubGlobal('fetch', fetchMock);
     const pending = getHimawariAvailableStamps();
-    await vi.advanceTimersByTimeAsync(301);
+    await vi.advanceTimersByTimeAsync(3_001);
     expect(await pending).toEqual([20261023023000, 20261023021000]);
     expect(await getHimawariAvailableStamps()).toEqual([20261023023000, 20261023021000]);
     expect(fetchMock).toHaveBeenCalledTimes(2);
@@ -30,11 +30,11 @@ describe('Himawari metadata recovery', () => {
     fetchMock.mockRejectedValue(new Error('upstream outage'));
     await vi.advanceTimersByTimeAsync(61_000);
     const fallback = getHimawariAvailableStamps();
-    await vi.advanceTimersByTimeAsync(301);
+    await vi.advanceTimersByTimeAsync(3_001);
     expect(await fallback).toEqual([20261023023000]);
     await vi.advanceTimersByTimeAsync(2 * 60 * 60_000);
     const expired = expect(getHimawariAvailableStamps()).rejects.toThrow('upstream outage');
-    await vi.advanceTimersByTimeAsync(301);
+    await vi.advanceTimersByTimeAsync(3_001);
     await expired;
   });
 
@@ -43,7 +43,7 @@ describe('Himawari metadata recovery', () => {
     const fetchMock = vi.fn().mockRejectedValue(new Error('outage'));
     vi.stubGlobal('fetch', fetchMock);
     const failure = expect(getHimawariAvailableStamps()).rejects.toThrow('outage');
-    await vi.advanceTimersByTimeAsync(301);
+    await vi.advanceTimersByTimeAsync(3_001);
     await failure;
     fetchMock.mockResolvedValue(Response.json({ timestamps_int: [20261023023000] }));
     expect(await getHimawariAvailableStamps()).toEqual([20261023023000]);
