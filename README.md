@@ -53,29 +53,48 @@ npm run lint
 npm test
 ```
 
-## Regenerating lanao-del-norte-flood-zones.pmtiles
+## Regenerating the hazard overlays
 
-The flood hazard overlay (`public/data/lanao-del-norte-flood-zones.pmtiles`) is a PMTiles
-archive built from the Project NOAH shapefiles. The source shapefiles are
-distributed via this Google Drive folder (Provided by NOAH):
+`public/data/lanao-del-norte-flood-zones.pmtiles` and
+`public/data/lanao-del-norte-landslide.pmtiles` are PMTiles archives built from
+the Project NOAH hazard layers. The source files are distributed via this Google
+Drive folder (provided by NOAH):
 
 https://drive.google.com/drive/folders/1K2z1FYNCGPzhcGIgT1Y2nKKLUojxxIa3?usp=drive_link
 
-To rebuild the archive after the source data changes, convert each shapefile to
-GeoJSON, merge into a single FeatureCollection with a `risk_level` property per
-feature (`high` / `medium` / `low` matching the 100/25/5-year layers), then run
-tippecanoe:
+Point assessments read the archive's **maximum-zoom** tiles
+(`lib/map/floodHazard.ts`, `lib/map/geohazardQuery.ts`), so those tiles must stay
+at full fidelity:
 
-```powershell
-tippecanoe -o public/data/lanao-del-norte-flood-zones.pmtiles `
-  --layer=flood-zones `
-  --minimum-zoom=4 --maximum-zoom=10 `
-  --drop-densest-as-needed `
-  flood-zones.geojson
+- flood: max zoom 16, layer `flood-zones`, `risk_level` (`low` / `medium` / `high`)
+- landslide: max zoom 14, layer `landslide`, `LH` (`1` / `2` / `3`)
+
+Display zooms below z13 can be simplified without changing any assessment
+answer. Run the rebuild from WSL/Linux (requires tippecanoe 2.x and python3):
+
+```bash
+bash scripts/rebuild-hazard-pmtiles.sh
 ```
 
-The map's vector source uses layer name `flood-zones` and expects a
-`risk_level` property on every feature (see `lib/map/overlayLayers.ts`).
+The script re-tiles display zooms up to z12 with simplification, keeps the
+original z13+ tiles from the NOAH `.mbtiles` sources, and merges both halves with
+`tile-join -pk`. `-pk` is required so large but valid tiles are not dropped.
+
+If rebuilding by hand, the important flags are:
+
+```bash
+tippecanoe -o flood-low.pmtiles -l flood-zones -Z1 -z12 \
+  --simplification=10 --simplification-at-maximum-zoom=10 \
+  --tiny-polygon-size=6 --no-simplification-of-shared-nodes \
+  --no-tile-size-limit --no-feature-limit --force flood_zones.geojson
+```
+
+`--tiny-polygon-size=6` collapses sub-pixel slivers (the flood source alone has
+~150k polygons) into squares smaller than one screen pixel. Without it, low
+zooms keep hundreds of thousands of vertices that cannot be seen.
+
+The map's vector sources expect layer names `flood-zones` and `landslide` (see
+`lib/map/overlayLayers.ts`).
 
 ## Project Structure
 
