@@ -9,6 +9,22 @@ const nextConfig = {
     // being coerced to the Next 16 default of 75.
     qualities: [70, 75],
   },
+  async headers() {
+    return [
+      {
+        // Hazard/road/building archives are immutable for a given deployment.
+        // A day of browser caching avoids re-downloading range chunks on every
+        // visit without pinning a replaced archive for weeks.
+        source: '/data/:path*.pmtiles',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=86400, stale-while-revalidate=604800',
+          },
+        ],
+      },
+    ];
+  },
   async rewrites() {
     return [
       {

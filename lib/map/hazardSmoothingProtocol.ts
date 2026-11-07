@@ -1,5 +1,14 @@
 import type { Protocol } from 'pmtiles';
 
+/**
+ * Tiles above this size are rendered unsmoothed. Re-encoding a 300–800 KB
+ * hazard tile through a single worker costs seconds per viewport, while the
+ * rounded corners it adds are invisible at that geometry density. Point
+ * assessments read the original archives directly, so skipping the cosmetic
+ * pass never changes a hazard answer.
+ */
+export const HAZARD_SMOOTHING_MAX_TILE_BYTES = 128 * 1024;
+
 let worker: Worker | undefined;
 let sequence = 0;
 const pending = new Map<number, { resolve: (data: Uint8Array) => void; reject: (error: Error) => void }>();
@@ -40,6 +49,7 @@ export function registerHazardSmoothingProtocol(maplibre: any, protocol: Protoco
       return { ...result, data: { ...json, tiles: json.tiles.map(url => url.replace(/^pmtiles:/, 'smoothpmtiles:')) } };
     }
     if (result.data instanceof Uint8Array && result.data.length) {
+      if (result.data.byteLength > HAZARD_SMOOTHING_MAX_TILE_BYTES) return result;
       return { ...result, data: await smoothTile(params.url, result.data, controller.signal) };
     }
     return result;

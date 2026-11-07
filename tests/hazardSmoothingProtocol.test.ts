@@ -1,6 +1,9 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import type { Protocol } from 'pmtiles';
-import { registerHazardSmoothingProtocol } from '@/lib/map/hazardSmoothingProtocol';
+import {
+  HAZARD_SMOOTHING_MAX_TILE_BYTES,
+  registerHazardSmoothingProtocol,
+} from '@/lib/map/hazardSmoothingProtocol';
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -27,4 +30,23 @@ it('rewrites TileJSON and sends requested display tiles through the worker', asy
   expect(postMessage).toHaveBeenCalledWith(expect.objectContaining({ data: original }), expect.any(Array));
   expect(postMessage.mock.calls[0][0].data).not.toBe(original);
   expect(result.data).toEqual(new Uint8Array([9, 8, 7]));
+});
+
+it('passes heavy display tiles through without paying for smoothing', async () => {
+  const postMessage = vi.fn();
+  vi.stubGlobal('Worker', class {
+    onmessage = () => {};
+    postMessage = postMessage;
+  });
+  const heavy = new Uint8Array(HAZARD_SMOOTHING_MAX_TILE_BYTES + 1);
+  const tilev4 = vi.fn(async () => ({ data: heavy }));
+  const addProtocol = vi.fn();
+  registerHazardSmoothingProtocol({ addProtocol }, { tilev4 } as unknown as Protocol);
+  const handler = addProtocol.mock.calls[0][1];
+  const result = await handler(
+    { url: 'smoothpmtiles:///data/hazards.pmtiles/9/1/2', type: 'arrayBuffer' },
+    new AbortController(),
+  );
+  expect(result.data).toBe(heavy);
+  expect(postMessage).not.toHaveBeenCalled();
 });
