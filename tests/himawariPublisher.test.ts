@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import sharp from 'sharp';
+import { SatelliteDiscoveryError } from '@/lib/server/himawariDiscovery';
 import { publishSatelliteFrames, type SatellitePublicationStore } from '@/lib/server/himawariPublisher';
 import { parseSatelliteManifest, recentPublishedScans, satelliteObjectPath, type SatelliteManifest } from '@/lib/map/himawariPublication';
 const now = Date.parse('2026-11-04T07:00:00Z');
@@ -45,9 +46,32 @@ describe('satellite publication and retention', () => {
   it('protects active images beyond retention through an upstream outage',async()=>{
     const {store}=fake(manifest([expired]),[expired,'20261104025000']);
     const result=await publishSatelliteFrames(store,async()=>{throw Error('CIRA outage');},async()=>png(),now);
-    expect(result).toMatchObject({rendered:0,delayed:true,upstreamUnavailable:true});
-    expect(store.removeFrames).toHaveBeenCalledExactlyOnceWith(['20261104025000']);
-    expect(recentPublishedScans(vi.mocked(store.publish).mock.calls[0][0],now)).toEqual([]);
+    expect(result).toMatchObject({published:0,retained:1,publicationUpdated:false,rendered:0,delayed:true,upstreamUnavailable:true,
+      upstreamFailure:{kind:'unknown',message:'CIRA outage'}});
+    expect(store.removeFrames).not.toHaveBeenCalled();
+    expect(store.publish).not.toHaveBeenCalled();
+    expect(recentPublishedScans(manifest([expired]),now)).toEqual([]);
+  });
+  it('retains exact failure details without modifying old images, then resumes publication and cleanup', async () => {
+    const { store } = fake(manifest([expired]), [expired]);
+    const render = vi.fn(async () => png());
+    const result = await publishSatelliteFrames(store, async () => {
+      throw new SatelliteDiscoveryError('stale', 'Latest CIRA scan is 160 minutes old', { latestScan: expired, attempts: 1 });
+    }, render, now);
+    expect(result.upstreamFailure).toEqual({ kind: 'stale', message: 'Latest CIRA scan is 160 minutes old', latestScan: expired, attempts: 1 });
+    expect(render).not.toHaveBeenCalled();
+    expect(store.uploadFrame).not.toHaveBeenCalled();
+    expect(store.publish).not.toHaveBeenCalled();
+    expect(store.removeFrames).not.toHaveBeenCalled();
+    const recovered = await publishSatelliteFrames(store, async () => [fresh], render, now);
+    expect(recovered).toMatchObject({ published: 1, publicationUpdated: true, upstreamUnavailable: false, upstreamFailure: null });
+    expect(store.publish).toHaveBeenCalledOnce();
+    expect(store.removeFrames).toHaveBeenCalledExactlyOnceWith([expired]);
+  });
+  it('includes the discovery cause when there is no previous publication', async () => {
+    const { store } = fake(null, []);
+    await expect(publishSatelliteFrames(store, async () => { throw Error('HTTP 503'); }, async () => png(), now)).rejects.toThrow('HTTP 503');
+    expect(store.publish).not.toHaveBeenCalled();
   });
   it('never publishes failed renders or images missing from storage',async()=>{
     const {store}=fake(manifest([older]),[]);

@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import sharp from 'sharp';
+import { SatelliteDiscoveryError } from './himawariDiscovery';
 import { SATELLITE_FRAME_COUNT, SATELLITE_RETENTION_MS, scanEpoch, parseSatelliteManifest,
   type PublishedScan, type SatelliteManifest } from '@/lib/map/himawariPublication';
 
@@ -31,8 +32,14 @@ export async function publishSatelliteFrames(store: SatellitePublicationStore,
   const existing = new Set(await store.listFrames());
   let candidates: string[];
   let upstreamUnavailable = false;
+  let upstreamFailure: ({ kind: string; message: string; status?: number; latestScan?: string; attempts?: number }) | null = null;
   try { candidates = await discover(); }
-  catch { candidates = []; upstreamUnavailable = true; }
+  catch (error) {
+    candidates = []; upstreamUnavailable = true;
+    upstreamFailure = error instanceof SatelliteDiscoveryError
+      ? { kind: error.kind, message: error.message, ...error.details }
+      : { kind: 'unknown', message: error instanceof Error ? error.message.slice(0, 300) : 'Satellite discovery failed' };
+  }
   const sourceLatest = candidates.filter(s => Number.isFinite(scanEpoch(s))
     && scanEpoch(s) <= now && now - scanEpoch(s) <= SATELLITE_RETENTION_MS).sort().at(-1) ?? null;
   candidates = [...new Set([...candidates, ...(previous?.frames.map(f => f.stamp) ?? [])])]
@@ -41,7 +48,7 @@ export async function publishSatelliteFrames(store: SatellitePublicationStore,
   const frames: PublishedScan[] = [];
   let rendered = 0;
   const failed: string[] = [];
-  for (const stamp of candidates) {
+  for (const stamp of upstreamUnavailable ? [] : candidates) {
     if (frames.length === SATELLITE_FRAME_COUNT) break;
     const known = previous?.frames.find(f => f.stamp === stamp);
     if (known && existing.has(stamp)) { frames.push(known); continue; }
@@ -56,15 +63,16 @@ export async function publishSatelliteFrames(store: SatellitePublicationStore,
   }
   // An outage never replaces a usable publication with an empty list.
   if (!frames.length && previous) frames.push(...previous.frames.filter(f => existing.has(f.stamp)));
-  if (!frames.length) throw new Error('No completed satellite frames could be published');
-  const manifest: SatelliteManifest = { schema: 'himawari-publication-v2',
+  if (!frames.length) throw new Error(`No completed satellite frames could be published${upstreamFailure ? `: ${upstreamFailure.message}` : ''}`);
+  const publicationUpdated = !upstreamUnavailable;
+  const manifest: SatelliteManifest = upstreamUnavailable && previous ? previous : { schema: 'himawari-publication-v2',
     generated_at: new Date(now).toISOString(), frames: frames.sort((a, b) => a.stamp.localeCompare(b.stamp)) };
-  await store.publish(manifest);
+  if (publicationUpdated) await store.publish(manifest);
   const protectedStamps = new Set(manifest.frames.map(f => f.stamp));
   const expired = [...existing].filter(s => Number.isFinite(scanEpoch(s))
     && now - scanEpoch(s) > SATELLITE_RETENTION_MS && !protectedStamps.has(s));
   // Failure here is visible to the scheduler, but the newly published feed remains valid.
-  if (expired.length) await store.removeFrames(expired);
+  if (publicationUpdated && expired.length) await store.removeFrames(expired);
   const latest = manifest.frames.at(-1)!.stamp;
   const sourceAgeMinutes = sourceLatest ? (now - scanEpoch(sourceLatest)) / 60_000 : null;
   const publicationLagMinutes = sourceLatest ? Math.max(0, (scanEpoch(sourceLatest) - scanEpoch(latest)) / 60_000) : null;
@@ -72,6 +80,7 @@ export async function publishSatelliteFrames(store: SatellitePublicationStore,
   const delayCause = upstreamUnavailable ? 'unavailable'
     : publicationLagMinutes !== null && publicationLagMinutes > 0 ? 'publication'
     : delayed && sourceAgeMinutes !== null && sourceAgeMinutes > 30 ? 'source' : null;
-  return { published: frames.length, rendered, deleted: expired.length, failed,
-    upstreamUnavailable, latest, delayed, sourceLatest, sourceAgeMinutes, publicationLagMinutes, delayCause };
+  return { published: publicationUpdated ? frames.length : 0, retained: publicationUpdated ? 0 : manifest.frames.length,
+    publicationUpdated, rendered, deleted: publicationUpdated ? expired.length : 0, failed,
+    upstreamUnavailable, upstreamFailure, latest, delayed, sourceLatest, sourceAgeMinutes, publicationLagMinutes, delayCause };
 }

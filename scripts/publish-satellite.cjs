@@ -23,6 +23,7 @@ async function main() {
   fs.mkdirSync(directory, { recursive: true });
   const modules = {
     himawariSlider: 'lib/server/himawariSlider.ts',
+    himawariDiscovery: 'lib/server/himawariDiscovery.ts',
     himawariFrameStore: 'lib/server/himawariFrameStore.ts',
     apiCache: 'lib/backend/apiCache.ts',
     himawariPublication: 'lib/map/himawariPublication.ts',
@@ -56,8 +57,9 @@ async function main() {
       if (!frame || String(frame.stamp) !== stamp) throw new Error('Requested satellite scan unavailable');
       return encodeSatelliteWebP(frame.png);
     });
-  const legacyDeleted = await store.cleanupLegacy();
+  const legacyDeleted = result.publicationUpdated ? await store.cleanupLegacy() : 0;
   console.log(JSON.stringify({ ...result, legacyDeleted }));
+  if (result.upstreamUnavailable) console.log('::error::Satellite discovery failed; see upstreamFailure for the exact cause. The previous publication was left unchanged.');
   if (result.delayCause === 'source') console.log('::warning::The latest available CIRA scan is delayed; publication has caught up to the source.');
   if (result.delayCause === 'publication') console.log('::warning::Published imagery is behind the latest available CIRA scan.');
   if (result.upstreamUnavailable || result.failed.length || Date.now() - scanEpoch(result.latest) > SATELLITE_RETENTION_MS) process.exitCode = 1;
