@@ -14,7 +14,7 @@ import {
   ROADS_MAJOR_MIN_ZOOM,
   ROADS_MINOR_MIN_ZOOM,
 } from '@/constants/publicMap';
-import { getBasemapRoadOverlayAnchor } from '@/lib/map/basemapLayers';
+import { getFirstWeatherSurfaceLayerId, getProjectOverlayAnchor } from '@/lib/map/basemapLayers';
 
 export const ROAD_CASING_LAYER_ID = 'iligan-roads-casing';
 export const ROAD_MINOR_CASING_LAYER_ID = 'iligan-roads-minor-casing';
@@ -142,8 +142,10 @@ export const addRoadLayers = (
 export const reorderRoadLayers = (map: any) => {
   if (!map) return;
   try {
-    const labelLayer = getBasemapRoadOverlayAnchor(map);
-    const anchor = labelLayer ?? (map.getLayer?.('report-clusters') ? 'report-clusters' : undefined);
+    // Weather overlays are full-surface layers and must keep covering the
+    // streets. Anchor roads below their shared block when one is active.
+    const weatherLayer = getFirstWeatherSurfaceLayerId(map);
+    const anchor = weatherLayer ?? getProjectOverlayAnchor(map);
     if (anchor) {
       let before = anchor;
       for (const id of [...ROAD_LAYER_IDS].reverse()) {
