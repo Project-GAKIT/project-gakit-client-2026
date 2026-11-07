@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { heatWaterSource, prepareMaskPolygons } from '@/lib/map/heatLandMask';
+import { getHeatLandMaskIfReady, heatWaterSource, prepareMaskPolygons } from '@/lib/map/heatLandMask';
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -46,9 +46,12 @@ describe('heat land mask', () => {
       } }),
     });
     vi.stubGlobal('fetch', fetcher);
+    expect(getHeatLandMaskIfReady()).toBeNull();
     await expect(loadHeatLandMask()).rejects.toThrow('land boundary');
+    expect(getHeatLandMaskIfReady()).toBeNull();
     const [one, two] = await Promise.all([loadHeatLandMask(), loadHeatLandMask()]);
     expect(one).toBe(two);
+    expect(getHeatLandMaskIfReady()).toBe(one);
     expect(fetcher).toHaveBeenCalledTimes(2);
   });
 });

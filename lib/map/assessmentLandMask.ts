@@ -1,5 +1,5 @@
 import {
-  HEAT_WATER_SOURCE, WATER_TILEJSON, loadHeatLandMask, mercatorY, type MaskPolygon,
+  getHeatLandMaskIfReady, HEAT_WATER_SOURCE, WATER_TILEJSON, mercatorY, type MaskPolygon,
 } from './heatLandMask';
 
 export const ASSESSMENT_WATER_LAYER = 'assessment-water-mask';
@@ -38,25 +38,25 @@ export function pointOnPhilippineLand(polygons: MaskPolygon[], lat: number, lon:
   );
 }
 
-export class MapLocationPending extends Error {
-  constructor() { super('Map data at this spot is still loading. Please try again shortly.'); }
-}
-
-/** Check the selected point; unrelated tiles must not disable a visible land area. */
-export async function canAssessMapLocation(map: any, lat: number, lng: number): Promise<boolean> {
-  const land = await loadHeatLandMask();
-  if (!pointOnPhilippineLand(land, lat, lng)) return false;
-  const layer = map.getLayer(ASSESSMENT_WATER_LAYER);
-  if (!layer) throw new MapLocationPending();
-  const point = map.project([lng, lat]);
-  if (map.queryRenderedFeatures(point, { layers: [ASSESSMENT_WATER_LAYER] }).length) return false;
-  if (map.isSourceLoaded(layer.source)) return true;
-  // Rendered geometry from this same vector source proves the local tile is
-  // available, even while a different tile in the viewport is still pending.
-  const localLayers = (map.getStyle()?.layers ?? []).filter((candidate: any) =>
-    candidate.source === layer.source && candidate.id !== ASSESSMENT_WATER_LAYER
-    && candidate.layout?.visibility !== 'none' && ['fill', 'line', 'fill-extrusion'].includes(candidate.type)
-    && candidate.paint?.['fill-opacity'] !== 0).map((candidate: any) => candidate.id);
-  if (localLayers.length && map.queryRenderedFeatures(point, { layers: localLayers }).length) return true;
-  throw new MapLocationPending();
+/**
+ * Synchronous, best-effort land check for the map click path.
+ *
+ * Placing the pin must never wait on the coastline download or on basemap
+ * tiles, so an inconclusive check allows the click. Points positively
+ * identified as ocean (once the cached coastline is warm) or as water from
+ * already-rendered vector tiles are rejected; lakes and rivers start being
+ * rejected as soon as their tiles render.
+ */
+export function canAssessMapLocation(map: any, lat: number, lng: number): boolean {
+  const land = getHeatLandMaskIfReady();
+  if (land && !pointOnPhilippineLand(land, lat, lng)) return false;
+  if (!map.getLayer(ASSESSMENT_WATER_LAYER)) return true;
+  try {
+    const point = map.project([lng, lat]);
+    return map.queryRenderedFeatures(point, { layers: [ASSESSMENT_WATER_LAYER] }).length === 0;
+  } catch {
+    // A style swap can remove the layer between the calls above. A dead click
+    // is worse than a missed water rejection, so allow it.
+    return true;
+  }
 }

@@ -33,6 +33,7 @@ export function prepareMaskPolygons(geometry: Polygon | MultiPolygon): MaskPolyg
   });
 }
 
+let prepared: MaskPolygon[] | null = null;
 let pending: Promise<MaskPolygon[]> | null = null;
 
 export function loadHeatLandMask(): Promise<MaskPolygon[]> {
@@ -42,9 +43,19 @@ export function loadHeatLandMask(): Promise<MaskPolygon[]> {
     if (!feature.geometry || !['Polygon', 'MultiPolygon'].includes(feature.geometry.type)) {
       throw new Error('The land boundary is temporarily unavailable.');
     }
-    return prepareMaskPolygons(feature.geometry);
+    prepared = prepareMaskPolygons(feature.geometry);
+    return prepared;
   }).catch((error) => { pending = null; throw error; });
   return pending;
+}
+
+/**
+ * Synchronous view of the coastline mask for the map click path.
+ * Returns null until the background download has completed, so callers can
+ * treat "not ready yet" as "allow the click" instead of blocking on it.
+ */
+export function getHeatLandMaskIfReady(): MaskPolygon[] | null {
+  return prepared;
 }
 
 /** Reuse the basemap's water tiles, including lakes and detailed coastal edges. */
