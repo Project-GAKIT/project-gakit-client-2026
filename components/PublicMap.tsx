@@ -44,7 +44,7 @@ import {
 } from '@/lib/map/geoUtils';
 import { containMapScroll } from '@/lib/map/containMapScroll';
 import { loadHeatLandMask } from '@/lib/map/heatLandMask';
-import { canAssessMapLocation, MapLocationPending } from '@/lib/map/assessmentLandMask';
+import { canAssessMapLocation } from '@/lib/map/assessmentLandMask';
 import { HIMAWARI_IMAGE_BOUNDS } from '@/lib/map/himawari';
 import { bboxChanged, polygonRepPoint, setSwathZoomFloor, zoomToWeatherCoverage } from '@/lib/map/mapGeometry';
 import { queryFloodHazard, type FloodRiskLevel } from '@/lib/map/floodHazard';
@@ -400,7 +400,6 @@ export function PublicMap({
   const layersReadyRef = useRef(false);
   const { overlayLabel: displayLoadingLabel, run: updateDisplay } = useMapDisplayLoading(mapRef, layersReadyRef);
   const onReadyFiredRef = useRef(false);
-  const [isCheckingLocation, setIsCheckingLocation] = useState(false);
   const startupReadyCleanupRef = useRef<(() => void) | null>(null);
 
   const reportsLayer = useReportsLayer(reportFilters);
@@ -1224,10 +1223,7 @@ export function PublicMap({
       setMapPitch(map.getPitch());
     });
 
-    let locationPick = 0;
-    map.on('click', async (e: any) => {
-      const pick = ++locationPick;
-      setIsCheckingLocation(false);
+    map.on('click', (e: any) => {
       if (campusFocusRef.current && !isInsideIit(e.lngLat.lng, e.lngLat.lat)) return;
       // Location selection only fires on land; interactive features own their clicks.
       const interactiveLayers = [
@@ -1244,21 +1240,11 @@ export function PublicMap({
       });
       if (hit.length) return;
       if (droughtVisibleRef.current) return;
-      setIsCheckingLocation(true);
-      try {
-        const isLand = await canAssessMapLocation(map, e.lngLat.lat, e.lngLat.lng);
-        if (!isLand || pick !== locationPick || mapRef.current !== map) return;
-        hideReportPopupRef.current?.();
-        handleLocationSelectRef.current(e.lngLat.lat, e.lngLat.lng);
-      } catch (error) {
-        if (pick !== locationPick || mapRef.current !== map) return;
-        if (error instanceof MapLocationPending) { toast.info(error.message, { toastId: 'assessment-land-boundary' }); return; }
-        toast.error('Land boundaries could not load. Please try selecting the location again.', {
-          toastId: 'assessment-land-boundary',
-        });
-      } finally {
-        if (pick === locationPick && mapRef.current === map) setIsCheckingLocation(false);
-      }
+      // Best-effort and synchronous: the pin never waits for coastline data or
+      // basemap tiles. Only confirmed water is rejected.
+      if (!canAssessMapLocation(map, e.lngLat.lat, e.lngLat.lng)) return;
+      hideReportPopupRef.current?.();
+      handleLocationSelectRef.current(e.lngLat.lat, e.lngLat.lng);
     });
 
     map.on('moveend', () => {
@@ -1416,7 +1402,7 @@ export function PublicMap({
         />
       )}
       {errorNotice}
-      <PageLoader isLoading={Boolean(isCheckingLocation || displayLoadingLabel)} label={isCheckingLocation ? 'Checking location…' : displayLoadingLabel ?? 'Loading map…'} />
+      <PageLoader isLoading={Boolean(displayLoadingLabel)} label={displayLoadingLabel ?? 'Loading map…'} />
 
       {showBarangayBoundaries &&
         hoveredBarangay &&
