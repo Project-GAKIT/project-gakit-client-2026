@@ -336,13 +336,13 @@ export function PublicHeader({
           >
             <div className="relative flex h-8 w-8 items-center justify-center overflow-hidden md:h-9 md:w-auto md:overflow-visible">
               <Image
-                  src="/favicon.svg"
+                src="/favicon.png"
                 alt="GAKIT logo"
-                  width={32}
-                  height={32}
-                  sizes="32px"
+                width={32}
+                height={32}
+                unoptimized
                 priority
-                  className="h-8 w-8 object-contain md:hidden"
+                className="h-8 w-8 object-contain md:hidden"
               />
               <Image
                 src="/images/gakit_logo_adobe.svg"

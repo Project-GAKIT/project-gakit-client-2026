@@ -211,7 +211,25 @@ export function PublicViewPage({
 
   useEffect(() => {
     if (!isMapReady) return;
-    preloadGeoData();
+    let cancelled = false;
+    const warm = () => {
+      if (!cancelled) preloadGeoData();
+    };
+    // Search data is a cache warm, not part of the first paint. Let the initial
+    // basemap, buildings, and hazard tiles finish before downloading ~1 MB of
+    // roads/places/barangays.
+    if ('requestIdleCallback' in window) {
+      const idleId = window.requestIdleCallback(warm, { timeout: 4000 });
+      return () => {
+        cancelled = true;
+        window.cancelIdleCallback(idleId);
+      };
+    }
+    const timer = setTimeout(warm, 3000);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [isMapReady]);
 
 
