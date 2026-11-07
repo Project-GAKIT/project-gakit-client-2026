@@ -53,7 +53,6 @@ export function RouteLoaderProvider({ children }: { children: React.ReactNode })
   const [recovery, setRecovery] = useState(false);
   const [loadingCycle, setLoadingCycle] = useState(0);
   const loadingActiveRef = useRef(false);
-  const [hasNavigated, setHasNavigated] = useState(false);
   const [loadingLabel, setLoadingLabel] = useState('Loading page…');
   const destinationLabelRef = useRef<string | null>(null);
   const fallbackLabels = useRef(new Map<symbol, string>());
@@ -69,7 +68,6 @@ export function RouteLoaderProvider({ children }: { children: React.ReactNode })
     setLoadingCycle(cycle => cycle + 1);
     destinationLabelRef.current = label;
     setRecovery(false);
-    setHasNavigated(true);
     setLoadingLabel(label);
     if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
     if (contentRef.current && snapshotRef.current && !snapshotRef.current.hasChildNodes()) {
@@ -260,7 +258,7 @@ export function RouteLoaderProvider({ children }: { children: React.ReactNode })
       <div ref={contentRef} className="contents" data-route-content>{children}</div>
       <div ref={snapshotRef} aria-hidden="true" inert data-route-snapshot
         className="fixed inset-0 z-[1999] overflow-hidden bg-panel pointer-events-none select-none" />
-      <RouteLoadingOverlay isLoading={isLoading} label={loadingLabel} showLabel={hasNavigated} recovery={recovery} />
+      <RouteLoadingOverlay isLoading={isLoading} label={loadingLabel} recovery={recovery} />
     </RouteLoaderContext.Provider>
   );
 }
