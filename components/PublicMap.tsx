@@ -19,6 +19,7 @@ import { Focus, Locate, X } from 'lucide-react';
 import { IIT_BOUNDS, isInsideIit, syncCampusFocus } from '@/lib/map/campusFocus';
 import { ensureCampusSatelliteProtocol } from '@/lib/map/campusSatellite';
 import { Spinner } from '@/components/ui/Spinner';
+import { PageLoader } from '@/components/ui/LoadingState';
 import { FloodSimulationTimeline } from '@/components/map/FloodSimulationTimeline';
 import { PinnedLocationActions, type PinActions } from '@/components/map/PinnedLocationActions';
 import { toast } from 'react-toastify';
@@ -1415,11 +1416,7 @@ export function PublicMap({
         />
       )}
       {errorNotice}
-      {(isCheckingLocation || displayLoadingLabel) && (
-        <div role="status" aria-live="polite" data-map-loading className="pointer-events-none absolute bottom-20 left-3 z-[1010] flex items-center gap-2 rounded-lg border border-default bg-panel px-3 py-2 text-xs text-secondary shadow-sm md:bottom-5">
-          <Spinner size="xs" />{isCheckingLocation ? 'Checking location…' : displayLoadingLabel}
-        </div>
-      )}
+      <PageLoader isLoading={Boolean(isCheckingLocation || displayLoadingLabel)} label={isCheckingLocation ? 'Checking location…' : displayLoadingLabel ?? 'Loading map…'} />
 
       {showBarangayBoundaries &&
         hoveredBarangay &&
