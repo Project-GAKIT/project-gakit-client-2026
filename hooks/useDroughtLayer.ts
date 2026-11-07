@@ -5,6 +5,7 @@ import { invalidateApiCache } from '@/lib/backend/apiCache';
 import { fetchDroughtCatalog, fetchDroughtFrame, loadDroughtProvinces, provinceColor, provinceCategory, type DroughtCatalog, type DroughtFrame, type DroughtMode } from '@/lib/map/drought';
 import type { FeatureCollection } from 'geojson';
 import { zoomToWeatherCoverage } from '@/lib/map/mapGeometry';
+import { getProjectOverlayAnchor, placeWeatherSurfaceLayers } from '@/lib/map/basemapLayers';
 import { provinceLabelPoints } from '@/lib/map/droughtPreview';
 
 const SELECTION_LAYERS = ['drought-province-shadow', 'drought-province-raised', 'drought-province-raised-outline', 'drought-province-selected-label'];
@@ -56,24 +57,26 @@ export function useDroughtLayer(mapRef: MutableRefObject<any>) {
       }
       appliedRef.current = { source, grid: data.grid };
     }
+    // Anchor above basemap geometry (roads/buildings), not at the first symbol:
+    // the dark style places a water label before its streets and buildings.
+    const anchor = getProjectOverlayAnchor(map);
     if (!map.getLayer('drought-provinces-layer')) {
-      const label = map.getStyle().layers.find((layer: any) => layer.type === 'symbol')?.id;
       map.addLayer({ id: 'drought-provinces-layer', type: 'fill', source: 'drought-provinces',
         paint: { 'fill-opacity': ['case', ['==', ['feature-state', 'value'], null], 0, 0.65],
-          'fill-color': PROVINCE_COLOR } }, label);
+          'fill-color': PROVINCE_COLOR } }, anchor);
       map.addLayer({ id: 'drought-provinces-outline', type: 'line', source: 'drought-provinces',
-        paint: { 'line-color': '#64748b', 'line-width': 0.8, 'line-opacity': 0.65 } }, label);
+        paint: { 'line-color': '#64748b', 'line-width': 0.8, 'line-opacity': 0.65 } }, anchor);
       // A small screen-space lift and shadow keeps selection visible in 2D
       // without changing the camera, adding a pin, or implying terrain height.
       map.addLayer({ id: 'drought-province-shadow', type: 'fill', source: 'drought-provinces',
         paint: { 'fill-color': '#0f172a', 'fill-opacity': 0.25,
-          'fill-translate': [1, 2], 'fill-translate-anchor': 'viewport' } }, label);
+          'fill-translate': [1, 2], 'fill-translate-anchor': 'viewport' } }, anchor);
       map.addLayer({ id: 'drought-province-raised', type: 'fill', source: 'drought-provinces',
         paint: { 'fill-color': PROVINCE_COLOR, 'fill-opacity': 0.95,
-          'fill-translate': [0, -5], 'fill-translate-anchor': 'viewport' } }, label);
+          'fill-translate': [0, -5], 'fill-translate-anchor': 'viewport' } }, anchor);
       map.addLayer({ id: 'drought-province-raised-outline', type: 'line', source: 'drought-provinces',
         paint: { 'line-color': '#7f1d1d', 'line-width': 2,
-          'line-translate': [0, -5], 'line-translate-anchor': 'viewport' } }, label);
+          'line-translate': [0, -5], 'line-translate-anchor': 'viewport' } }, anchor);
     }
     if (!map.getSource('drought-province-labels')) map.addSource('drought-province-labels', {
       type: 'geojson', data: provinceLabelPoints(data.shapes),
@@ -90,6 +93,7 @@ export function useDroughtLayer(mapRef: MutableRefObject<any>) {
         paint: { 'text-color': '#0891b2', 'text-halo-color': '#ffffff', 'text-halo-width': 2,
           'text-translate': [0, -5], 'text-translate-anchor': 'viewport' } });
     }
+    placeWeatherSurfaceLayers(map, anchor);
     highlightProvince(map, selectedProvinceRef.current);
     for (const id of ALL_LAYERS) map.setLayoutProperty(id, 'visibility', 'visible');
   }, []);

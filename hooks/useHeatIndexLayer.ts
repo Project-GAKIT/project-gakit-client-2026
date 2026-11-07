@@ -6,6 +6,7 @@ import {
   type HeatIndexGrid, type HeatIndexHour, type HeatIndexImage,
 } from '@/lib/map/heatIndex';
 import { attachWeatherHover } from '@/lib/map/weatherHover';
+import { getProjectOverlayAnchor, placeWeatherSurfaceLayers } from '@/lib/map/basemapLayers';
 import { zoomToWeatherCoverage } from '@/lib/map/mapGeometry';
 import { containsMaskPoint, HEAT_WATER_LAYER, HEAT_WATER_SOURCE, heatWaterPolygons, heatWaterSource, loadHeatLandMask, type MaskPolygon } from '@/lib/map/heatLandMask';
 
@@ -62,13 +63,16 @@ export function useHeatIndexLayer(mapRef: MutableRefObject<any>) {
     else map.addSource('heat-index', {
       type: 'image', url, coordinates,
     });
+    // Anchor above basemap geometry (roads/buildings), not at the first symbol:
+    // the dark style places a water label before its streets and buildings.
+    const anchor = getProjectOverlayAnchor(map);
     if (!map.getLayer('heat-index-layer')) {
-      const firstLabel = map.getStyle()?.layers?.find((layer: any) => layer.type === 'symbol')?.id;
       map.addLayer({
         id: 'heat-index-layer', type: 'raster', source: 'heat-index',
         paint: { 'raster-opacity': 0.5, 'raster-resampling': 'linear', 'raster-fade-duration': 0 },
-      }, firstLabel);
+      }, anchor);
     }
+    placeWeatherSurfaceLayers(map, anchor);
     map.setLayoutProperty('heat-index-layer', 'visibility', 'visible');
   }, []);
 

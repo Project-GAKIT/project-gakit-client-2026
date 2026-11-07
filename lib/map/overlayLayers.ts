@@ -44,7 +44,7 @@ import {
 } from '@/lib/map/typhoon';
 import { createReportBubbleImage, createReportMarkerImage } from '@/lib/map/reportMarkers';
 import { DEPTH_BAR_COLOR } from '@/lib/reports/reportFormatting';
-import { getFirstBasemapSymbolLayerId } from '@/lib/map/basemapLayers';
+import { getBuildingLayerAnchor, getFirstBasemapSymbolLayerId } from '@/lib/map/basemapLayers';
 import {
   syncBuildingLayers,
   BUILDING_EXTRUSION_LAYER_ID,
@@ -126,7 +126,7 @@ export const applyBuildingsVisibility = (
     // Existing layers can be updated while their source tiles are still loading.
     const shouldShow3D = showBuildings && mode === '3d';
     const shouldShow2D = showBuildings && mode === '2d';
-    const firstSymbolLayer = getFirstBasemapSymbolLayerId(map);
+    const buildingAnchor = getBuildingLayerAnchor(map);
 
     if (map?.getLayer && map.getLayer(BUILDING_EXTRUSION_LAYER_ID)) {
       map.setLayoutProperty(
@@ -139,11 +139,12 @@ export const applyBuildingsVisibility = (
         'fill-extrusion-vertical-gradient',
         BUILDING_EXTRUSION_VERTICAL_GRADIENT
       );
-      // Keep the layer pinned below the basemap labels whether or not it is
-      // currently visible, so a hidden layer can't reappear above the text.
-      if (firstSymbolLayer) {
+      // Keep the layer pinned below the basemap labels and weather surfaces
+      // whether or not it is currently visible, so a hidden layer can't
+      // reappear above them.
+      if (buildingAnchor) {
         try {
-          map.moveLayer(BUILDING_EXTRUSION_LAYER_ID, firstSymbolLayer);
+          map.moveLayer(BUILDING_EXTRUSION_LAYER_ID, buildingAnchor);
         } catch {
           /* ignore move error */
         }
@@ -159,9 +160,9 @@ export const applyBuildingsVisibility = (
         'visibility',
         shouldShow2D ? 'visible' : 'none'
       );
-      if (firstSymbolLayer) {
+      if (buildingAnchor) {
         try {
-          map.moveLayer(BUILDING_FOOTPRINT_LAYER_ID, firstSymbolLayer);
+          map.moveLayer(BUILDING_FOOTPRINT_LAYER_ID, buildingAnchor);
         } catch {
           /* ignore move error */
         }

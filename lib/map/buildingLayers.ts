@@ -12,7 +12,7 @@ import {
   type BasemapId,
   isDarkBasemap,
 } from '@/constants/publicMap';
-import { getFirstBasemapSymbolLayerId } from '@/lib/map/basemapLayers';
+import { getBuildingLayerAnchor } from '@/lib/map/basemapLayers';
 import { reorderRoadLayers } from '@/lib/map/roadLayers';
 
 export const BUILDING_FOOTPRINT_LAYER_ID = 'iligan-buildings-2d';
@@ -128,9 +128,9 @@ export const syncBuildingLayers = (
     map.removeLayer(BUILDING_EXTRUSION_LAYER_ID);
   }
 
-  // Re-inserted beneath the basemap labels so street/place names stay readable
-  // on top of the buildings.
-  const before = getFirstBasemapSymbolLayerId(map);
+  // Re-inserted beneath the basemap labels (and any active weather block) so
+  // street/place names and heat/drought surfaces stay above the buildings.
+  const before = getBuildingLayerAnchor(map);
   if (wantsFootprints && !map.getLayer(BUILDING_FOOTPRINT_LAYER_ID)) {
     addBuildingFootprintLayer(map, sourceId, before);
   } else if (!wantsFootprints && !map.getLayer(BUILDING_EXTRUSION_LAYER_ID)) {
