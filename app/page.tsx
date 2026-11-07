@@ -1,7 +1,10 @@
 import { PublicViewPage } from './public-view/PublicViewPage';
-import { getServerAuthSnapshot } from '@/lib/supabase/server';
 
-export default async function Home() {
-  const auth = await getServerAuthSnapshot();
-  return <PublicViewPage initialAuth={auth} />;
+// Keep the public landing page statically renderable. The header resolves auth
+// with the browser Supabase client, so this route can stay cacheable at the edge
+// instead of running a serverless render on every visit.
+export const dynamic = 'force-static';
+
+export default function Home() {
+  return <PublicViewPage />;
 }

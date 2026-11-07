@@ -5,6 +5,29 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
 
 const WEATHER_TTL_MS = 5 * 60 * 1000; // 5 minutes for active alerts
 const WEATHER_HISTORY_TTL_MS = 60 * 60 * 1000; // 1 hour for history
+const REQUEST_TIMEOUT_MS = 20_000;
+
+/**
+ * Weather is best-effort UI data. Without a deadline, a cold or wedged backend
+ * leaves the card on "Loading weather…" forever. Abort the fetch and let the
+ * shared poller's retry backoff try again instead.
+ */
+function withTimeout(signal?: AbortSignal): { signal: AbortSignal; cleanup: () => void } {
+  const controller = new AbortController();
+  const onAbort = () => controller.abort();
+  if (signal) {
+    if (signal.aborted) controller.abort();
+    else signal.addEventListener('abort', onAbort, { once: true });
+  }
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  return {
+    signal: controller.signal,
+    cleanup: () => {
+      clearTimeout(timer);
+      signal?.removeEventListener('abort', onAbort);
+    },
+  };
+}
 
 export function outlookLocationKey(location?: { lat: number; lng: number } | null): string {
   return location ? `latitude=${location.lat.toFixed(2)}&longitude=${location.lng.toFixed(2)}` : 'city';
@@ -16,18 +39,23 @@ export function fetchPointOutlook(key: string, signal?: AbortSignal): Promise<Po
 }
 
 async function request<T>(path: string, signal?: AbortSignal): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    signal,
-  });
+  const requestSignal = withTimeout(signal);
+  try {
+    const response = await fetch(`${API_URL}${path}`, {
+      headers: { 'Content-Type': 'application/json' },
+      signal: requestSignal.signal,
+    });
 
-  if (!response.ok) {
-    throw new Error(
-      `Request to ${path} failed with status ${response.status} ${response.statusText}`
-    );
+    if (!response.ok) {
+      throw new Error(
+        `Request to ${path} failed with status ${response.status} ${response.statusText}`
+      );
+    }
+
+    return (await response.json()) as T;
+  } finally {
+    requestSignal.cleanup();
   }
-
-  return response.json() as Promise<T>;
 }
 
 export async function fetchActiveAlerts(
