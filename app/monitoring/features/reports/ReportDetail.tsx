@@ -13,7 +13,6 @@ import {
 import { Spinner } from '@/components/ui/Spinner';
 import { useModalA11y } from '@/hooks/useModalA11y';
 import {
-  REFERENCE_LABELS,
   STATUS_META,
   DEPTH_LABELS,
   formatDateTime,
@@ -118,7 +117,7 @@ export function ReportDetail({
         </div>
       </header>
       <div className={`min-h-0 space-y-3 p-3 sm:p-4 ${modal ? 'overflow-y-auto overscroll-contain' : ''}`}>
-        <div className={`grid items-start gap-3 ${modal ? 'sm:grid-cols-2' : ''}`}>
+        <div className={`grid gap-3 ${modal ? 'sm:grid-cols-2' : ''}`}>
           <ObservationSnapshot report={report} />
           <ReportAssessment report={report} />
         </div>
@@ -157,7 +156,7 @@ export function ReportDetail({
           </dl>
         </details>
       </div>
-      <div className="shrink-0 border-t border-default bg-panel px-4 py-2">
+      <div className="flex shrink-0 justify-center border-t border-default bg-panel px-4 py-2 sm:justify-end">
         <StatusActionMenu report={report} isUpdating={isUpdating} onUpdateStatus={onUpdateStatus} onOpenChange={setDecisionOpen} />
       </div>
     </div>
@@ -233,7 +232,6 @@ function ObservationSnapshot({ report }: { report: Report }) {
       <div className="min-w-0 text-xs">
         <p className="text-[10px] text-muted-foreground">Reporter</p>
         <p className="mt-1 font-medium leading-5 text-secondary">{reporter}</p>
-        {report.reference && <p className="mt-1 text-[10px] leading-4 text-muted-foreground">Depth reference: {REFERENCE_LABELS[report.reference]}</p>}
       </div>
     </div>
   </section>;
@@ -292,8 +290,8 @@ function StatusActionMenu({ report, isUpdating, onUpdateStatus, onOpenChange }: 
   const [open, setOpen] = useState(false);
   return <>
     <button type="button" onClick={() => { setOpen(true); onOpenChange(true); }} disabled={isUpdating} aria-haspopup="dialog"
-      className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-3 py-3 text-sm font-semibold text-on-accent disabled:opacity-60">
-      {isUpdating && <Spinner size="sm" />}Update report status<ChevronDown className="h-4 w-4" />
+      className="inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover disabled:opacity-60">
+      {isUpdating && <Spinner size="sm" />}Update report status
     </button>
     {open && <ReportDecisionDialog report={report} isUpdating={isUpdating} onClose={() => { setOpen(false); onOpenChange(false); }}
       onConfirm={(status, reason) => onUpdateStatus(report, status, reason)} />}

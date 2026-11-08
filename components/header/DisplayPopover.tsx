@@ -11,10 +11,12 @@ export interface DisplayPopoverProps {
   align?: 'start' | 'end';
   compact?: boolean;
   mobileLabel?: boolean;
+  /** Hide the appearance/theme selector (e.g. map-only display controls). */
+  showAppearance?: boolean;
 }
 
-/** Appearance is always available, including while map controls are loading. */
-export function DisplayPopover({ children, className = '', placement = 'below', compact = false, align = 'end', mobileLabel = false }: DisplayPopoverProps) {
+/** Appearance is available by default, including while map controls are loading. */
+export function DisplayPopover({ children, className = '', placement = 'below', compact = false, align = 'end', mobileLabel = false, showAppearance = true }: DisplayPopoverProps) {
   const [open, setOpen] = useState(false);
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 8, width: 304, maxHeight: 400 });
   const container = useRef<HTMLDivElement>(null);
@@ -64,8 +66,8 @@ export function DisplayPopover({ children, className = '', placement = 'below', 
             <h3 className="text-xs font-bold">Display settings</h3>
           </div>
           <div className={align === 'start' ? 'space-y-3 px-3 py-3' : 'space-y-3'}>
-            <AppearanceSelector compact label="Appearance" />
-            {children && <div className="border-t border-default pt-3">{children}</div>}
+            {showAppearance && <AppearanceSelector compact label="Appearance" />}
+            {children && <div className={showAppearance ? 'border-t border-default pt-3' : ''}>{children}</div>}
           </div>
 
         </div>

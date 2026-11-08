@@ -133,8 +133,8 @@ export interface ValidationFlagMeta {
 
 export const VALIDATION_FLAG_LABELS: Record<string, ValidationFlagMeta> = {
   WARNING_ARCHIVE_UNAVAILABLE: {
-    label: 'PAGASA record incomplete', category: 'Weather', type: 'info',
-    description: 'No reliable record covers when flooding was observed. This cannot be treated as no warning.',
+    label: 'No PAGASA alerts recorded', category: 'Weather', type: 'info',
+    description: 'No PAGASA alert or warning was recorded for the observation time.',
   },
   SHALLOW_MODELED_WATER: {
     label: 'Model Shows Shallow Water', category: 'Simulation', type: 'info',

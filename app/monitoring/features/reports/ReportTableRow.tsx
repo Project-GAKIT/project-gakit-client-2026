@@ -25,47 +25,47 @@ export function ReportTableRow({ report, highlighted, selected, updating, onInsp
   const reporterType = report.reporterType ?? (report.validationFlags?.includes('STAFF_REPORTER') ? 'staff' : null);
   const isStaffReporter = reporterType === 'staff';
   const rowColor = highlighted ? 'bg-muted' : selected ? 'bg-muted/80' : 'hover:bg-page';
-  const reporterLabel = isStaffReporter ? 'Staff' : reporterType === 'public' ? 'Public' : 'Unknown reporter';
+  const reporterLabel = isStaffReporter ? 'Staff' : reporterType === 'public' ? 'Public' : 'Unknown';
   const numericDepth = typeof report.depthCm === 'number' && Number.isFinite(report.depthCm) ? report.depthCm : null;
   const depthLabel = DEPTH_LABELS[report.depth.code];
   return (
     <>
-    {!compactTable && <div role="row" data-highlighted-report={highlighted ? report.id : undefined}
-      className={`report-row-compact border-l-2 px-3 py-2.5 xl:hidden ${rowColor} ${needsReview ? 'border-l-warning-border' : 'border-l-transparent'}`}>
-      <div role="cell" aria-colspan={7} className="space-y-1.5">
-        <div className="flex items-start justify-between gap-2">
-          <button type="button" onClick={onViewDetails} title={address}
-            className="min-w-0 text-left text-xs font-semibold leading-4 text-primary hover:text-primary focus-visible:outline-focus">
-            <span className="line-clamp-2 break-words">{address}</span>
-          </button>
-          <time dateTime={report.createdAt} title={formatDateTime(report.createdAt)} className="shrink-0 pt-0.5 text-[10px] text-muted-foreground">{timeAgo(report.createdAt)}</time>
+    <div role="row" data-highlighted-report={highlighted ? report.id : undefined} tabIndex={0}
+      onClick={onViewDetails}
+      onKeyDown={event => { if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); onViewDetails(); } }}
+      className={`report-row-compact cursor-pointer border-l-2 px-3.5 py-2.5 focus-visible:outline-focus xl:hidden ${rowColor} ${needsReview ? 'border-l-warning-border' : 'border-l-transparent'}`}>
+      <div role="cell" aria-colspan={7} className="min-w-0">
+        <div className="flex items-center justify-between gap-3">
+          <span title={address} className="min-w-0 flex-1 truncate text-left text-[11px] font-semibold leading-4 tracking-[-0.01em] text-primary">{address}</span>
+          <time dateTime={report.createdAt} title={formatDateTime(report.createdAt)} className="shrink-0 text-[10px] font-medium tabular-nums text-muted-foreground">{timeAgo(report.createdAt)}</time>
         </div>
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <p className="text-[11px] font-semibold text-secondary">
-            <span className="mr-1 inline-block h-1.5 w-1.5 rounded-full" style={{ background: DEPTH_BAR_COLOR[report.depth.code] }} aria-hidden="true" />
-            {formatReportDepth(report.depth, report.depthCm)}
-          </p>
-          {report.photoUrl && <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground"><Camera className="h-3 w-3" aria-hidden="true" />Photo</span>}
-          {needsReview && <span className="text-[10px] font-semibold text-warning-text">Needs review</span>}
-        </div>
-        <div className="flex flex-wrap items-center gap-x-2 text-[10px] leading-4 text-muted-foreground">
-          <span className={isStaffReporter ? 'font-semibold text-secondary' : ''}>{reporterLabel}</span>
-          <span aria-hidden="true">·</span>
-          <span title={evidence.title}>{evidence.label}</span>
-          <span className="font-mono text-muted-foreground" title={report.id}>#{report.id.slice(0, 8)}</span>
-        </div>
-        <div className="flex items-center justify-between gap-2 pt-0.5">
-          <StatusDropdown report={report} isUpdating={updating} onUpdateStatus={onUpdateStatus} />
-          <div className="flex items-center gap-1">
-            <button type="button" onClick={onInspect} aria-label={`View report ${report.id.slice(0, 8)} on map`} title="View on map"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-primary focus-visible:outline-focus">
-              <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
-            </button>
-            <ReportActions report={report} showInspect={false} onInspect={onInspect} onViewDetails={onViewDetails} />
+        <div className="mt-1.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[10.5px] leading-4 text-muted-foreground">
+          <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1">
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary">
+              <span className="h-1.5 w-1.5 rounded-full" style={{ background: DEPTH_BAR_COLOR[report.depth.code] }} aria-hidden="true" />
+              {formatReportDepth(report.depth, report.depthCm)}
+            </span>
+            {report.photoUrl && <span className="inline-flex items-center gap-1"><Camera className="h-3 w-3" aria-hidden="true" />Photo</span>}
+            {needsReview && <span className="font-semibold text-warning-text">Needs review</span>}
           </div>
+          <span className="inline-flex shrink-0 items-center gap-1.5">
+            <span className="text-[10px] text-muted-foreground">Reporter</span>
+            <span className="inline-flex shrink-0 items-center rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-semibold leading-3 text-secondary">{reporterLabel}</span>
+          </span>
+        </div>
+        <div className="mt-2 flex items-center justify-between gap-3">
+          <div className="min-w-0" onClick={event => event.stopPropagation()}>
+            <StatusDropdown report={report} isUpdating={updating} onUpdateStatus={onUpdateStatus} compact />
+          </div>
+          <button type="button" onClick={event => { event.stopPropagation(); onInspect(); }}
+            aria-label={`View report ${report.id.slice(0, 8)} on map`} title="View on map"
+            className="inline-flex h-7 shrink-0 items-center gap-1 rounded-md border border-default px-2 text-[11px] font-semibold text-secondary hover:bg-muted hover:text-primary focus-visible:outline-focus">
+            <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
+            View on map
+          </button>
         </div>
       </div>
-    </div>}
+    </div>
     <div role="row" data-highlighted-report={highlighted ? report.id : undefined}
       className={`report-row-wide hidden xl:grid grid-cols-2 items-start gap-x-3 gap-y-3 border-l-2 px-4 py-3 sm:grid-cols-3 xl:items-center ${REPORT_TABLE_COLUMNS} ${
         highlighted ? 'bg-muted' : selected ? 'bg-muted/80' : 'hover:bg-page'

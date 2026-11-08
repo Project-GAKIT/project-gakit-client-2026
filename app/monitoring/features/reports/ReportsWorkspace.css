@@ -23,15 +23,27 @@
 .reports-workspace[data-dragging="true"] .reports-workspace-content { display: flex; }
 .reports-sheet-handle { touch-action: none; }
 .reports-workspace [data-barangay-telemetry] { top: calc(var(--reports-map-tools-bottom, 40px) + 8px); }
-.reports-filters { display: flex; align-items: center; gap: 6px; }
-.reports-filters > button { flex: 1; min-width: 0; }
-.reports-filters > button:last-child { flex: none; width: 36px; }
-.reports-list { min-width: 548px; }
-.reports-workspace .reports-table-header, .reports-workspace .report-row-wide { display: grid; grid-template-columns: minmax(140px, 1.8fr) minmax(76px, 1fr) minmax(56px, .7fr) 90px 64px 60px; gap: 6px; padding: 8px; }
-.reports-workspace .reports-table-header { position: sticky; top: 0; z-index: 10; font-size: 9px; letter-spacing: 0; }
-.reports-workspace .report-row-compact { display: none; }
-.reports-workspace .report-row-wide > [role="cell"] { grid-column: span 1; min-width: 0; }
-.reports-workspace .report-cell-label { display: none; }
+.reports-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; }
+/* Size filters to their labels instead of stretching them equally, so names
+   like "Pending & validated" are never ellipsized. Compact padding keeps all
+   four controls (including reset) on one line without shrinking the type. */
+.reports-filters > button { flex: 0 0 auto; height: 2rem; gap: 4px; padding-inline: 5px; }
+.reports-filters > button:last-child { flex: none; width: 32px; margin-left: auto; }
+.reports-filters > button > svg { width: 0.75rem; height: 0.75rem; }
+.reports-sort-row { scrollbar-width: none; }
+.reports-sort-row::-webkit-scrollbar { display: none; }
+/* Below xl the report list uses the compact card rows so every field fits
+   without horizontal scrolling; the column table only applies on wide screens. */
+.reports-workspace .report-row-compact { display: block; }
+.reports-workspace .reports-table-header, .reports-workspace .report-row-wide { display: none; }
+@media (min-width: 1280px) {
+  .reports-list { min-width: 548px; }
+  .reports-workspace .reports-table-header, .reports-workspace .report-row-wide { display: grid; grid-template-columns: minmax(140px, 1.8fr) minmax(76px, 1fr) minmax(56px, .7fr) 90px 64px 60px; gap: 6px; padding: 8px; }
+  .reports-workspace .reports-table-header { position: sticky; top: 0; z-index: 10; font-size: 9px; letter-spacing: 0; }
+  .reports-workspace .report-row-compact { display: none; }
+  .reports-workspace .report-row-wide > [role="cell"] { grid-column: span 1; min-width: 0; }
+  .reports-workspace .report-cell-label { display: none; }
+}
 @media (min-width: 1024px) {
   .reports-workspace { --reports-card-width: clamp(420px, 52%, 640px); }
   .reports-map-tools { max-width: calc(100% - var(--reports-card-width) - 32px); }
@@ -40,6 +52,7 @@
   .reports-workspace[data-panel-hidden="true"] .reports-workspace-panel { display: none; }
   .reports-workspace[data-sheet="collapsed"] .reports-workspace-content { display: flex; }
 }
-@media (max-width: 1023px) {
+@media (max-width: 1279px) {
+  /* The reports panel stays narrow until the table layout kicks in. */
   .reports-filters > button > span > svg { display: none; }
 }

@@ -173,7 +173,7 @@ export function MonitoringShell({ initialAuth }: { initialAuth?: AuthSnapshot })
           compact
           showTopo
           hideNotifications
-          showDisplay={!reportsActive}
+          showDisplay={false}
         />
         </div>
         <main className={`min-h-0 flex-1 ${reportsActive

@@ -168,7 +168,10 @@ export const buildSelectedGeoJson = (selectedLocation: { lat: number; lng: numbe
   };
 };
 
-export const buildReportPopupHtml = (feature: Record<string, any>): string => {
+export const buildReportPopupHtml = (
+  feature: Record<string, any>,
+  options: { showDetails?: boolean } = {}
+): string => {
   const props = feature.properties ?? {};
   const coordinates = feature.geometry?.coordinates ?? [0, 0];
   const [lng, lat] = coordinates;
@@ -184,6 +187,7 @@ export const buildReportPopupHtml = (feature: Record<string, any>): string => {
     ${props.address ? `<p class="report-pin-location" title="${escapeHtml(String(props.address))}">${escapeHtml(String(props.address))}</p>` : ''}
     ${display.age ? `<p class="report-pin-time" title="${escapeHtml(display.fullTime)}">${display.timeLabel} ${escapeHtml(display.age)}</p>` : ''}
     ${display.observed && display.submittedTime ? `<p class="report-pin-submitted" style="margin-top:4px;font-size:10px;color:rgb(var(--text-muted))">Submitted ${escapeHtml(display.submittedTime)}</p>` : ''}
+    ${options.showDetails && props.id ? `<button type="button" class="report-pin-details" data-report-details="${escapeHtml(String(props.id))}">View details</button>` : ''}
   </article>`;
 };
 

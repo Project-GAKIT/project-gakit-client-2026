@@ -41,22 +41,25 @@ export function ReportActions({
   onViewDetails,
   showInspect = true,
   compact = false,
+  dense = false,
 }: {
   report: Report;
   onInspect: () => void;
   onViewDetails: () => void;
   showInspect?: boolean;
   compact?: boolean;
+  dense?: boolean;
 }) {
+  const iconOnly = compact || dense;
   return (
-    <div className={`flex items-center ${compact ? 'gap-1' : 'gap-2'}`}>
+    <div className={`flex items-center ${iconOnly ? 'gap-1' : 'gap-2'}`}>
       {showInspect && (
         <button
           type="button"
           onClick={onInspect}
           aria-label={compact ? `View report ${report.id.slice(0, 8)} on map` : 'Inspect report on map'}
           title="View on map"
-          className={`inline-flex items-center justify-center rounded-lg border border-default text-secondary hover:border-strong hover:text-primary ${compact ? 'h-7 w-7' : 'p-2'}`}
+          className={`inline-flex items-center justify-center rounded-lg border border-default text-secondary hover:border-strong hover:text-primary ${iconOnly ? 'h-7 w-7' : 'p-2'}`}
         >
           <MapPinSearchIcon className="h-4 w-4" />
         </button>
@@ -66,10 +69,14 @@ export function ReportActions({
         onClick={onViewDetails}
         aria-label={`View report ${report.id.slice(0, 8)} details`}
         title="View report details"
-        className={`relative inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-md text-[11px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 ${compact ? 'h-7 w-7 border border-default text-secondary hover:bg-muted' : 'h-8 w-28 bg-accent px-2.5 text-on-accent hover:bg-accent-hover'}`}
+        className={`relative inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-md font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 ${
+          compact ? 'h-7 w-7 border border-default text-secondary hover:bg-muted'
+            : dense ? 'h-7 gap-1 border border-default px-2 text-[11px] text-secondary hover:bg-muted hover:text-primary'
+              : 'h-8 w-28 bg-accent px-2.5 text-[11px] text-on-accent hover:bg-accent-hover'
+        }`}
       >
-        <FileText className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-        <span className={compact ? 'sr-only' : ''}>View report</span>
+        {!dense && <FileText className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />}
+        <span className={compact ? 'sr-only' : ''}>Details</span>
       </button>
     </div>
   );
@@ -87,8 +94,13 @@ export function StatusDropdown({ report, isUpdating, onUpdateStatus, compact = f
   return <>
     <button type="button" onClick={() => setOpen(true)} disabled={isUpdating}
       aria-label={`Update status for report ${report.id.slice(0, 8)}`} aria-haspopup="dialog"
-      className={`inline-flex h-7 items-center gap-1 whitespace-nowrap rounded-full border font-semibold ${compact ? 'px-1.5 text-[10px]' : 'px-2 text-[11px]'} ${status.badgeClass} disabled:opacity-50`}>
-      {isUpdating ? <Spinner size="sm" /> : <>{!compact && <StatusIcon className="h-3.5 w-3.5" />}{status.label}<ChevronDown className="h-3 w-3 opacity-60" /></>}
+      className="inline-flex h-7 items-center gap-1 whitespace-nowrap font-semibold disabled:opacity-50">
+      {isUpdating ? <Spinner size="sm" /> : <>
+        <span className={`inline-flex h-7 items-center gap-1 rounded-full border ${compact ? 'px-1.5 text-[10px]' : 'px-2 text-[11px]'} ${status.badgeClass}`}>
+          {!compact && <StatusIcon className="h-3.5 w-3.5" />}{status.label}
+        </span>
+        <ChevronDown className="h-3 w-3 text-muted-foreground" aria-hidden="true" />
+      </>}
     </button>
     {open && <ReportDecisionDialog report={report} isUpdating={isUpdating} onClose={() => setOpen(false)}
       onConfirm={(status, reason) => onUpdateStatus(report, status, reason)} />}

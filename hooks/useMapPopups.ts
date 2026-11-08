@@ -76,15 +76,25 @@ export function useMapPopups({
       typhoonPopupRef.current?.remove();
 
       const render = () => {
-        reportPopupRef.current.setLngLat(lngLat).setHTML(buildReportPopupHtml(feature));
+        reportPopupRef.current
+          .setLngLat(lngLat)
+          .setHTML(buildReportPopupHtml(feature, { showDetails: Boolean(onReportClickRef.current) }));
         if (!reportPopupRef.current.isOpen()) {
           reportPopupRef.current.addTo(map);
         }
+        reportPopupRef.current
+          .getElement()
+          ?.querySelector('[data-report-details]')
+          ?.addEventListener('click', () => {
+            const reportId = feature.properties?.id;
+            reportPopupRef.current?.remove();
+            if (reportId) onReportClickRef.current?.(String(reportId));
+          });
       };
 
       render();
     },
-    [mapRef, clearReportHover]
+    [mapRef, onReportClickRef, clearReportHover]
   );
 
   const hideReportPopup = useCallback(() => {
@@ -224,6 +234,7 @@ export function useMapPopups({
             coordinates: target,
           },
           properties: {
+            id: report.id,
             kind: 'report',
             address: report.address,
             depthLabel: report.depthLabel,

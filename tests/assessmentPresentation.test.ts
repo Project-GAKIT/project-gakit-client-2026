@@ -99,8 +99,8 @@ describe('LGU report check wording', () => {
       ...summary, recommendedStatus: 'UNVERIFIED', conflicts: [],
       context: ['WARNING_UNAVAILABLE', 'WARNING_ARCHIVE_UNAVAILABLE', 'PAGASA_THUNDERSTORM_WATCH'],
     } });
-    expect(view.message).toBe('PAGASA records for that time are incomplete.');
-    expect(view.checks).toContainEqual({ label: 'PAGASA', value: 'Incomplete record for that time' });
+    expect(view.message).toBe('No PAGASA alerts or warnings were recorded during that time.');
+    expect(view.checks).toContainEqual({ label: 'PAGASA', value: 'No alerts or warnings recorded' });
     expect(view.details).toContain('A thunderstorm watch means storms may develop; it does not confirm flooding.');
   });
 

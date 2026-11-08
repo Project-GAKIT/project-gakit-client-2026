@@ -24,7 +24,7 @@ export function ReportsPagination({
 
   return (
     <div className={compact ? 'flex items-center justify-between gap-2 border-t border-default px-3 py-2' : 'border-t border-default px-4 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'}>
-      <div className={compact ? 'min-w-0 text-[10px] text-muted-foreground' : 'text-sm text-muted-foreground'}>
+      <div className={compact ? 'min-w-0 text-[11px] tabular-nums text-muted-foreground' : 'text-sm text-muted-foreground'}>
         {compact ? `${startItem}–${endItem} of ${totalItems}` : `Showing ${startItem}-${endItem} of ${totalItems} ${itemLabel}`}
       </div>
 
@@ -38,7 +38,7 @@ export function ReportsPagination({
           <span className={compact ? 'sr-only' : ''}>Previous</span>
         </button>
 
-        <div className={compact ? 'text-[10px] font-medium text-secondary' : 'rounded-lg border border-default bg-page px-3 py-2 text-sm font-semibold text-secondary'}>
+        <div className={compact ? 'text-[11px] font-medium tabular-nums text-secondary' : 'rounded-lg border border-default bg-page px-3 py-2 text-sm font-semibold text-secondary'}>
           Page {currentPage} of {totalPages}
         </div>
 

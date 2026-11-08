@@ -5,7 +5,6 @@ import { getReportCheckPresentation } from '@/lib/reports/assessmentPresentation
 import { formatDateTime, getReportAssessmentBasis, STATUS_META } from '@/lib/reports/reportFormatting';
 import { hasEvidenceConflict } from '@/lib/reports/decisionReasons';
 import type { Report } from '@/types/report';
-import { ReportEvidenceReview } from './ReportEvidenceReview';
 
 export function ReportAssessment({ report }: { report: Report }) {
   const view = getReportCheckPresentation(report);
@@ -35,7 +34,6 @@ export function ReportAssessment({ report }: { report: Report }) {
       {summary?.assessedAt && <p>Evidence checked {formatDateTime(summary.assessedAt)}</p>}
     </div>
     {view.reviewNotice && <p className="mt-2 flex items-start gap-2 rounded-lg border border-warning-border bg-warning-bg p-2 text-[11px] leading-4 text-warning-text"><Info className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />{view.reviewNotice}</p>}
-    {summary?.reviewAvailable && <ReportEvidenceReview key={report.id} reportId={report.id} />}
   </section>;
 }
 
@@ -59,7 +57,6 @@ export function ReportValidationChecks({ report }: { report: Report }) {
       {report.decisionSource === 'manual' && summary && summary.recommendedStatus !== report.status && <p className="mt-3 text-xs leading-5 text-muted-foreground">
         Earlier automatic recommendation: {STATUS_META[summary.recommendedStatus].label}. The saved staff decision applies.
       </p>}
-      {summary?.checkState === 'review_required' && !summary.reviewAvailable && <ReportEvidenceReview key={report.id} reportId={report.id} />}
     </div>
   </details>;
 }

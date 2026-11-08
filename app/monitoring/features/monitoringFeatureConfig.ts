@@ -27,7 +27,7 @@ export const monitoringFeatures: PortalNavItem<MonitoringFeatureId>[] = [
   },
   {
     id: 'alerts',
-    label: 'Alerts & Notifications',
+    label: 'Alerts',
     mobileLabel: 'Alerts',
     title: 'Alerts & Notifications',
     description: 'Monitor new, flagged, and critical reports requiring staff attention.',
@@ -40,7 +40,7 @@ export const monitoringFeatures: PortalNavItem<MonitoringFeatureId>[] = [
   },
   {
     id: 'reports',
-    label: 'Report Management',
+    label: 'Reports',
     mobileLabel: 'Reports',
     title: 'Report Management',
     description: 'Review all submitted flood reports, filter by state, and inspect details for action.',

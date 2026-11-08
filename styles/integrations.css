@@ -82,6 +82,8 @@
 .report-pin-depth { margin: 0; color: rgb(var(--text-primary)); font-size: 17px; line-height: 1.35; font-weight: 700; letter-spacing: -0.025em; }
 .report-pin-location { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; margin: 8px 0 0; color: rgb(var(--text-secondary)); font-size: 11px; line-height: 1.5; }
 .report-pin-time { margin: 10px 0 0; padding-top: 8px; border-top: 1px solid rgb(var(--border-default)); color: rgb(var(--text-muted)); font-size: 10px; }
+.report-pin-details { display: flex; align-items: center; justify-content: center; width: 100%; margin: 10px 0 0; padding: 6px 10px; border: 1px solid rgb(var(--border-default)); border-radius: 8px; background: rgb(var(--surface-page)); color: rgb(var(--text-secondary)); font-size: 11px; font-weight: 600; cursor: pointer; }
+.report-pin-details:hover { background: rgb(var(--surface-muted)); color: rgb(var(--text-primary)); }
 .maplibregl-popup.gakit-report-hover .maplibregl-popup-content {
   background: rgb(var(--surface-panel)) !important;
   backdrop-filter: none !important;

@@ -57,7 +57,7 @@ export function ReportDecisionDialog({ report, isUpdating, onClose, onConfirm }:
             <select id={`${id}-status`} required value={status} disabled={busy}
               onChange={event => { setStatus(event.target.value as DecisionStatus); setReasonCode(''); setError(''); }}
               className="h-10 w-full rounded-lg border border-default bg-panel px-2.5 text-sm text-secondary outline-none focus:border-strong">
-              {DECISION_STATUSES.map(value => <option key={value} value={value}>{STATUS_META[value].label}</option>)}
+              {DECISION_STATUSES.map(value => <option key={value} value={value} disabled={value === decisionStatus(report.status)}>{STATUS_META[value].label}</option>)}
             </select>
           </div>
           <div><label htmlFor={`${id}-reason`} className="mb-1 block text-xs font-semibold text-secondary">Reason <span aria-hidden="true">*</span></label>

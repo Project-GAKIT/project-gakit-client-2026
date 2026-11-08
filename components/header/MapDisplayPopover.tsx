@@ -32,7 +32,7 @@ function DisplaySettingRow({ label, description, checked, change }: DisplaySetti
   );
 }
 
-export function MapDisplayPopover({ basemap, mode, showBuildings, onBasemapChange, onModeChange, onBuildingsChange, smoothPolygons = true, onSmoothingChange, showBarangayBoundaries = false, onBarangayBoundariesChange, showRoads = false, onRoadsChange, focusRoads = false, onFocusRoadsChange, showParBoundary = true, onParBoundaryChange, disabled = false, className = '', placement = 'below', compact = false, align = 'end', mobileLabel = false }: MapDisplaySettings & {
+export function MapDisplayPopover({ basemap, mode, showBuildings, onBasemapChange, onModeChange, onBuildingsChange, smoothPolygons = true, onSmoothingChange, showBarangayBoundaries = false, onBarangayBoundariesChange, showRoads = false, onRoadsChange, focusRoads = false, onFocusRoadsChange, showParBoundary = true, onParBoundaryChange, disabled = false, className = '', placement = 'below', compact = false, align = 'end', mobileLabel = false, showAppearance = true }: MapDisplaySettings & {
   onParBoundaryChange?: (visible: boolean) => void;
   onBasemapChange: (basemap: BasemapId) => void;
   onModeChange: (mode: '2d' | '3d') => void;
@@ -49,9 +49,10 @@ export function MapDisplayPopover({ basemap, mode, showBuildings, onBasemapChang
   align?: 'start' | 'end';
   compact?: boolean;
   mobileLabel?: boolean;
+  showAppearance?: boolean;
 }) {
   return (
-    <DisplayPopover className={className} placement={placement} compact={compact} align={align} mobileLabel={mobileLabel}>
+    <DisplayPopover className={className} placement={placement} compact={compact} align={align} mobileLabel={mobileLabel} showAppearance={showAppearance}>
           <fieldset disabled={disabled} className="space-y-2 disabled:opacity-50">
             <legend className="mb-2 text-sm font-semibold text-primary">Map</legend>
             <div>

@@ -42,7 +42,7 @@ export function getReportCheckPresentation(report: AssessmentReport) {
   } else {
     message = has('CURRENT_CONDITIONS_UNSUPPORTED') ? 'Rainfall and flood estimates do not support this report. Staff review is needed.'
       : has('DEPTH_CATEGORY_MISMATCH') ? 'The water depth entry needs to be reviewed.'
-      : has('WARNING_ARCHIVE_UNAVAILABLE') ? 'PAGASA records for that time are incomplete.'
+      : has('WARNING_ARCHIVE_UNAVAILABLE') ? 'No PAGASA alerts or warnings were recorded during that time.'
       : summary.checkState === 'review_required' ? 'The available evidence needs staff review.'
       : [...flags].some(flag => /_(UNAVAILABLE|STALE|OUTSIDE_COVERAGE)$/.test(flag))
         ? 'Some checks are unavailable. More information is needed.'
@@ -63,7 +63,7 @@ export function getReportCheckPresentation(report: AssessmentReport) {
 
   if (has('HEAVY_RAINFALL_CONTEXT')) add('Rainfall', 'Rainfall threshold met', 'HEAVY_RAINFALL_CONTEXT');
   if (has('LOCAL_FLOOD_WARNING')) add('PAGASA', 'Rain or flood warning recorded', 'LOCAL_FLOOD_WARNING');
-  else if (has('WARNING_ARCHIVE_UNAVAILABLE')) add('PAGASA', 'Incomplete record for that time', 'WARNING_ARCHIVE_UNAVAILABLE', 'WARNING_UNAVAILABLE');
+  else if (has('WARNING_ARCHIVE_UNAVAILABLE')) add('PAGASA', 'No alerts or warnings recorded', 'WARNING_ARCHIVE_UNAVAILABLE', 'WARNING_UNAVAILABLE');
   else if (has('PAGASA_THUNDERSTORM_WATCH')) add('PAGASA', 'Thunderstorm watch only', 'PAGASA_THUNDERSTORM_WATCH');
   else if (has('PAGASA_WEATHER_NOTICE')) add('PAGASA', 'Weather notice only', 'PAGASA_WEATHER_NOTICE');
   else if (has('WARNING_UNAVAILABLE')) add('PAGASA', 'Check unavailable', 'WARNING_UNAVAILABLE');
@@ -84,7 +84,7 @@ export function getReportCheckPresentation(report: AssessmentReport) {
     REPORTER_POLICY_UNAVAILABLE: 'The account check is unavailable.',
     DEPTH_CATEGORY_MISMATCH: 'The water depth entry needs review.',
     HISTORICAL_OBSERVATION_REVIEW: 'The report describes an earlier observation.',
-    WARNING_ARCHIVE_UNAVAILABLE: 'There is no reliable PAGASA record covering the observation time.',
+    WARNING_ARCHIVE_UNAVAILABLE: 'No PAGASA alert or warning was recorded for the observation time.',
     PEER_DEPTH_VARIATION: 'Nearby reports give different water depths.',
     OBSERVATION_DEPTH_UNCERTAIN: 'An exact water depth was not provided.',
     DUPLICATE_PHOTO_SOURCE: 'Some reports use the same photo.',
