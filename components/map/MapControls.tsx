@@ -1248,11 +1248,18 @@ export function DataLayerControls({
               {selectedHistoricalStorm ? (
                 <span>Viewing archived cyclone track</span>
               ) : hasActiveTyphoon ? (
-                activeTyphoonName ? (
-                  `Tracking ${activeTyphoonName}${activeStorms?.[0]?.isInsidePar === false ? ' (Outside PAR)' : ''}${typhoonObservedAt && formatTyphoonTime(typhoonObservedAt) ? ` · as of ${formatTyphoonTime(typhoonObservedAt)}` : ''}`
-                ) : (
-                  `Active storm tracked${activeStorms?.[0]?.isInsidePar === false ? ' (Outside PAR)' : ''}${typhoonObservedAt && formatTyphoonTime(typhoonObservedAt) ? ` · as of ${formatTyphoonTime(typhoonObservedAt)}` : ''}`
-                )
+                <button
+                  type="button"
+                  onClick={() => onFocusStorm?.()}
+                  className="text-left hover:text-primary transition-colors cursor-pointer"
+                  title="Click to focus on active storm track"
+                >
+                  {activeTyphoonName ? (
+                    `Tracking ${activeTyphoonName}${activeStorms?.[0]?.isInsidePar === false ? ' (Outside PAR)' : ''}${typhoonObservedAt && formatTyphoonTime(typhoonObservedAt) ? ` · as of ${formatTyphoonTime(typhoonObservedAt)}` : ''}`
+                  ) : (
+                    `Active storm tracked${activeStorms?.[0]?.isInsidePar === false ? ' (Outside PAR)' : ''}${typhoonObservedAt && formatTyphoonTime(typhoonObservedAt) ? ` · as of ${formatTyphoonTime(typhoonObservedAt)}` : ''}`
+                  )}
+                </button>
               ) : (
                 `No active storm inside PAR${typhoonObservedAt && formatTyphoonTime(typhoonObservedAt) ? ` · as of ${formatTyphoonTime(typhoonObservedAt)}` : ''}`
               )}
@@ -1298,10 +1305,10 @@ export function DataLayerControls({
               </button>
             </div>
 
-            {!selectedHistoricalStorm && activeStorms && activeStorms.length > 1 && (
+            {!selectedHistoricalStorm && activeStorms && activeStorms.length >= 1 && (
               <div className="pt-1.5 border-t border-default space-y-1">
                 <div className="text-[9.5px] uppercase tracking-wider text-muted-foreground font-bold">
-                  Focus storm ({activeStorms.length})
+                  Focus storm {activeStorms.length > 1 ? `(${activeStorms.length})` : ''}
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {activeStorms.map((storm) => (
@@ -1309,7 +1316,7 @@ export function DataLayerControls({
                       key={storm.name}
                       type="button"
                       onClick={() => onFocusStorm?.(storm.name)}
-                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-panel border border-default text-[10px] font-semibold text-secondary hover:border-default hover:text-primary transition-colors shadow-2xs"
+                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-panel border border-default text-[10px] font-semibold text-secondary hover:border-default hover:text-primary transition-colors shadow-2xs cursor-pointer"
                     >
                       <span
                         className="w-1.5 h-1.5 rounded-full shrink-0"
@@ -1322,7 +1329,7 @@ export function DataLayerControls({
                   <button
                     type="button"
                     onClick={() => onFocusStorm?.()}
-                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-page border border-default text-[10px] font-medium text-muted-foreground hover:bg-muted hover:text-primary transition-colors"
+                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-page border border-default text-[10px] font-medium text-muted-foreground hover:bg-muted hover:text-primary transition-colors cursor-pointer"
                   >
                     View All
                   </button>

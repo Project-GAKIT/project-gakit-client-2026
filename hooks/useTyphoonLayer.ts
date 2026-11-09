@@ -254,12 +254,32 @@ export function useTyphoonLayer(
       const map = mapRef.current;
       if (!map) return;
       if (next) {
+        let minLng = 114.0;
+        let minLat = 4.0;
+        let maxLng = 136.0;
+        let maxLat = 26.0;
+
+        const points = typhoonDataRef.current?.track?.features?.filter(
+          (f: any) => f.geometry?.type === 'Point' && Array.isArray(f.geometry.coordinates)
+        );
+        if (points && points.length > 0) {
+          for (const pt of points) {
+            const [lng, lat] = pt.geometry.coordinates;
+            if (Number.isFinite(lng) && Number.isFinite(lat)) {
+              minLng = Math.min(minLng, lng);
+              maxLng = Math.max(maxLng, lng);
+              minLat = Math.min(minLat, lat);
+              maxLat = Math.max(maxLat, lat);
+            }
+          }
+        }
+
         const camera = map.cameraForBounds(
           [
-            [114.0, 4.0],
-            [136.0, 26.0],
+            [minLng, minLat],
+            [maxLng, maxLat],
           ],
-          { padding: 24 }
+          { padding: 32 }
         );
         if (camera) {
           map.flyTo({ center: camera.center, zoom: camera.zoom, pitch: 0, duration: 1000 });

@@ -167,12 +167,22 @@ export function formatTyphoonDisplayName(local?: string, intl?: string): string 
   let rawLocal = (local || '').trim();
   let rawIntl = (intl || '').trim();
 
-  // If local has braces like "KRISTINE{TRAMI}" or "PILANDOK{}"
-  const braceMatch = rawLocal.match(/^([^{}]+?)(?:\s*\{\s*([^{}]*)\s*\})?$/);
-  if (braceMatch) {
-    rawLocal = braceMatch[1] || '';
-    if (!rawIntl && braceMatch[2]) {
-      rawIntl = braceMatch[2];
+  // If local has braces like "{PRE-SAMUEL}{CEMPAKA}" or "KRISTINE{TRAMI}" or "PILANDOK{}"
+  const braceMatches = Array.from(rawLocal.matchAll(/\{([^{}]*)\}/g), (m) => m[1]);
+  if (braceMatches.length >= 2) {
+    rawLocal = braceMatches[0];
+    if (!rawIntl) {
+      rawIntl = braceMatches[1];
+    }
+  } else if (braceMatches.length === 1) {
+    const outside = rawLocal.replace(/\{[^{}]*\}/g, '').trim();
+    if (outside) {
+      rawLocal = outside;
+      if (!rawIntl) {
+        rawIntl = braceMatches[0];
+      }
+    } else {
+      rawLocal = braceMatches[0];
     }
   }
 
