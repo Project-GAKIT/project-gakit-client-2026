@@ -94,9 +94,31 @@ export function convertPanahonToGeoJSON(
       continue;
     }
     const rawName = cyclone.cyclone_name || '';
-    const match = rawName.match(/^([^{}]*)?(?:\{([^{}]*)\})?$/);
-    const localPart = match?.[1]?.trim() || '';
-    const intlPart = match?.[2]?.trim() || '';
+    const braceMatches = Array.from(rawName.matchAll(/\{([^{}]*)\}/g), (m) => m[1]);
+    let localPart = '';
+    let intlPart = '';
+
+    if (braceMatches.length >= 2) {
+      localPart = braceMatches[0].trim();
+      intlPart = braceMatches[1].trim();
+    } else if (braceMatches.length === 1) {
+      const outside = rawName.replace(/\{[^{}]*\}/g, '').trim();
+      if (outside) {
+        localPart = outside;
+        intlPart = braceMatches[0].trim();
+      } else {
+        localPart = braceMatches[0].trim();
+      }
+    } else {
+      const parenMatches = Array.from(rawName.matchAll(/\(([^()]*)\)/g), (m) => m[1]);
+      if (parenMatches.length > 0) {
+        localPart = rawName.replace(/\([^()]*\)/g, '').trim();
+        intlPart = parenMatches[0].trim();
+      } else {
+        localPart = rawName.trim();
+      }
+    }
+
     const cleanLocalPart = localPart.replace(/^bagyong\s+/i, '').trim();
     const cleanIntlPart = intlPart.replace(/^bagyong\s+/i, '').trim();
     const localName = cleanLocalPart || cleanIntlPart || 'Tropical Cyclone';

@@ -96,6 +96,13 @@ describe('typhoon utilities', () => {
     expect(html).not.toContain('()');
   });
 
+  it('formats double-brace Panahon names into readable title', () => {
+    expect(formatTyphoonDisplayName('{PRE-SAMUEL}{CEMPAKA}')).toBe('PRE-SAMUEL (CEMPAKA)');
+    expect(formatTyphoonDisplayName('{SAMUEL}')).toBe('SAMUEL');
+    expect(formatTyphoonDisplayName('KRISTINE {TRAMI}')).toBe('KRISTINE (TRAMI)');
+    expect(formatTyphoonDisplayName('BAGYONG PEPITO {MAN-YI}')).toBe('PEPITO (MAN-YI)');
+  });
+
   it('contains exactly the 6 official DOST-PAGASA categories in PRIMARY_TYPHOON_CATEGORIES', () => {
     expect(PRIMARY_TYPHOON_CATEGORIES).toEqual(['STY', 'TY', 'STS', 'TS', 'TD', 'LPA']);
     PRIMARY_TYPHOON_CATEGORIES.forEach((code) => {
