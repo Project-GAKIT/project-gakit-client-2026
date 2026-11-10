@@ -1393,12 +1393,12 @@ export function PublicMap({
           </button>
         </div>
       )}
-      {!drought.visible && mapReady && selectedLocation && selectedLocationActions
-        && !(fullScreen && (weatherOpen || layersOpen || reportsOpen)) && (
+      {!drought.visible && mapReady && selectedLocation && selectedLocationActions && (
         <PinnedLocationActions
           key={`${selectedLocation.lat},${selectedLocation.lng}`}
           mapRef={mapRef}
           location={selectedLocation}
+          hideOnMobile={fullScreen && (weatherOpen || layersOpen || reportsOpen)}
           {...selectedLocationActions}
         />
       )}
