@@ -9,8 +9,16 @@ import type { TyphoonApiResponse } from '@/types/typhoon';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
-const CACHE_HEADERS = {
-  'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=900',
+const LIVE_CACHE_HEADERS = {
+  'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+};
+
+const HISTORICAL_CACHE_HEADERS = {
+  'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+};
+
+const NO_STORE_HEADERS = {
+  'Cache-Control': 'no-store',
 };
 
 async function fetchServerTyphoonTrack(stormName?: string | null): Promise<TyphoonApiResponse> {
@@ -23,7 +31,9 @@ async function fetchServerTyphoonTrack(stormName?: string | null): Promise<Typho
         'User-Agent': 'ProjectGakit-Client/1.0',
       },
       signal: AbortSignal.timeout(4000),
-      next: { revalidate: stormName ? 3600 : 300 },
+      ...(stormName
+        ? { next: { revalidate: 3600 } }
+        : { cache: 'no-store' as const }),
     });
 
     if (res.ok) {
@@ -142,8 +152,13 @@ export async function GET(request: Request) {
 
     const stormName = searchParams.get('stormName');
     const payload = await fetchServerTyphoonTrack(stormName);
+    const headers = stormName
+      ? HISTORICAL_CACHE_HEADERS
+      : payload.hasActiveTyphoon
+        ? LIVE_CACHE_HEADERS
+        : NO_STORE_HEADERS;
     return NextResponse.json(payload, {
-      headers: CACHE_HEADERS,
+      headers,
     });
   } catch (error) {
     console.error('Typhoon track route error:', error);
@@ -161,7 +176,7 @@ export async function GET(request: Request) {
       },
       {
         status: 200,
-        headers: CACHE_HEADERS,
+        headers: NO_STORE_HEADERS,
       }
     );
   }
