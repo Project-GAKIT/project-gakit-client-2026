@@ -689,6 +689,30 @@ describe('typhoon utilities', () => {
     expect(isCycloneExpired(activeInfo)).toBe(false);
   });
 
+  it('keeps a current forecast active even when the latest observed fix is stale', () => {
+    const toPanahonNode = (when: Date, radius: string) => {
+      const pht = new Date(when.getTime() + 8 * 3600 * 1000).toISOString();
+      return {
+        key: `${pht.slice(0, 10)} ${pht.slice(11, 16)}`,
+        node: {
+          cyclone_type: 'TY',
+          date: pht.slice(0, 10),
+          time: pht.slice(11, 16),
+          latitude: '15.0',
+          longitude: '125.0',
+          radius,
+        },
+      };
+    };
+    const observed = toPanahonNode(new Date(Date.now() - 40 * 3600 * 1000), '0');
+    const forecast = toPanahonNode(new Date(Date.now() + 72 * 3600 * 1000), '120');
+    const info = {
+      [observed.key]: observed.node,
+      [forecast.key]: forecast.node,
+    };
+    expect(isCycloneExpired(info)).toBe(false);
+  });
+
   it('fetches historical storms via client API', async () => {
     const mockStorms = [
       { id: '1', name: 'QUEENIE', cycloneName: 'QUEENIE', category: 'TY', pointCount: 23 },
