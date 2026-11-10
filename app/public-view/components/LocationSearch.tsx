@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore, type FormEvent } from 'react';
 import { Clock3, Locate, MapPin, Search, X } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
 import { searchLocations } from '@/lib/map/geoUtils';
 import type { LocationSearchResult } from '@/lib/map/geoUtils';
+import { validateSearchText } from '@/lib/validation/publicInputValidation';
 import { clearRecentSearches, getRecentSearches, getServerRecentSearches, saveRecentSearch, subscribeRecentSearches } from '@/lib/map/recentSearches';
 
 export interface SearchedLocation {
@@ -40,11 +41,16 @@ export function LocationSearch({
   const [isSearching, setIsSearching] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [validationAttempted, setValidationAttempted] = useState(false);
+  const [activeResultIndex, setActiveResultIndex] = useState(-1);
   const [isInternalLocating, setIsInternalLocating] = useState(false);
   const searchAbortRef = useRef<AbortController | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const isMobile = useSyncExternalStore(subscribeMobile, isMobileViewport, serverViewport);
   const recentSearches = useSyncExternalStore(subscribeRecentSearches, getRecentSearches, getServerRecentSearches);
+  const inputId = useId();
+  const resultsId = `${inputId}-results`;
+  const validationError = validationAttempted ? validateSearchText(searchQuery, { minLength: 2 }) : null;
 
   const activeLocating = isLocating || isInternalLocating;
 
@@ -65,6 +71,7 @@ export function LocationSearch({
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsFocused(false);
+        setActiveResultIndex(-1);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -113,7 +120,7 @@ export function LocationSearch({
   // feels live, without hitting the geocoder on every keystroke.
   useEffect(() => {
     const query = searchQuery.trim();
-    if (query.length < 2) return;
+    if (validateSearchText(searchQuery, { minLength: 2 })) return;
     const timer = setTimeout(() => {
       void runSearch(query);
     }, 300);
@@ -132,9 +139,9 @@ export function LocationSearch({
   const handleSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    setValidationAttempted(true);
     const query = searchQuery.trim();
-    if (query.length < 2) {
-      setSearchError('Enter at least 2 characters.');
+    if (validateSearchText(searchQuery, { minLength: 2 })) {
       return;
     }
 
@@ -146,17 +153,21 @@ export function LocationSearch({
     setSearchQuery('');
     setSearchResults([]);
     setSearchError(null);
+    setValidationAttempted(false);
+    setActiveResultIndex(-1);
   };
 
   const showRecents = searchQuery.trim().length < 2 && recentSearches.length > 0;
+  const suggestionCount = searchResults.length > 0 ? searchResults.length : showRecents ? recentSearches.length : 0;
   const showDropdown =
     isFocused &&
-    (Boolean(onLocate) || searchResults.length > 0 || Boolean(searchError) || showRecents);
+    (Boolean(onLocate) || searchResults.length > 0 || Boolean(searchError) || Boolean(validationError) || showRecents);
 
   const selectLocation = (location: SearchedLocation) => {
     searchAbortRef.current?.abort();
     setSearchResults([]);
     setIsFocused(false);
+    setActiveResultIndex(-1);
     containerRef.current?.querySelector('input')?.blur();
     saveRecentSearch(location);
     onSelect(location);
@@ -197,16 +208,49 @@ export function LocationSearch({
           </button>
         ) : null}
         <input
+          id={inputId}
           value={searchQuery}
           onFocus={() => setIsFocused(true)}
           onChange={(event) => {
             setSearchQuery(event.target.value);
             setSearchResults([]);
             setSearchError(null);
+            setActiveResultIndex(-1);
+            if (validateSearchText(event.target.value)) {
+              setValidationAttempted(true);
+            }
             setIsFocused(true);
+          }}
+          onKeyDown={event => {
+            if (event.key === 'Escape' && showDropdown) {
+              event.preventDefault();
+              setIsFocused(false);
+              setActiveResultIndex(-1);
+            } else if (event.key === 'ArrowDown' && suggestionCount > 0) {
+              event.preventDefault();
+              setActiveResultIndex(index => (index + 1) % suggestionCount);
+            } else if (event.key === 'ArrowUp' && suggestionCount > 0) {
+              event.preventDefault();
+              setActiveResultIndex(index => index <= 0 ? suggestionCount - 1 : index - 1);
+            } else if (event.key === 'Enter' && activeResultIndex >= 0 && activeResultIndex < suggestionCount) {
+              event.preventDefault();
+              if (searchResults.length > 0) {
+                const result = searchResults[activeResultIndex];
+                selectLocation({ lat: result.lat, lng: result.lng, address: result.displayName });
+              } else {
+                selectLocation(recentSearches[activeResultIndex]);
+              }
+            }
           }}
           placeholder={isMobile && isCompact ? 'Search address or barangay' : placeholder}
           aria-label="Search for a location in Iligan City"
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded={showDropdown && suggestionCount > 0}
+          aria-controls={showDropdown && suggestionCount > 0 ? resultsId : undefined}
+          aria-activedescendant={showDropdown && activeResultIndex >= 0 && activeResultIndex < suggestionCount ? `${resultsId}-${activeResultIndex}` : undefined}
+          aria-invalid={Boolean(validationError)}
+          aria-describedby={validationError ? `${inputId}-error` : undefined}
           className="min-w-0 flex-1 bg-transparent py-0.5 text-left text-xs font-medium text-primary outline-none placeholder:text-muted-foreground truncate"
         />
         {searchQuery && (
@@ -239,7 +283,13 @@ export function LocationSearch({
         <div data-header-dropdown={isCompact || undefined} className={`z-50 overflow-hidden hud-card ${isCompact ? 'map-header-dropdown' : ''} ${
           isCompact ? 'fixed inset-x-1.5 top-[calc(max(0.375rem,env(safe-area-inset-top,0px))+3.5rem)] mx-auto max-h-[calc(100dvh-11rem-env(safe-area-inset-bottom,0px))] max-w-[380px] overflow-y-auto overscroll-contain md:absolute md:inset-x-auto md:left-1/2 md:top-full md:mt-2 md:w-96 md:max-w-none md:-translate-x-1/2 md:max-h-[70dvh]' : 'absolute left-1/2 top-full mt-2 w-full -translate-x-1/2'
         }`}>
-          {searchError && (
+          {validationError && (
+            <p id={`${inputId}-error`} className="border-b border-default px-3.5 py-2.5 text-xs text-error-text" role="alert">
+              {validationError}
+            </p>
+          )}
+
+          {searchError && !validationError && (
             <p
               className="px-3.5 py-2.5 text-xs text-error-text border-b border-default"
               role="status"
@@ -274,28 +324,35 @@ export function LocationSearch({
             </button>
           )}
 
-          {showRecents && <div aria-label="Recent searches">
+          {showRecents && <div>
             <div className="flex items-center justify-between px-3.5 pt-2.5 pb-1">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Recent</p>
-              <button type="button" onMouseDown={event => event.preventDefault()} onClick={clearRecentSearches}
+              <button type="button" onMouseDown={event => event.preventDefault()} onClick={() => { clearRecentSearches(); setActiveResultIndex(-1); }}
                 className="min-h-8 rounded-lg px-2 text-[11px] font-medium text-muted-foreground hover:bg-muted hover:text-primary" aria-label="Clear recent searches">Clear</button>
             </div>
-            {recentSearches.map(location => <button key={`${location.lat},${location.lng}`} type="button"
+            <div id={resultsId} role="listbox" aria-label="Recent locations" className="divide-y divide-default">
+            {recentSearches.map((location, index) => <button key={`${location.lat},${location.lng}`} id={`${resultsId}-${index}`} type="button"
+              role="option" aria-selected={activeResultIndex === index} tabIndex={-1}
               onMouseDown={event => event.preventDefault()} onClick={() => selectLocation(location)}
-              className="flex min-h-11 w-full items-start gap-2.5 px-3.5 py-2.5 text-left transition-colors hover:bg-page">
+              className={`flex min-h-11 w-full items-start gap-2.5 px-3.5 py-2.5 text-left transition-colors hover:bg-page ${activeResultIndex === index ? 'bg-page' : ''}`}>
               <Clock3 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
               <span className="min-w-0"><span className="block text-xs font-semibold text-primary">{location.address.split(',')[0]}</span>
                 {location.address.includes(',') && <span className="block truncate text-[11px] text-muted-foreground">{location.address.substring(location.address.indexOf(',') + 1).trim()}</span>}
               </span>
             </button>)}
+            </div>
           </div>}
 
           {searchResults.length > 0 && (
-            <div className="max-h-56 divide-y divide-default overflow-y-auto">
-              {searchResults.map((result) => (
+            <div id={resultsId} role="listbox" aria-label="Location search results" className="max-h-56 divide-y divide-default overflow-y-auto">
+              {searchResults.map((result, index) => (
                 <button
+                  id={`${resultsId}-${index}`}
                   key={`${result.lat}-${result.lng}-${result.displayName}`}
                   type="button"
+                  role="option"
+                  aria-selected={activeResultIndex === index}
+                  tabIndex={-1}
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
                     selectLocation({
@@ -304,7 +361,7 @@ export function LocationSearch({
                       address: result.displayName,
                     });
                   }}
-                  className="flex w-full items-start gap-2.5 px-3.5 py-2.5 text-left transition-colors hover:bg-page"
+                  className={`flex w-full items-start gap-2.5 px-3.5 py-2.5 text-left transition-colors hover:bg-page ${activeResultIndex === index ? 'bg-page' : ''}`}
                 >
                   <MapPin className="mt-1 h-3.5 w-3.5 shrink-0 text-secondary" />
                   <div className="flex flex-col min-w-0 flex-1">

@@ -1398,6 +1398,7 @@ export function PublicMap({
           key={`${selectedLocation.lat},${selectedLocation.lng}`}
           mapRef={mapRef}
           location={selectedLocation}
+          hideOnMobile={fullScreen && (weatherOpen || layersOpen || reportsOpen)}
           {...selectedLocationActions}
         />
       )}

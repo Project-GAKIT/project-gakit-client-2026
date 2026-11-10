@@ -135,6 +135,28 @@ export function PublicViewPage({
     }
   }, [smoothScrollTo]);
 
+  const handleSkipToSection = (event: React.MouseEvent<HTMLAnchorElement>, sectionId: SectionId) => {
+    event.preventDefault();
+    scrollToSection(sectionId);
+    window.requestAnimationFrame(() => document.getElementById(sectionId)?.focus({ preventScroll: true }));
+  };
+
+  const handleAboutTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, current: 'about' | 'privacy') => {
+    const next = event.key === 'ArrowRight' || event.key === 'ArrowDown'
+      ? current === 'about' ? 'privacy' : 'about'
+      : event.key === 'ArrowLeft' || event.key === 'ArrowUp'
+        ? current === 'about' ? 'privacy' : 'about'
+        : event.key === 'Home'
+          ? 'about'
+          : event.key === 'End'
+            ? 'privacy'
+            : null;
+    if (!next) return;
+    event.preventDefault();
+    setAboutTab(next);
+    document.getElementById(`about-tab-${next}`)?.focus();
+  };
+
   // Track which section is in view using IntersectionObserver + rAF top/bottom checks.
   useEffect(() => {
     const scroller = scrollContainerRef.current;
@@ -816,6 +838,16 @@ export function PublicViewPage({
 
   return (
     <div data-map-shell data-public-map-shell className="relative h-[100dvh] w-full overflow-hidden bg-muted">
+      <nav aria-label="Skip links" className="fixed left-3 top-3 z-[3000] flex -translate-y-20 gap-2 transition-transform focus-within:translate-y-0">
+        <a href="#hazard-map" onClick={event => handleSkipToSection(event, 'hazard-map')}
+          className="rounded-lg bg-contrast px-3 py-2 text-sm font-semibold text-on-accent shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2">
+          Skip to map
+        </a>
+        <a href="#about" onClick={event => handleSkipToSection(event, 'about')}
+          className="rounded-lg bg-contrast px-3 py-2 text-sm font-semibold text-on-accent shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2">
+          Skip to About and Privacy
+        </a>
+      </nav>
       <div className={isCampusFocus ? 'contents md:hidden' : 'contents'}>
       <PublicHeader
         extraAction={<MapDisplayPopover {...mapDisplay} disabled={!mapDisplay.ready}
@@ -849,7 +881,7 @@ export function PublicViewPage({
         className="h-full w-full overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch] md:snap-y md:snap-proximity"
       >
         <main className="pb-14 md:pb-0">
-          <section id="hazard-map" className="min-h-[100dvh] snap-start">
+          <section id="hazard-map" tabIndex={-1} aria-label="Public hazard map" className="min-h-[100dvh] snap-start outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus">
             <div className="flex h-[100dvh] overflow-hidden bg-panel">
               <div className="relative isolate flex-1 w-full h-full min-h-0">
                 <PageLoader isLoading={!isMapReady && activeSection === 'hazard-map'} label="Loading map…" />
@@ -880,16 +912,21 @@ export function PublicViewPage({
             </div>
           </section>
 
-          <section id="about" className="relative min-h-screen overflow-hidden border-t border-default bg-page scroll-mt-16 snap-start">
+          <section id="about" tabIndex={-1} aria-label="About and privacy information" className="relative min-h-screen overflow-hidden border-t border-default bg-page scroll-mt-16 snap-start outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus">
             <AboutTopoBackground />
             <div className="relative z-10 mx-auto w-full max-w-6xl px-5 pt-16 pb-24 sm:px-8 sm:pt-20 sm:pb-28 lg:px-8 lg:pt-20 lg:pb-28">
               <div className="flex flex-col gap-5 border-b border-default pb-6 sm:flex-row sm:items-end sm:justify-between sm:pb-7">
                 <div className="flex items-center gap-3">
-                  <div className="inline-flex items-center gap-1.5 rounded-full bg-muted p-1 sm:p-1.5 ring-1 ring-default">
+                  <div role="tablist" aria-label="About and privacy sections" className="inline-flex items-center gap-1.5 rounded-full bg-muted p-1 sm:p-1.5 ring-1 ring-default">
                     <button
+                      id="about-tab-about"
                       type="button"
                       onClick={() => setAboutTab('about')}
-                      aria-pressed={aboutTab === 'about'}
+                      onKeyDown={event => handleAboutTabKeyDown(event, 'about')}
+                      role="tab"
+                      aria-selected={aboutTab === 'about'}
+                      aria-controls="about-panel-about"
+                      tabIndex={aboutTab === 'about' ? 0 : -1}
                       className={`min-h-[40px] sm:min-h-[42px] rounded-full px-6 font-heading text-[13px] font-bold tracking-wide transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 ${
                         aboutTab === 'about'
                           ? 'bg-panel text-primary shadow-sm'
@@ -899,9 +936,14 @@ export function PublicViewPage({
                       About
                     </button>
                     <button
+                      id="about-tab-privacy"
                       type="button"
                       onClick={() => setAboutTab('privacy')}
-                      aria-pressed={aboutTab === 'privacy'}
+                      onKeyDown={event => handleAboutTabKeyDown(event, 'privacy')}
+                      role="tab"
+                      aria-selected={aboutTab === 'privacy'}
+                      aria-controls="about-panel-privacy"
+                      tabIndex={aboutTab === 'privacy' ? 0 : -1}
                       className={`min-h-[40px] sm:min-h-[42px] rounded-full px-5 sm:px-6 font-heading text-[13px] font-bold tracking-wide transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 ${
                         aboutTab === 'privacy'
                           ? 'bg-panel text-primary shadow-sm'
@@ -922,7 +964,12 @@ export function PublicViewPage({
                 </div>
               </div>
 
-              {aboutTab === 'about' ? <AboutSection /> : <DataPrivacySection />}
+              <div id="about-panel-about" role="tabpanel" aria-labelledby="about-tab-about" tabIndex={0} hidden={aboutTab !== 'about'}>
+                <AboutSection />
+              </div>
+              <div id="about-panel-privacy" role="tabpanel" aria-labelledby="about-tab-privacy" tabIndex={0} hidden={aboutTab !== 'privacy'}>
+                <DataPrivacySection />
+              </div>
             </div>
           </section>
       </main>

@@ -14,9 +14,10 @@ const PIN_HEIGHT = 38;
 const PIN_GAP = 8;
 
 /** Quick actions anchored just above the pin. */
-export function PinnedLocationActions({ mapRef, location, onAssess, onReport, onDismiss }: PinActions & {
+export function PinnedLocationActions({ mapRef, location, onAssess, onReport, onDismiss, hideOnMobile = false }: PinActions & {
   mapRef: MutableRefObject<MapLibreMap | null>;
   location: { lat: number; lng: number };
+  hideOnMobile?: boolean;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -52,7 +53,7 @@ export function PinnedLocationActions({ mapRef, location, onAssess, onReport, on
       ref={cardRef}
       role="group"
       aria-label="Pinned location actions"
-      className="pointer-events-auto absolute z-[1001] flex w-max items-center gap-0.5 rounded-2xl border border-default bg-panel/95 px-1 py-0.5 shadow-md map-glass backdrop-blur-sm"
+      className={`pointer-events-auto absolute z-[1001] flex w-max items-center gap-0.5 rounded-2xl border border-default bg-panel/95 px-1 py-0.5 shadow-md map-glass backdrop-blur-sm ${hideOnMobile ? 'max-md:hidden' : ''}`}
       style={{ transform: 'translate(-50%, -100%)' }}
       onPointerDown={event => event.stopPropagation()}
       onClick={event => event.stopPropagation()}
