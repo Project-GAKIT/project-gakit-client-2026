@@ -31,6 +31,7 @@ import { reportObservationMetadata } from '@/lib/reports/observationMetadata';
 import type { PreparedPhoto } from '@/lib/reports/photoUpload';
 import type { FloodDepth } from '@/app/public-view/actions/publicView';
 import { isRawCoordinateString, reverseGeocode } from '@/lib/map/geoUtils';
+import { isValidFloodDepthCm, validateObservationTime } from '@/lib/validation/publicInputValidation';
 
 const ReportLocationPicker = dynamic(() => import('@/components/reporting/ReportLocationPicker').then(module => module.ReportLocationPicker), { ssr: false });
 
@@ -77,6 +78,8 @@ export function ReportModal({
   const [selectedCm, setSelectedCm] = useState<number | null>(null);
   const [customCm, setCustomCm] = useState('');
   const [observationTime, setObservationTime] = useState('');
+  const [observationTimeError, setObservationTimeError] = useState<string | null>(null);
+  const [validationAttempted, setValidationAttempted] = useState(false);
   const [observedEarlier, setObservedEarlier] = useState(false);
   const [selectedReference, setSelectedReference] = useState<FloodReference>('adult');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -125,6 +128,8 @@ export function ReportModal({
     setSelectedCm(null);
     setCustomCm('');
     setObservationTime('');
+    setObservationTimeError(null);
+    setValidationAttempted(false);
     setObservedEarlier(false);
     setSelectedReference('adult');
     setPhoto(null);
@@ -167,28 +172,27 @@ export function ReportModal({
   }, []);
 
   const handleCustomCmChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = event.target.value.replace(/\D/g, '').slice(0, 3);
+    const raw = event.target.value;
     setCustomCm(raw);
-    const parsed = Number.parseInt(raw, 10);
-    if (Number.isFinite(parsed) && parsed >= 1) {
-      setSelectedCm(Math.min(parsed, 999));
-    } else {
-      setSelectedCm(null);
-    }
+    const parsed = Number(raw);
+    setSelectedCm(isValidFloodDepthCm(raw) ? parsed : null);
   };
+
+  const customCmValid = isValidFloodDepthCm(customCm);
+  const depthError = customCmValid ? null : customCm.length > 0 || validationAttempted ? 'Enter a whole number from 1 to 999 cm.' : null;
+  const observationError = !observedEarlier
+    ? null
+    : observationTimeError ?? (validationAttempted && !observationTime ? 'Enter the date and time observed.' : null);
 
   const handleSubmit = async () => {
     if (isSubmitting) return;
+    setValidationAttempted(true);
     const observed = observedEarlier ? new Date(observationTime) : new Date();
-    if (!Number.isFinite(observed.getTime()) || observed.getTime() > Date.now() + 300000) {
-      toast.error('Choose a valid observation time that is not in the future.');
-      return;
-    }
-    if (withinCity === false || !selectedLocation || selectedCm == null || selectedCm < 1 || !referenceMeta || selectedCode == null) {
-      toast.error('Please complete the report details.', {
-        position: 'top-right',
-        autoClose: 3000,
-      });
+    const timeError = observedEarlier ? validateObservationTime(observationTime, Date.now()) : null;
+    if (observedEarlier) setObservationTimeError(timeError);
+    const invalidObservationTime = Boolean(timeError);
+    if (depthError || observationError || selectedCm == null || selectedCm < 1 || selectedCm > 999
+      || invalidObservationTime || !selectedLocation || !referenceMeta || selectedCode == null || withinCity === false) {
       return;
     }
 
@@ -301,10 +305,11 @@ export function ReportModal({
                     {FLOOD_REFERENCE_META.map(meta => <option key={meta.id} value={meta.id}>{meta.label}</option>)}
                   </select>} />}
                 <div className="mt-3 grid grid-cols-2 gap-3">
-                  <label htmlFor={`${titleId}-depth`} className="flex h-10 items-center gap-2 rounded-lg border border-default bg-panel px-3">
-                    <input id={`${titleId}-depth`} type="text" inputMode="numeric" pattern="[0-9]*" maxLength={3}
+                  <label htmlFor={`${titleId}-depth`} className={`flex h-10 items-center gap-2 rounded-lg border bg-panel px-3 ${depthError ? 'border-error-border' : 'border-default'}`}>
+                    <input id={`${titleId}-depth`} type="text" inputMode="numeric"
                       value={customCm} onChange={handleCustomCmChange} disabled={isSubmitting} placeholder="Depth in cm"
                       aria-label="Reported water depth in centimeters"
+                      aria-invalid={Boolean(depthError)} aria-describedby={depthError ? `${titleId}-depth-error` : undefined}
                       className="h-8 w-full min-w-0 bg-transparent text-sm font-semibold tabular-nums text-primary outline-none focus-visible:ring-2 focus-visible:ring-focus" />
                     <span className="text-xs text-muted-foreground">cm</span>
                   </label>
@@ -316,12 +321,20 @@ export function ReportModal({
                     </select>
                   </label>
                 </div>
+                {depthError && <p id={`${titleId}-depth-error`} role="alert" className="mt-1 text-[11px] leading-4 text-error-text">{depthError}</p>}
               </section>
               <PhotoCapture compact photo={photo} onChange={setPhoto} disabled={isSubmitting} />
               {observedEarlier && <label className="block text-xs text-secondary">
                 Date and time
-                <input type="datetime-local" value={observationTime} onChange={event => setObservationTime(event.target.value)}
-                  disabled={isSubmitting} className="mt-1 h-9 w-full rounded-md border border-default px-2 text-xs" />
+                <input type="datetime-local" value={observationTime} onChange={event => {
+                  const value = event.target.value;
+                  setObservationTime(value);
+                  setObservationTimeError(validateObservationTime(value, Date.now()));
+                }}
+                  disabled={isSubmitting} aria-invalid={Boolean(observationError)}
+                  aria-describedby={observationError ? `${titleId}-observation-error` : undefined}
+                  className={`mt-1 h-9 w-full rounded-md border px-2 text-xs ${observationError ? 'border-error-border' : 'border-default'}`} />
+                {observationError && <span id={`${titleId}-observation-error`} role="alert" className="mt-1 block text-[11px] leading-4 text-error-text">{observationError}</span>}
               </label>}
             </div>
           )}

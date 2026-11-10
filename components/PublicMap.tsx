@@ -1393,7 +1393,8 @@ export function PublicMap({
           </button>
         </div>
       )}
-      {!drought.visible && mapReady && selectedLocation && selectedLocationActions && (
+      {!drought.visible && mapReady && selectedLocation && selectedLocationActions
+        && !(fullScreen && (weatherOpen || layersOpen || reportsOpen)) && (
         <PinnedLocationActions
           key={`${selectedLocation.lat},${selectedLocation.lng}`}
           mapRef={mapRef}
