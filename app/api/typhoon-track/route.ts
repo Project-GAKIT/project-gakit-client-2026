@@ -10,7 +10,7 @@ import type { TyphoonApiResponse } from '@/types/typhoon';
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
 const LIVE_CACHE_HEADERS = {
-  'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+  'Cache-Control': 'public, max-age=0, s-maxage=30, stale-while-revalidate=60',
 };
 
 const HISTORICAL_CACHE_HEADERS = {
@@ -20,6 +20,23 @@ const HISTORICAL_CACHE_HEADERS = {
 const NO_STORE_HEADERS = {
   'Cache-Control': 'no-store',
 };
+
+// Keep the last good live payload in memory so a transient backend/Panahon
+// failure cannot make the UI drop a storm whose track is still valid.
+const LAST_LIVE_TTL_MS = 30 * 60 * 1000;
+let lastLivePayload: { payload: TyphoonApiResponse; storedAt: number } | null = null;
+
+function rememberLivePayload(payload: TyphoonApiResponse): void {
+  if (payload.hasActiveTyphoon && !payload.isHistorical) {
+    lastLivePayload = { payload, storedAt: Date.now() };
+  }
+}
+
+function recentLivePayload(): TyphoonApiResponse | null {
+  if (!lastLivePayload) return null;
+  if (Date.now() - lastLivePayload.storedAt > LAST_LIVE_TTL_MS) return null;
+  return lastLivePayload.payload;
+}
 
 async function fetchServerTyphoonTrack(stormName?: string | null): Promise<TyphoonApiResponse> {
   const query = stormName ? `?stormName=${encodeURIComponent(stormName)}` : '';
@@ -47,7 +64,7 @@ async function fetchServerTyphoonTrack(stormName?: string | null): Promise<Typho
         ? formatTyphoonDisplayName(data.stormName)
         : (data.activeStorms?.[0]?.name ? formatTyphoonDisplayName(data.activeStorms[0].name) : null);
 
-      return {
+      const payload: TyphoonApiResponse = {
         track: enrichedTrack,
         par: data.par || PAR_BOUNDARY_GEOJSON,
         hasActiveTyphoon: Boolean(data.hasActiveTyphoon),
@@ -59,6 +76,12 @@ async function fetchServerTyphoonTrack(stormName?: string | null): Promise<Typho
         fetchedAt: data.fetchedAt || null,
         source: data.source || 'DOST-PAGASA PANAHON',
       };
+      rememberLivePayload(payload);
+      if (!isHistorical && !payload.hasActiveTyphoon) {
+        // A healthy backend is authoritative: the storm has ended.
+        lastLivePayload = null;
+      }
+      return payload;
     }
   } catch {
     // Backend offline during standalone client dev
@@ -81,7 +104,7 @@ async function fetchServerTyphoonTrack(stormName?: string | null): Promise<Typho
           : 'Active Cyclone';
         const stormCategory = latestFeature?.properties?.typhoon_type || null;
 
-        return {
+        const payload: TyphoonApiResponse = {
           track: enrichedTrack,
           par: PAR_BOUNDARY_GEOJSON,
           hasActiveTyphoon: hasActive,
@@ -103,6 +126,8 @@ async function fetchServerTyphoonTrack(stormName?: string | null): Promise<Typho
               : null,
           source: 'DOST-PAGASA PANAHON',
         };
+        rememberLivePayload(payload);
+        return payload;
       }
     } catch (err) {
       console.error('Direct Panahon fetch error:', err);
@@ -152,16 +177,25 @@ export async function GET(request: Request) {
 
     const stormName = searchParams.get('stormName');
     const payload = await fetchServerTyphoonTrack(stormName);
+    const resolved =
+      !stormName && !payload.hasActiveTyphoon ? (recentLivePayload() ?? payload) : payload;
     const headers = stormName
       ? HISTORICAL_CACHE_HEADERS
-      : payload.hasActiveTyphoon
+      : resolved.hasActiveTyphoon
         ? LIVE_CACHE_HEADERS
         : NO_STORE_HEADERS;
-    return NextResponse.json(payload, {
+    return NextResponse.json(resolved, {
       headers,
     });
   } catch (error) {
     console.error('Typhoon track route error:', error);
+    const cached = recentLivePayload();
+    if (cached) {
+      return NextResponse.json(cached, {
+        status: 200,
+        headers: NO_STORE_HEADERS,
+      });
+    }
     return NextResponse.json(
       {
         track: { type: 'FeatureCollection', features: [] },
