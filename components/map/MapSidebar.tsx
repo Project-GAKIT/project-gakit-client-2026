@@ -191,6 +191,8 @@ export function MapSidebar({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [mobileControlsHost, setMobileControlsHost] = useState<HTMLElement | null>(null);
   const sidebarRef = useRef<HTMLElement>(null);
+  const panelTriggerRef = useRef<HTMLElement | null>(null);
+  const panelTriggerNameRef = useRef<'weather' | 'layers' | 'reports' | null>(null);
   const [headerClear, setHeaderClear] = useState(false);
 
   useEffect(() => {
@@ -272,7 +274,9 @@ export function MapSidebar({
     showBarangayBoundaries && showBarangayBoundariesToggle,
   ].filter(Boolean).length;
 
-  const handleExpandTo = (target: 'weather' | 'layers' | 'reports') => {
+  const handleExpandTo = (target: 'weather' | 'layers' | 'reports', trigger?: HTMLElement) => {
+    if (trigger) panelTriggerRef.current = trigger;
+    panelTriggerNameRef.current = target;
     onToggleCollapse(false);
     const mobile = window.innerWidth < 768;
     // Desktop restores the existing card layout; mobile remains an accordion.
@@ -286,6 +290,11 @@ export function MapSidebar({
       onToggleReports(true);
       if (mobile) { onToggleWeather(false); onToggleLayers(false); }
     }
+    window.requestAnimationFrame(() => {
+      const targetEl = target === 'weather' ? weatherCardRef.current : target === 'layers' ? layersCardRef.current : reportsCardRef.current;
+      const first = targetEl?.querySelector<HTMLElement>('button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])');
+      first?.focus();
+    });
     if (fullScreen && window.innerWidth < 768) return;
     setTimeout(() => {
       const container = scrollContainerRef.current;
@@ -302,7 +311,8 @@ export function MapSidebar({
     }, 80);
   };
 
-  const handleCollapseSidebar = useCallback(() => {
+  const handleCollapseSidebar = useCallback((restoreFocus = false) => {
+    const triggerName = panelTriggerNameRef.current ?? (layersOpen ? 'layers' : reportsOpen ? 'reports' : weatherOpen ? 'weather' : null);
     (document.activeElement as HTMLElement)?.blur();
     onToggleCollapse(true);
     // Minimize the desktop container without discarding which cards were open.
@@ -311,10 +321,21 @@ export function MapSidebar({
       onToggleLayers(false);
       onToggleReports(false);
     }
-  }, [onToggleCollapse, onToggleWeather, onToggleLayers, onToggleReports]);
+    if (restoreFocus) window.requestAnimationFrame(() => {
+      if (panelTriggerRef.current?.isConnected) {
+        panelTriggerRef.current.focus();
+        return;
+      }
+      const selector = triggerName ? `[data-map-panel-trigger="${triggerName}"]` : null;
+      const fallback = selector
+        ? mobileControlsHost?.querySelector<HTMLElement>(selector) ?? sidebarRef.current?.querySelector<HTMLElement>(selector)
+        : null;
+      fallback?.focus();
+    });
+  }, [onToggleCollapse, onToggleWeather, onToggleLayers, onToggleReports, mobileControlsHost, layersOpen, reportsOpen, weatherOpen]);
 
   useEffect(() => {
-    if (!fullScreen || isCollapsed || window.innerWidth >= 768) return;
+    if (isCollapsed) return;
     const outside = (event: PointerEvent) => {
       const target = event.target;
       // Taps inside portalled modals must not collapse the sidebar.
@@ -326,11 +347,17 @@ export function MapSidebar({
       handleCollapseSidebar();
     };
     const escape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') handleCollapseSidebar();
+      if (event.key !== 'Escape' || document.querySelector('[role="dialog"], [role="listbox"], [data-map-popover]')) return;
+      event.preventDefault();
+      handleCollapseSidebar(true);
     };
-    document.addEventListener('pointerdown', outside);
+    const handleOutside = fullScreen && window.innerWidth < 768;
+    if (handleOutside) document.addEventListener('pointerdown', outside);
     window.addEventListener('keydown', escape);
-    return () => { document.removeEventListener('pointerdown', outside); window.removeEventListener('keydown', escape); };
+    return () => {
+      if (handleOutside) document.removeEventListener('pointerdown', outside);
+      window.removeEventListener('keydown', escape);
+    };
   }, [fullScreen, isCollapsed, handleCollapseSidebar, mobileControlsHost]);
 
   // Automatically minimize sidebar to the sleek icon rail when all cards are collapsed
@@ -346,7 +373,6 @@ export function MapSidebar({
       onToggleLayers(false);
       onToggleReports(false);
     } else if (!open) {
-      (document.activeElement as HTMLElement)?.blur();
       const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
       if (isMobile || (!layersOpen && !reportsOpen)) {
         onToggleCollapse(true);
@@ -360,7 +386,6 @@ export function MapSidebar({
       onToggleWeather(false);
       onToggleReports(false);
     } else if (!open) {
-      (document.activeElement as HTMLElement)?.blur();
       const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
       if (isMobile || (!weatherOpen && !reportsOpen)) {
         onToggleCollapse(true);
@@ -374,7 +399,6 @@ export function MapSidebar({
       onToggleWeather(false);
       onToggleLayers(false);
     } else if (!open) {
-      (document.activeElement as HTMLElement)?.blur();
       const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
       if (isMobile || (!weatherOpen && !layersOpen)) {
         onToggleCollapse(true);
@@ -496,8 +520,9 @@ export function MapSidebar({
         ].map(({ id, label, text, icon: Icon, open, value, loading }) => <button key={id} type="button"
           aria-label={label} aria-expanded={!isCollapsed && open}
           aria-busy={loading || undefined}
-          onClick={() => !isCollapsed && open ? handleCollapseSidebar() : handleExpandTo(id)}
-          className={`relative flex h-8 min-w-0 ${id === 'weather' ? 'flex-1' : 'w-12 shrink-0'} items-center justify-center gap-1 rounded-full border px-1.5 text-[11px] font-semibold shadow-sm transition-[background-color,border-color,color,transform] duration-150 active:scale-95 motion-reduce:transition-none ${!isCollapsed && open ? 'border-default bg-muted text-primary' : 'border-default/80 bg-panel/95 text-secondary'}`}>
+          data-map-panel-trigger={id}
+          onClick={event => !isCollapsed && open ? handleCollapseSidebar(true) : handleExpandTo(id, event.currentTarget)}
+          className={`relative flex h-8 min-w-0 ${id === 'weather' ? 'flex-1' : 'w-12 shrink-0'} items-center justify-center gap-1 rounded-full border px-1.5 text-[11px] font-semibold shadow-sm transition-[background-color,border-color,color,transform] duration-150 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 motion-reduce:transition-none ${!isCollapsed && open ? 'border-default bg-muted text-primary' : 'border-default/80 bg-panel/95 text-secondary'}`}>
           <span className="flex h-[18px] w-[18px] shrink-0 items-center justify-center">{loading ? <Spinner size="sm" label={`Loading ${label}`} /> : id === 'weather' && currentWeather ? <CurrentWeatherIcon weather={currentWeather} className="h-3.5 w-3.5" /> : <Icon className="h-3.5 w-3.5" aria-hidden="true" />}</span>{text && <span className="min-w-0 max-w-[130px] truncate">{text}</span>}
           {value != null && (id === 'weather' || Number(value) > 0) && <span className="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-error-solid px-1 text-[9px] font-bold tabular-nums text-on-accent shadow-xs">{value}</span>}
           <ChevronDown className={`h-3 w-3 shrink-0 transition-transform ${!isCollapsed && open ? 'rotate-180' : ''}`} aria-hidden="true" />
@@ -510,10 +535,12 @@ export function MapSidebar({
           {!hideWeather && (
             <button
               type="button"
-              onClick={() => handleExpandTo('weather')}
-              className="flex h-10 md:h-11 items-center hud-pill hover:bg-panel hover:shadow-lg transition-all duration-300 ease-in-out active:scale-95 group cursor-pointer text-secondary hover:text-primary shrink-0"
+              data-map-panel-trigger="weather"
+              onClick={event => handleExpandTo('weather', event.currentTarget)}
+              className="flex h-10 md:h-11 items-center hud-pill hover:bg-panel hover:shadow-lg transition-all duration-300 ease-in-out active:scale-95 group cursor-pointer text-secondary hover:text-primary shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2"
               title="Weather Outlook"
               aria-label="Weather Outlook"
+              aria-expanded={weatherOpen}
             >
               <div className="rail-icon-badge relative flex h-10 w-10 shrink-0 items-center justify-center transition-transform duration-300 ease-in-out motion-reduce:transition-none md:h-11 md:w-11">
                 {currentWeather ? <CurrentWeatherIcon weather={currentWeather} className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-secondary shrink-0" /> : <WeatherIcon className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-secondary shrink-0" />}
@@ -532,10 +559,12 @@ export function MapSidebar({
           {/* Map Layers Icon Button */}
           <button
             type="button"
-            onClick={() => handleExpandTo('layers')}
-            className="flex h-10 md:h-11 items-center hud-pill hover:bg-panel hover:shadow-lg transition-all duration-300 ease-in-out active:scale-95 group cursor-pointer text-secondary hover:text-primary shrink-0"
+            data-map-panel-trigger="layers"
+            onClick={event => handleExpandTo('layers', event.currentTarget)}
+            className="flex h-10 md:h-11 items-center hud-pill hover:bg-panel hover:shadow-lg transition-all duration-300 ease-in-out active:scale-95 group cursor-pointer text-secondary hover:text-primary shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2"
             title="Map Layers"
             aria-label="Map Layers"
+            aria-expanded={layersOpen}
           >
             <div className="relative flex h-10 w-10 md:h-11 md:w-11 shrink-0 items-center justify-center">
               <Layers className="h-5 w-5 text-muted-foreground transition-transform group-hover:scale-110 group-hover:text-secondary" />
@@ -553,10 +582,12 @@ export function MapSidebar({
           {/* Citizen Reports Icon Button */}
           <button
             type="button"
-            onClick={() => handleExpandTo('reports')}
-            className="flex h-10 md:h-11 items-center hud-pill hover:bg-panel hover:shadow-lg transition-all duration-300 ease-in-out active:scale-95 group cursor-pointer text-secondary hover:text-primary shrink-0"
+            data-map-panel-trigger="reports"
+            onClick={event => handleExpandTo('reports', event.currentTarget)}
+            className="flex h-10 md:h-11 items-center hud-pill hover:bg-panel hover:shadow-lg transition-all duration-300 ease-in-out active:scale-95 group cursor-pointer text-secondary hover:text-primary shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2"
             title="Citizen Flood Reports"
             aria-label="Citizen Flood Reports"
+            aria-expanded={reportsOpen}
           >
             <div className="rail-icon-badge relative flex h-10 w-10 md:h-11 md:w-11 shrink-0 items-center justify-center transition-transform duration-300 ease-in-out motion-reduce:transition-none">
               <MapPin className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-secondary" />
@@ -584,7 +615,7 @@ export function MapSidebar({
           {/* Docked Drawer Handle Tab */}
           <button
             type="button"
-            onClick={handleCollapseSidebar}
+            onClick={() => handleCollapseSidebar()}
             className={`hud-pill group absolute -right-1 top-1/2 z-[1010] ${fullScreen ? 'hidden md:flex' : 'flex'} h-12 w-6 -translate-y-1/2 translate-x-full cursor-pointer flex-col items-center justify-center gap-1 !rounded-full !shadow-sm text-muted-foreground transition-[color,box-shadow] duration-200 ease-out hover:text-secondary hover:!shadow-md before:absolute before:-inset-y-[5px] before:left-0 before:-right-[22px] before:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 motion-reduce:transition-none`}
             title="Minimize sidebar"
             aria-label="Minimize sidebar"

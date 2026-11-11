@@ -13,17 +13,22 @@ export function MapHeaderControls({ open, onToggle, layers, reports, layersCount
 }) {
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement | null>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const id = useId();
   const [position, setPosition] = useState({ top: 0, left: 8, width: 304, maxHeight: 400 });
   useEffect(() => {
     if (!open) return;
+    const focusFrame = window.requestAnimationFrame(() => {
+      const first = panelRef.current?.querySelector<HTMLElement>('button:not([disabled]), a[href], input:not([disabled]), [tabindex]:not([tabindex="-1"])');
+      (first ?? panelRef.current)?.focus();
+    });
     const outside = (event: PointerEvent) => {
       if (!(event.target instanceof Element) || root.current?.contains(event.target)
         || event.target.closest('[role="dialog"], [role="listbox"]')) return;
       onToggle(null);
     };
     const escape = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape' || document.querySelector('[role="dialog"], [role="listbox"]')) return;
+      if (event.key !== 'Escape' || document.querySelector('[role="dialog"], [role="listbox"], [data-map-popover]')) return;
       event.preventDefault();
       event.stopPropagation();
       onToggle(null);
@@ -34,6 +39,7 @@ export function MapHeaderControls({ open, onToggle, layers, reports, layersCount
     window.addEventListener('keydown', escape, true);
     window.addEventListener('resize', resize);
     return () => {
+      window.cancelAnimationFrame(focusFrame);
       document.removeEventListener('pointerdown', outside);
       window.removeEventListener('keydown', escape, true);
       window.removeEventListener('resize', resize);
@@ -56,12 +62,12 @@ export function MapHeaderControls({ open, onToggle, layers, reports, layersCount
           setPosition({ top, left: Math.max(leftEdge, Math.min(bounds.left, rightEdge - width)), width,
             maxHeight: Math.max(80, Math.min(window.innerHeight, workspace?.bottom ?? window.innerHeight) - top - 8) });
           onToggle(open === panel ? null : panel);
-        }} className={`relative inline-flex h-8 items-center gap-1.5 rounded-full border border-default px-2 text-[11px] font-semibold text-secondary shadow-sm hover:bg-muted ${open === panel ? 'bg-muted ring-1 ring-default' : 'bg-panel'}`}>
+        }} className={`relative inline-flex h-8 items-center gap-1.5 rounded-full border border-default px-2 text-[11px] font-semibold text-secondary shadow-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 ${open === panel ? 'bg-muted ring-1 ring-default' : 'bg-panel'}`}>
         <Icon className="h-4 w-4" aria-hidden="true" />{panel === 'reports' ? <><span className="hidden sm:inline">Flood reports</span><span className="sm:hidden">Reports</span></> : label}
         {count > 0 && <span aria-label={`${count} ${panel === 'layers' ? 'active layers' : 'visible reports'}`} className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[9px] font-bold tabular-nums text-on-accent">{count}</span>}
       </button>;
     })}
-    {open && <div id={`${id}-${open}`} role="region" aria-label={open === 'layers' ? 'Map layers' : 'Flood report visibility'}
+    {open && <div ref={panelRef} id={`${id}-${open}`} role="region" aria-label={open === 'layers' ? 'Map layers' : 'Flood report visibility'} tabIndex={-1}
       style={{ position: 'fixed', ...position }}
       className="z-[1300] overflow-y-auto overscroll-contain rounded-2xl text-primary">
       {open === 'layers' ? layers : reports}

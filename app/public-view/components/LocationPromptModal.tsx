@@ -1,8 +1,10 @@
 'use client';
 
 import Image from 'next/image';
+import { useId } from 'react';
 import { MapPin, Locate, X } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
+import { Dialog } from '@/components/ui/Dialog';
 import { LocationSearch, type SearchedLocation } from './LocationSearch';
 
 export type { SelectedLocation } from '@/types/report';
@@ -24,13 +26,13 @@ export function LocationPromptModal({
   mode?: 'assessment' | 'report';
   isLocating?: boolean;
 }) {
-  if (!isOpen) return null;
-
+  const titleId = useId();
   const isReport = mode === 'report';
 
   return (
-    <div className="fixed inset-0 z-[1400] bg-contrast/40 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-panel w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border border-default">
+    <Dialog isOpen={isOpen} onClose={isLocating ? () => {} : onClose} ariaLabelledBy={titleId}
+      maxWidthClass="max-w-md" panelClassName="overflow-hidden rounded-2xl border border-default p-0">
+      <div className="bg-panel">
         <div className="flex items-center justify-between px-5 pt-4 pb-1">
           <div className="flex items-center gap-2">
             {isReport && (
@@ -43,9 +45,9 @@ export function LocationPromptModal({
               />
             )}
             <div>
-              <h3 className="text-base font-bold text-primary font-heading">
+              <h2 id={titleId} className="text-base font-bold text-primary font-heading">
                 {isReport ? 'Report Flooded Location' : 'Select Location to Assess'}
-              </h3>
+              </h2>
               <p className="text-xs text-muted-foreground">
                 {isReport
                   ? 'Choose where the flood is occurring to file a report.'
@@ -126,6 +128,6 @@ export function LocationPromptModal({
           </button>
         </div>
       </div>
-    </div>
+    </Dialog>
   );
 }

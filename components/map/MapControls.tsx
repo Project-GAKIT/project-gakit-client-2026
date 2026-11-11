@@ -9,7 +9,7 @@ import { formatRainfallTime } from '@/lib/map/weatherTime';
 import { DEPTH_RANK } from '@/lib/map/barangayStats';
 import { DEPTH_BAR_COLOR, DEPTH_LABELS, formatReportDepth, timeAgo } from '@/lib/reports/reportFormatting';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Check, ChevronDown, ChevronUp, History, Info, Layers, MapPin, RotateCwFadingClock, Search, X } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
@@ -48,6 +48,7 @@ import {
 } from '@/lib/map/typhoon';
 import type { ActiveStormSummary, HistoricalStormSummary } from '@/types/typhoon';
 import { TyphoonScaleModal } from '@/components/TyphoonScaleModal';
+import { validateSearchText } from '@/lib/validation/publicInputValidation';
 
 const JAXA_GSMAP_URL = 'https://sharaku.eorc.jaxa.jp/GSMaP/';
 
@@ -202,34 +203,30 @@ function Card({
   children: React.ReactNode;
   isSidebarItem?: boolean;
 }) {
+  const bodyId = useId();
   if (isSidebarItem) {
     return (
       <div className="w-full hud-card overflow-hidden transition-all duration-200">
-        <div
-          onClick={() => onToggle(!open)}
-          className="flex items-center justify-between gap-2.5 px-3 py-2 text-xs font-bold text-primary cursor-pointer select-none hover:bg-page/60 transition-colors"
-        >
-          <div className="flex items-center gap-2">
-            <span>{title}</span>
-            {badge}
-          </div>
-          <div className="flex items-center gap-1">
-            {headerAction}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggle(!open);
-              }}
-              className="p-1 rounded-md text-muted-foreground hover:text-secondary hover:bg-page transition-colors"
-              aria-label={open ? `Collapse ${title}` : `Expand ${title}`}
-            >
-              {open ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
-            </button>
-          </div>
+        <div className="flex items-center justify-between gap-2.5 px-3 py-1 text-xs font-bold text-primary hover:bg-page/60 transition-colors">
+          <button
+            type="button"
+            onClick={() => onToggle(!open)}
+            aria-expanded={open}
+            aria-controls={bodyId}
+            className="flex min-h-9 min-w-0 flex-1 items-center justify-between gap-2 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          >
+            <span className="flex min-w-0 items-center gap-2">
+              <span>{title}</span>
+              {badge}
+            </span>
+            {open ? <ChevronDown className="w-4 h-4 shrink-0" aria-hidden="true" /> : <ChevronUp className="w-4 h-4 shrink-0" aria-hidden="true" />}
+          </button>
+          {headerAction}
         </div>
         <div
+          id={bodyId}
           aria-hidden={!open}
+          inert={!open || undefined}
           className={`map-card-body grid transition-[grid-template-rows] duration-200 ease-out ${
             open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
           }`}
@@ -291,6 +288,56 @@ function CoverageChip({ label, detail }: { label: string; detail: string }) {
       </span>
     </span>
   );
+}
+
+function HazardMapInfo() {
+  const [open, setOpen] = useState(false);
+  const generatedId = useId();
+  const id = `hazard-map-info-${generatedId}`;
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const frame = window.requestAnimationFrame(() => panelRef.current?.focus());
+    const escape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      event.stopPropagation();
+      setOpen(false);
+      triggerRef.current?.focus();
+    };
+    const outside = (event: PointerEvent) => {
+      if (event.target instanceof Node && !panelRef.current?.contains(event.target) && !triggerRef.current?.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+    window.addEventListener('keydown', escape, true);
+    document.addEventListener('pointerdown', outside);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener('keydown', escape, true);
+      document.removeEventListener('pointerdown', outside);
+    };
+  }, [open]);
+
+  return <span className="relative ml-auto shrink-0">
+    <button ref={triggerRef} type="button" aria-expanded={open} aria-controls={id} aria-label="Hazard map legend and coverage info"
+      onClick={() => setOpen(value => !value)}
+      className="inline-flex min-h-8 items-center gap-1 rounded-full px-2 text-[10px] font-semibold normal-case tracking-normal text-secondary hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+      <Info className="h-3.5 w-3.5" aria-hidden="true" />
+    </button>
+    {open && <div ref={panelRef} id={id} role="region" aria-label="Hazard map legend and coverage" data-map-popover tabIndex={-1}
+      className="absolute right-0 top-full z-20 mt-2 w-64 rounded-xl border border-default bg-panel p-3 text-[11px] font-normal normal-case leading-5 tracking-normal text-secondary shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+      <p><strong className="text-primary">Legend:</strong> Low means lower relative susceptibility, Medium means moderate relative susceptibility, and High means higher relative susceptibility.</p>
+      <p className="mt-2"><strong className="text-primary">Coverage:</strong> Lanao del Norte only.</p>
+      <p className="mt-2">These maps show susceptibility, not a live warning or current conditions.</p>
+      <a href="https://noah.upd.edu.ph/" target="_blank" rel="noopener noreferrer"
+        className="mt-2 inline-flex min-h-8 items-center font-semibold text-secondary underline underline-offset-2 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+        UP RI NOAH
+      </a>
+    </div>}
+  </span>;
 }
 
 // Hover titles for the basemap switch buttons, keyed in display order.
@@ -617,6 +664,7 @@ function StormTrackSelector({
 }) {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const searchQueryError = validateSearchText(searchQuery);
   const [menuPos, setMenuPos] = useState<{ top?: number; bottom?: number; left: number; width: number }>({
     left: 0,
     width: 240,
@@ -690,7 +738,7 @@ function StormTrackSelector({
     : 'Current (No Active Storm)';
 
   const currentYear = new Date().getFullYear();
-  const query = searchQuery.trim().toLowerCase();
+  const query = searchQueryError ? '' : searchQuery.trim().toLowerCase();
 
   const filteredStorms = historicalStorms.filter((storm) => {
     if (!query) return true;
@@ -779,12 +827,15 @@ function StormTrackSelector({
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  aria-label="Search storm archive by name or year"
+                  aria-invalid={Boolean(searchQueryError)}
+                  aria-describedby={searchQueryError ? 'storm-search-error' : undefined}
                   onKeyDown={(e) => {
                     e.stopPropagation();
                     if (e.key === 'Escape') setOpen(false);
                   }}
                   placeholder="Search storm or year..."
-                  className="w-full pl-7 pr-6 py-1 text-[11px] bg-page border border-default rounded-lg text-secondary placeholder:text-muted-foreground focus:outline-none focus:border-default focus:bg-panel transition-colors"
+                  className={`w-full pl-7 pr-6 py-1 text-[11px] bg-page border rounded-lg text-secondary placeholder:text-muted-foreground focus:outline-none focus:border-default focus:bg-panel transition-colors ${searchQueryError ? 'border-error-border' : 'border-default'}`}
                 />
                 {searchQuery && (
                   <button
@@ -801,6 +852,7 @@ function StormTrackSelector({
                   </button>
                 )}
               </div>
+              {searchQueryError && <p id="storm-search-error" role="alert" className="px-1 pt-1 text-[10px] leading-4 text-error-text">{searchQueryError}</p>}
             </div>
 
             {/* Scrollable Cyclone Options */}
@@ -1027,7 +1079,7 @@ export function DataLayerControls({
         <div data-tour="layers-hazards" className="space-y-1.5 scroll-mt-2">
           <div className="flex items-center gap-1 text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
             Hazard maps
-            <CoverageChip label="Lanao del Norte" detail="Covers Lanao del Norte only" />
+            <HazardMapInfo />
           </div>
 
           <PillToggle
