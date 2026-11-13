@@ -177,7 +177,7 @@ export function StatusStrip({ current, alerts, alertsCheckedAt, alertsError = fa
                 Iligan City · Open-Meteo
               </span>
               <div className="flex items-center gap-2.5 py-1">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center text-muted-foreground">
                   <Cloud className="h-4.5 w-4.5" />
                 </div>
                 <span className="text-xs font-medium text-muted-foreground">Atmospheric conditions unavailable</span>

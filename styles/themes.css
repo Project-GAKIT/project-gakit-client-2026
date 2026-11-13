@@ -1,20 +1,21 @@
 @layer base {
   :root, [data-theme="light"] {
     color-scheme: light;
-    --switch-off: 229 229 229;
+    --switch-off: 203 213 225;
     --switch-edge: 138 138 138;
     --topo-opacity: .3;
     --surface-contrast: 15 23 42;
     --surface-page: 248 250 252;
     --surface-panel: 255 255 255;
     --surface-raised: 255 255 255;
-    --surface-muted: 241 245 249;
-    --surface-hover: 226 232 240;
+    --surface-muted: 235 240 246;
+    --surface-active: 218 226 237;
+    --surface-hover: 218 226 237;
     --surface-selected: 252 231 235;
     --surface-overlay: 15 23 42;
     --text-primary: 15 23 42;
-    --text-secondary: 71 85 105;
-    --text-muted: 91 107 130;
+    --text-secondary: 51 65 85;
+    --text-muted: 82 97 119;
     --text-inverse: 255 255 255;
     --text-on-accent: 255 255 255;
     /* Quiet structural edges; controls and focus use their stronger roles. */
@@ -66,6 +67,7 @@
     --surface-panel: 28 28 28;
     --surface-raised: 34 34 34;
     --surface-muted: 38 38 38;
+    --surface-active: 38 38 38;
     --surface-hover: 46 46 46;
     --surface-selected: 50 33 38;
     --surface-overlay: 0 0 0;

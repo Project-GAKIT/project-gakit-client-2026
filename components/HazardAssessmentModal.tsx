@@ -4,7 +4,8 @@ import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore }
 import { AlertTriangle, ChevronRight, CloudRain, Droplets, Info, MountainSnow, RefreshCw, Shield, Waves } from 'lucide-react';
 import { LocationDialog, LocationSummary, LOCATION_DIALOG_PRIMARY_BUTTON } from '@/components/map/LocationDialog';
 import { HazardAssessmentTour } from '@/components/onboarding/HazardAssessmentTour';
-import { Dialog } from '@/components/ui/Dialog';
+import { HazardSafetyGuide } from '@/components/hazards/HazardSafetyGuide';
+import type { HazardGuideName } from '@/lib/hazards/safetyGuides';
 import { Spinner } from '@/components/ui/Spinner';
 import { HeatIndexAssessment } from '@/components/HeatIndexAssessment';
 import { focusOnboardingTarget } from '@/lib/onboarding/focus';
@@ -34,36 +35,6 @@ interface HazardAssessmentModalProps {
   withinCity?: boolean | null;
 }
 
-const HAZARD_GUIDANCE = {
-  Flood: {
-    steps: [
-      'Move to higher ground when water rises; follow evacuation orders.',
-      'Keep away from moving floodwater, bridges, and downed power lines.',
-      'Do not walk or drive through floodwater; wait for an all-clear before returning.',
-    ],
-    source: 'PAGASA flood safety rules',
-    href: 'https://www.pagasa.dost.gov.ph/learning-tools/floods',
-  },
-  Landslide: {
-    steps: [
-      'Watch for new ground cracks, leaning trees, or unusual rumbling.',
-      'Leave slopes and drainage channels if movement is suspected; alert others nearby.',
-      'Stay away from the slide area and follow local evacuation instructions.',
-    ],
-    source: 'PHIVOLCS landslide preparedness',
-    href: 'https://test-wp.phivolcs.dost.gov.ph/landslide-preparedness/',
-  },
-  'Storm surge': {
-    steps: [
-      'Move inland or to higher ground when authorities issue a storm-surge warning.',
-      'Leave beaches, river mouths, and low-lying coastal areas; do not watch the waves.',
-      'Follow evacuation orders and wait for officials to say it is safe to return.',
-    ],
-    source: 'PAGASA storm-surge guidance',
-    href: 'https://www.pagasa.dost.gov.ph/information/storm-surge',
-  },
-} as const;
-
 export function HazardAssessmentModal({
   isOpen,
   onClose,
@@ -78,7 +49,7 @@ export function HazardAssessmentModal({
   const [isCheckingLocation, setIsCheckingLocation] = useState(false);
   const [locationRisk, setLocationRisk] = useState<LocationRiskInfo | null>(null);
   const [resolvedLocation, setResolvedLocation] = useState<{ lat: number; lng: number; address: string } | null>(null);
-  const [selectedGuidance, setSelectedGuidance] = useState<keyof typeof HAZARD_GUIDANCE | null>(null);
+  const [selectedGuidance, setSelectedGuidance] = useState<HazardGuideName | null>(null);
   const guidanceTriggerRef = useRef<HTMLButtonElement | null>(null);
   const guidanceWasOpenRef = useRef(false);
   const [tourActive, setTourActive] = useState(false);
@@ -243,22 +214,24 @@ export function HazardAssessmentModal({
               const meta = level ? levelStyles[level] : null;
               return <button key={name} type="button" onClick={event => {
                 guidanceTriggerRef.current = event.currentTarget;
-                setSelectedGuidance(name as keyof typeof HAZARD_GUIDANCE);
+                setSelectedGuidance(name as HazardGuideName);
               }}
-                aria-label={`${name}: ${isCheckingLocation ? 'Checking' : meta && hasResult ? meta.label : hasResult ? 'None mapped' : 'Unavailable'}. What to do`}
+                aria-label={`${name}: ${isCheckingLocation ? 'Checking' : meta && hasResult ? meta.label : hasResult ? 'None mapped' : 'Unavailable'}. Safety guide`}
+                aria-haspopup="dialog"
                 className="group flex w-full items-center justify-between gap-2 rounded-lg py-2 text-left transition-colors hover:bg-page focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2">
                 <span className="flex min-w-0 items-center gap-2.5">
                   <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${color}`}><Icon className="h-4 w-4" aria-hidden="true" /></span>
                   <span className="min-w-0"><span className="block text-sm font-semibold text-primary">{name}</span><span className="mt-0.5 block text-[11px] leading-snug text-muted-foreground">{detail}</span></span>
                 </span>
-                <span className="flex shrink-0 items-center gap-1.5">
+                <span className="flex shrink-0 flex-col items-end gap-1">
                   {isCheckingLocation ? <span className="h-6 w-20 animate-pulse rounded-full bg-muted motion-reduce:animate-none" aria-hidden="true" />
                   : meta && hasResult ? <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-1 text-xs font-semibold ${meta.classes}`}>
                     <span className="flex gap-0.5" aria-hidden="true">{[1, 2, 3].map(dot => <span key={dot} className={`h-1 w-1 rounded-full bg-current ${dot > meta.dots ? 'opacity-20' : ''}`} />)}</span>{meta.label}
                   </span>
                   : <span className="shrink-0 text-[11px] font-medium text-muted-foreground">{hasResult ? 'None mapped' : 'Unavailable'}</span>}
-                  <span className="hidden items-center gap-0.5 text-[10px] font-semibold text-secondary sm:inline-flex">What to do<ChevronRight className="h-3.5 w-3.5" aria-hidden="true" /></span>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground sm:hidden" aria-hidden="true" />
+                  <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-muted-foreground transition-colors group-hover:text-secondary">
+                    What to do<ChevronRight className="h-3 w-3" aria-hidden="true" />
+                  </span>
                 </span>
               </button>;
             })}
@@ -294,29 +267,7 @@ export function HazardAssessmentModal({
         )}
       </>}
     </LocationDialog>
-    {isOpen && selectedGuidance && <Dialog isOpen onClose={() => setSelectedGuidance(null)} ariaLabelledBy={`${titleId}-guidance-title`}
-      maxWidthClass="max-w-md" panelClassName="max-h-[calc(100dvh-2rem)] overflow-y-auto p-5 sm:p-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">{selectedGuidance} preparedness</p>
-          <h2 id={`${titleId}-guidance-title`} className="mt-1 font-heading text-xl font-bold text-primary">What to do</h2>
-        </div>
-        <button type="button" onClick={() => setSelectedGuidance(null)} aria-label="Close precaution guidance"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-secondary hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-          <span aria-hidden="true">×</span>
-        </button>
-      </div>
-      <ol className="mt-4 list-decimal space-y-2.5 pl-5 text-sm leading-6 text-secondary">
-        {HAZARD_GUIDANCE[selectedGuidance].steps.map(step => <li key={step}>{step}</li>)}
-      </ol>
-      <p className="mt-4 rounded-lg bg-warning-bg px-3 py-2.5 text-xs leading-5 text-warning-text">
-        These precautions apply regardless of the mapped result. Susceptibility maps are not live warnings; follow current official advisories and local instructions.
-      </p>
-      <a href={HAZARD_GUIDANCE[selectedGuidance].href} target="_blank" rel="noopener noreferrer"
-        className="mt-4 inline-flex min-h-10 items-center rounded-lg px-2 text-sm font-semibold text-secondary underline underline-offset-2 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-        {HAZARD_GUIDANCE[selectedGuidance].source}
-      </a>
-    </Dialog>}
+    {isOpen && selectedGuidance && <HazardSafetyGuide hazard={selectedGuidance} onClose={() => setSelectedGuidance(null)} />}
     </>
   );
 }

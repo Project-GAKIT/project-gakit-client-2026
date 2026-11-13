@@ -40,6 +40,7 @@ const config: Config = {
         'panel': 'rgb(var(--surface-panel) / <alpha-value>)',
         'raised': 'rgb(var(--surface-raised) / <alpha-value>)',
         'muted': 'rgb(var(--surface-muted) / <alpha-value>)',
+        'active': 'rgb(var(--surface-active) / <alpha-value>)',
         'hover': 'rgb(var(--surface-hover) / <alpha-value>)',
         'selected': 'rgb(var(--surface-selected) / <alpha-value>)',
         'overlay': 'rgb(var(--surface-overlay) / <alpha-value>)',

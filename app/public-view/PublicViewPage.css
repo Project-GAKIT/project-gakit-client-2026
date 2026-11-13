@@ -8,6 +8,22 @@
 }
 
 @media (min-width: 768px) {
+  [data-public-map-shell] [data-map-sidebar] {
+    top: calc(var(--map-header-bottom, 74px) + var(--map-edge-gap));
+    bottom: max(var(--map-edge-gap), env(safe-area-inset-bottom, 0px));
+    max-height: none;
+    transform: none;
+    justify-content: center;
+  }
+
+  [data-public-map-shell] [data-map-sidebar][data-map-header-clear='true'] {
+    top: max(var(--map-edge-gap), env(safe-area-inset-top, 0px));
+  }
+
+  [data-public-map-shell] [data-map-sidebar] > .mobile-map-panel {
+    max-height: 100%;
+  }
+
   [data-public-map-shell] [data-map-sidebar] [data-map-card-stack] > :not([hidden]) ~ :not([hidden]) {
     margin-top: var(--map-edge-gap);
     margin-bottom: 0;

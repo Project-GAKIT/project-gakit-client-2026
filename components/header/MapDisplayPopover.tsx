@@ -59,7 +59,7 @@ export function MapDisplayPopover({ basemap, mode, showBuildings, onBasemapChang
               <div className="grid grid-cols-4 gap-1.5">
                 {BASEMAP_PREVIEWS.map(({ value, src }) => (
                   <button key={value} type="button" aria-pressed={basemap === value} onClick={() => onBasemapChange(value)}
-                    className={`group min-w-0 overflow-hidden rounded-md border text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-1 ${basemap === value ? 'border-strong shadow-sm ring-1 ring-focus' : 'border-default hover:border-default'}`}>
+                    className={`group min-w-0 overflow-hidden rounded-md border text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-1 ${basemap === value ? 'bg-active border-strong shadow-sm ring-1 ring-focus' : 'border-default hover:border-default'}`}>
                     {/* Decorative: the label below already names the button. */}
                     {/* eslint-disable-next-line @next/next/no-img-element -- tiny static WebP served directly; no optimizer roundtrip needed */}
                     <img src={src} alt="" width={256} height={160} loading="lazy" decoding="async"

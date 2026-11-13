@@ -158,7 +158,7 @@ function PillToggle({
         {onDetails && <button type="button" aria-label={`About ${label}`} aria-haspopup="dialog" onClick={onDetails} className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"><Info size={14} /></button>}
         {typeof count === 'number' && (
           <span className={`text-[10px] font-bold tabular-nums shrink-0 px-1.5 py-0.5 rounded-full ${
-            checked ? 'text-secondary bg-muted' : 'text-muted-foreground bg-page'
+            checked ? 'text-secondary bg-active' : 'text-muted-foreground bg-page'
           }`}>
             {count}
           </span>
@@ -869,7 +869,7 @@ function StormTrackSelector({
                   }}
                   className={`flex items-center justify-between w-full px-2.5 py-1.5 rounded-lg text-[11px] transition-colors text-left cursor-pointer ${
                     !selectedHistoricalStorm
-                      ? 'bg-muted font-semibold text-primary'
+                      ? 'bg-active font-semibold text-primary'
                       : 'text-secondary hover:bg-page hover:text-primary'
                   }`}
                 >
@@ -917,7 +917,7 @@ function StormTrackSelector({
                           }}
                           className={`flex items-start justify-between w-full px-2.5 py-1.5 rounded-lg text-[11px] transition-colors text-left cursor-pointer ${
                             isSelected
-                              ? 'bg-muted font-semibold text-primary'
+                              ? 'bg-active font-semibold text-primary'
                               : 'text-secondary hover:bg-page hover:text-primary'
                           }`}
                         >
@@ -1228,7 +1228,7 @@ export function DataLayerControls({
                   aria-pressed={rainfallHours === hours}
                   className={`rounded-lg py-1 text-xs font-bold transition-colors duration-150 ${
                     rainfallHours === hours
-                      ? 'bg-muted text-primary ring-1 ring-default'
+                      ? 'bg-active text-primary ring-1 ring-default'
                       : 'text-muted-foreground hover:bg-page hover:text-primary'
                   }`}
                 >

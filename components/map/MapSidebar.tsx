@@ -210,11 +210,13 @@ export function MapSidebar({
     const headers = [...document.querySelectorAll<HTMLElement>('[data-map-header]')];
     const measure = () => {
       const bounds = sidebar.getBoundingClientRect();
-      // Include the expanded panel's protruding collapse handle and a gap.
-      const right = bounds.right + (isCollapsed ? 0 : 28) + 12;
+      const shell = sidebar.closest<HTMLElement>('[data-map-shell]');
+      const gap = shell ? parseFloat(getComputedStyle(shell).getPropertyValue('--map-edge-gap')) || 12 : 12;
+      // The collapse handle sits at mid-height, outside the header's row.
+      const right = bounds.right + gap;
       setHeaderClear(window.innerWidth >= 768 && headers.every(header => {
         const headerBounds = header.getBoundingClientRect();
-        return !headerBounds.width || right <= headerBounds.left || bounds.left - 12 >= headerBounds.right;
+        return !headerBounds.width || right <= headerBounds.left || bounds.left - gap >= headerBounds.right;
       }));
     };
     const observer = new ResizeObserver(measure);
@@ -224,6 +226,40 @@ export function MapSidebar({
     measure();
     return () => { observer.disconnect(); window.removeEventListener('resize', measure); };
   }, [fullScreen, isCollapsed]);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!fullScreen || isCollapsed || !container?.closest('[data-public-map-shell]')) return;
+    const cards = [...container.children].flatMap(wrapper => {
+      const card = wrapper.querySelector<HTMLElement>('.hud-card');
+      return card ? [card] : [];
+    });
+    // Round each visible card edge, excluding the separate scrollbar gutter.
+    const roundVisibleEdges = () => {
+      const viewport = container.getBoundingClientRect();
+      cards.forEach(card => {
+        const bounds = card.getBoundingClientRect();
+        const top = Math.max(0, Math.min(bounds.height, viewport.top - bounds.top));
+        const bottom = Math.max(0, Math.min(bounds.height, bounds.bottom - viewport.bottom));
+        if (top || bottom) {
+          const radius = getComputedStyle(card).borderTopLeftRadius;
+          card.style.clipPath = `inset(${top}px 0 ${bottom}px 0 round ${radius})`;
+        } else {
+          card.style.removeProperty('clip-path');
+        }
+      });
+    };
+    const observer = new ResizeObserver(roundVisibleEdges);
+    observer.observe(container);
+    cards.forEach(card => observer.observe(card));
+    container.addEventListener('scroll', roundVisibleEdges, { passive: true });
+    roundVisibleEdges();
+    return () => {
+      observer.disconnect();
+      container.removeEventListener('scroll', roundVisibleEdges);
+      cards.forEach(card => card.style.removeProperty('clip-path'));
+    };
+  }, [fullScreen, isCollapsed, hideWeather]);
 
   const selectedOutlook = usePointOutlook();
   const currentWeather = usableCurrentWeather(selectedOutlook.data?.current ?? null);
@@ -507,6 +543,7 @@ export function MapSidebar({
     <aside
       ref={sidebarRef}
       data-map-sidebar
+      data-map-header-clear={headerClear}
       aria-label="Map Controls Sidebar"
       className={`absolute left-3 md:left-4 z-[1000] pointer-events-none transition-all duration-300 ease-in-out flex flex-col ${fullScreen ? 'mobile-map-sidebar' : ''} ${positionClass} ${maxHeightClass} ${showSimulatedFlood ? 'flood-player-clearance flood-sidebar-clearance' : ''} ${
         controlsVisible ? 'opacity-100' : 'opacity-0'

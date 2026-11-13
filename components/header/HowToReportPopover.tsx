@@ -63,7 +63,7 @@ export function HowToReportPopover({
         type="button"
         onClick={onToggle}
         className={`flex h-10 min-w-10 flex-col items-center justify-center gap-0.5 rounded-full px-1 text-[9px] font-semibold text-secondary transition-colors duration-150 hover:bg-muted hover:text-primary md:h-9 md:flex-row md:gap-1.5 md:px-2.5 md:text-[11px] ${
-          isOpen ? 'bg-muted text-primary ring-1 ring-default/80 font-bold' : ''
+          isOpen ? 'bg-active hover:bg-active text-primary ring-1 ring-default/80 font-bold' : ''
         }`}
         aria-expanded={isOpen}
         aria-controls={panelId}
