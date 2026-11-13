@@ -52,7 +52,7 @@ export function DisplayPopover({ children, className = '', placement = 'below', 
         }
         setOpen(value => !value);
       }} aria-label="Display settings" title="Display settings"
-        aria-expanded={open} aria-controls={id} className={`flex w-max shrink-0 items-center justify-center rounded-full font-semibold text-secondary transition-colors hover:bg-muted md:flex-row md:gap-1.5 md:px-2.5 md:text-[11px] ${mobileLabel ? 'flex-col gap-0.5 px-1 text-[9px]' : 'gap-1 px-2'} ${compact ? (align === 'start' ? 'h-[30px]' : 'h-8') : 'h-10 md:h-9'} ${open ? 'bg-muted text-secondary ring-1 ring-default' : ''}`}>
+        aria-expanded={open} aria-controls={id} className={`flex w-max shrink-0 items-center justify-center rounded-full font-semibold text-secondary transition-colors md:flex-row md:gap-1.5 md:px-2.5 md:text-[11px] ${mobileLabel ? 'flex-col gap-0.5 px-1 text-[9px]' : 'gap-1 px-2'} ${compact ? (align === 'start' ? 'h-[30px]' : 'h-8') : 'h-10 md:h-9'} ${open ? 'bg-active hover:bg-active text-primary ring-1 ring-default' : 'hover:bg-muted'}`}>
         <SlidersHorizontal className={`${mobileLabel ? 'h-4 w-4' : 'h-3.5 w-3.5'} shrink-0 md:hidden`} aria-hidden="true" />
         <span className={mobileLabel ? '' : 'hidden md:inline'}>Display</span>
         <ChevronDown className={`${mobileLabel ? 'hidden md:block' : ''} h-3 w-3 shrink-0 transition-transform md:h-3.5 md:w-3.5 ${open ? 'rotate-180' : ''}`} aria-hidden="true" />

@@ -13,6 +13,7 @@
   .ui-button:hover { background: rgb(var(--surface-hover)); }
   .ui-field { background: rgb(var(--surface-panel)); color: rgb(var(--text-primary)); border: 1px solid rgb(var(--border-default)); border-radius: var(--radius-control); }
   .theme-choice { background: rgb(var(--surface-panel)); border-color: rgb(var(--border-default)); color: rgb(var(--text-secondary)); }
+  .theme-choice:has(:checked) { background: rgb(var(--surface-active)); color: rgb(var(--text-primary)); }
   .theme-choice:has(:focus-visible) { outline: 2px solid rgb(var(--focus-ring)); outline-offset: 2px; }
 }
 

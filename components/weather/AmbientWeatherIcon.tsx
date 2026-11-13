@@ -52,11 +52,7 @@ export function AmbientWeatherIcon({
   if (isThunder) {
     return (
       <div
-        className={`${paused ? styles.paused : ""} flex h-9 w-9 shrink-0 items-center justify-center rounded-xl shadow-2xs ${
-          darkMode
-            ? 'bg-slate-800/90 text-amber-400 border border-slate-700/80 shadow-amber-500/10'
-            : 'bg-amber-50 text-amber-600 border border-amber-200/70'
-        } ${className}`}
+        className={`${paused ? styles.paused : ""} flex h-9 w-9 shrink-0 items-center justify-center ${darkMode ? 'text-amber-400' : 'text-amber-600'} ${className}`}
         aria-hidden="true"
       >
         <svg
@@ -85,11 +81,7 @@ export function AmbientWeatherIcon({
   if (isRain) {
     return (
       <div
-        className={`${paused ? styles.paused : ""} flex h-9 w-9 shrink-0 items-center justify-center rounded-xl shadow-2xs ${
-          darkMode
-            ? 'bg-slate-800/90 text-sky-300 border border-slate-700/80 shadow-sky-500/10'
-            : 'bg-sky-50 text-sky-600 border border-sky-200/70'
-        } ${className}`}
+        className={`${paused ? styles.paused : ""} flex h-9 w-9 shrink-0 items-center justify-center ${darkMode ? 'text-sky-300' : 'text-sky-600'} ${className}`}
         aria-hidden="true"
       >
         <svg
@@ -123,18 +115,14 @@ export function AmbientWeatherIcon({
   }
 
   if (conditionCode === 45 || conditionCode === 48) {
-    return <div aria-hidden="true" className={`${paused ? styles.paused : ''} flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${darkMode ? 'bg-slate-800/90 text-slate-200' : 'bg-slate-100 text-slate-600'} ${className}`}><CloudFog className="h-5 w-5 animate-pulse [animation-duration:6s] motion-reduce:animate-none" /></div>;
+    return <div aria-hidden="true" className={`${paused ? styles.paused : ''} flex h-9 w-9 shrink-0 items-center justify-center ${darkMode ? 'text-slate-200' : 'text-slate-600'} ${className}`}><CloudFog className="h-5 w-5 animate-pulse [animation-duration:6s] motion-reduce:animate-none" /></div>;
   }
 
   // ─── 3. Overcast (Layered Double Cloud Deck) ───────────────────────────────
   if (isOvercast) {
     return (
       <div
-        className={`${paused ? styles.paused : ""} flex h-9 w-9 shrink-0 items-center justify-center rounded-xl shadow-2xs ${
-          darkMode
-            ? 'bg-slate-800/90 text-slate-200 border border-slate-700/80 shadow-scrim/10'
-            : 'bg-slate-100 text-slate-700 border border-slate-200/80'
-        } ${className}`}
+        className={`${paused ? styles.paused : ""} flex h-9 w-9 shrink-0 items-center justify-center ${darkMode ? 'text-slate-200' : 'text-slate-700'} ${className}`}
         aria-hidden="true"
       >
         <svg
@@ -170,11 +158,7 @@ export function AmbientWeatherIcon({
     if (isDaytime) {
       return (
         <div
-          className={`${paused ? styles.paused : ""} flex h-9 w-9 shrink-0 items-center justify-center rounded-xl shadow-2xs ${
-            darkMode
-              ? 'bg-slate-800/90 text-amber-400 border border-slate-700/80 shadow-amber-500/10'
-              : 'bg-amber-50/80 text-amber-600 border border-amber-200/70'
-          } ${className}`}
+          className={`${paused ? styles.paused : ""} flex h-9 w-9 shrink-0 items-center justify-center ${darkMode ? 'text-amber-400' : 'text-amber-600'} ${className}`}
           aria-hidden="true"
         >
           <svg
@@ -223,11 +207,7 @@ export function AmbientWeatherIcon({
 
     return (
       <div
-        className={`${paused ? styles.paused : ""} flex h-9 w-9 shrink-0 items-center justify-center rounded-xl shadow-2xs ${
-          darkMode
-            ? 'bg-slate-800/90 text-indigo-300 border border-slate-700/80 shadow-indigo-500/10'
-            : 'bg-indigo-50/80 text-indigo-400 border border-indigo-200/70'
-        } ${className}`}
+        className={`${paused ? styles.paused : ""} flex h-9 w-9 shrink-0 items-center justify-center ${darkMode ? 'text-indigo-300' : 'text-indigo-400'} ${className}`}
         aria-hidden="true"
       >
         <svg
@@ -263,11 +243,7 @@ export function AmbientWeatherIcon({
     if (isDaytime) {
       return (
         <div
-          className={`${paused ? styles.paused : ""} flex h-9 w-9 shrink-0 items-center justify-center rounded-xl shadow-2xs ${
-            darkMode
-              ? 'bg-slate-800/90 text-amber-400 border border-slate-700/80 shadow-amber-500/10'
-              : 'bg-amber-50 text-amber-500 border border-amber-200/70'
-          } ${className}`}
+          className={`${paused ? styles.paused : ""} flex h-9 w-9 shrink-0 items-center justify-center ${darkMode ? 'text-amber-400' : 'text-amber-500'} ${className}`}
           aria-hidden="true"
         >
           <svg
@@ -304,11 +280,7 @@ export function AmbientWeatherIcon({
 
     return (
       <div
-        className={`${paused ? styles.paused : ""} flex h-9 w-9 shrink-0 items-center justify-center rounded-xl shadow-2xs ${
-          darkMode
-            ? 'bg-slate-800/90 text-indigo-200 border border-slate-700/80 shadow-indigo-500/10'
-            : 'bg-indigo-50 text-indigo-500 border border-indigo-200/70'
-        } ${className}`}
+        className={`${paused ? styles.paused : ""} flex h-9 w-9 shrink-0 items-center justify-center ${darkMode ? 'text-indigo-200' : 'text-indigo-500'} ${className}`}
         aria-hidden="true"
       >
         <svg
@@ -342,11 +314,7 @@ export function AmbientWeatherIcon({
   // ─── Fallback (Generic Cloud) ──────────────────────────────────────────────
   return (
     <div
-      className={`${paused ? styles.paused : ""} flex h-9 w-9 shrink-0 items-center justify-center rounded-xl shadow-2xs ${
-        darkMode
-          ? 'bg-slate-800/90 text-slate-200 border border-slate-700/80'
-          : 'bg-slate-100 text-slate-600 border border-slate-200/80'
-      } ${className}`}
+      className={`${paused ? styles.paused : ""} flex h-9 w-9 shrink-0 items-center justify-center ${darkMode ? 'text-slate-200' : 'text-slate-600'} ${className}`}
       aria-hidden="true"
     >
       <svg

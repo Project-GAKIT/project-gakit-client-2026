@@ -45,11 +45,11 @@ export function UserNavMenu({
           isMobileNav
             ? `relative flex w-full flex-col items-center justify-center gap-1 rounded-xl px-2 py-1.5 transition-all duration-150 active:scale-95 ${
                 isOpen
-                  ? 'bg-muted text-primary font-bold'
+                  ? 'bg-active text-primary font-bold'
                   : 'text-muted-foreground hover:bg-page hover:text-primary active:bg-muted'
               }`
             : `flex h-10 min-w-10 flex-col items-center justify-center gap-0.5 rounded-full px-1 text-[9px] font-semibold text-secondary transition-all duration-150 hover:bg-muted hover:text-primary active:scale-95 md:h-9 md:flex-row md:gap-1.5 md:px-2.5 md:text-[11px] ${
-                isOpen ? 'bg-muted text-primary ring-1 ring-default/80 font-bold' : ''
+                isOpen ? 'bg-active hover:bg-active text-primary ring-1 ring-default/80 font-bold' : ''
               }`
         }
         aria-expanded={isOpen}
