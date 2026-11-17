@@ -4,6 +4,9 @@ const nextConfig = {
   // standalone value crashes the Vercel build (ENOENT next-server.js.nft.json).
   // Keep standalone only for non-Vercel (Docker) deploys.
   output: process.env.VERCEL ? undefined : 'standalone',
+  experimental: {
+    agentUpgrade: 'security',
+  },
   images: {
     // Allow the explicit quality={70} used in a couple of images instead of
     // being coerced to the Next 16 default of 75.
